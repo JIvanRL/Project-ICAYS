@@ -1,0 +1,12 @@
+##Crear una nueva rama##
+ git branch nombre rama
+##Establecerse en la nueva rama##
+ git checkout nombre rama
+##Subir la rama##
+ git push -u origin nombre rama
+##Si  error en tu correo-solucion##
+configura el correo 
+git config --global user.email "ejemplo@gmail.com"
+##Tu usuario##
+ git config --global user.name "usuario"
+
