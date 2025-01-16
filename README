@@ -10,3 +10,5 @@ git config --global user.email "ejemplo@gmail.com"
 ##Tu usuario##
  git config --global user.name "usuario"
 
+ 
+ #puto el que lo lea
