@@ -1,0 +1,39 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inicio</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <div id="wrapper">
+
+        <form name="login-form" class="login-form" action="{% url 'microbiologyll'%}" method="get">
+        
+            <div class="header">
+                <div class="col-auto" style="text-align: center;">
+                    <img src="{% static 'images/ICAYS_1.png' %}" class="img-fluid" alt="Logo" style="max-width: 60px;">
+                  </div>
+            <h1 style="text-align: center;">Bienvenido</h1>
+            </div>
+        
+            <div class="content">
+            <input name="username" type="text" class="input username" placeholder="Username" />
+            <div class="user-icon"></div>
+            <input name="password" type="password" class="input password" placeholder="Password" />
+            <div class="pass-icon"></div>		
+            </div>
+    
+            <div class="footer">
+            <input type="submit" name="submit" value="Inciar" class="button" />
+            <br>
+            <br>
+            
+            </div>
+        </form>  
+    </div>
+    <div class="gradient"></div>
+</body>
+</html>

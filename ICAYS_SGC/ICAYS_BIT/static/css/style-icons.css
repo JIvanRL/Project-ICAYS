@@ -1,0 +1,89 @@
+
+.main-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start; /* Los elementos se alinean arriba */
+    align-items: center;
+    padding: 10px; /* Reducido a 10px */
+    box-sizing: border-box;
+}
+
+.top-row, .bottom-row {
+    display: flex;
+    justify-content: center;
+    gap: 100px;
+    margin-bottom: 30px; /* Reducido a 30px */
+    width: 100%;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.top-row {
+    margin-top: 20px; /* Espacio reducido entre el navbar y la primera fila */
+}
+
+.icon-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    width: 180px;
+}
+
+.icon-container img {
+    width: 100px;
+    height: 100px;
+}
+
+.icon-container img[alt="Bitácoras guardadas"] {
+    width: 80px;
+    height: 80px;
+}
+
+.icon-text {
+    text-align: center;
+    font-weight: normal;
+    margin-top: 10px;
+}
+
+@media (max-width: 768px) {
+    .top-row, .bottom-row {
+        flex-direction: column;
+        gap: 40px;
+        margin-bottom: 20px; /* Reducido para móviles */
+    }
+
+    .icon-container {
+        width: 100%;
+        max-width: 200px;
+    }
+}
+.button-style {
+    display: inline-block;
+    text-align: center;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 10px;
+    background-color: #f8f9fa;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.button-style:hover {
+    background-color: #ffffff !important;
+    color: white;
+    transform: scale(1.05);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+}
+
+.button-style img {
+    width: 100px;
+    height: 100px;
+}
+
+.icon-text {
+    margin-top: 5px;
+}

@@ -1,0 +1,6 @@
+#Entorno virtual
+Ivan
+
+#Archivos de configuracion local
+*.env
+*.pyc
