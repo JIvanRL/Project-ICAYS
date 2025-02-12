@@ -8,5 +8,7 @@ def app(request):
 
 def microbiologyll(request):
   return render(request, 'areas/microbiologyll/microbiologyll.html')
+def registerNewBita(request):
+  return render(request, 'areas/microbiologyll/views/registerBita.html')
 
   

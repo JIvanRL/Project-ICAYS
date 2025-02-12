@@ -1,0 +1,131 @@
+{% extends 'template-inicio/base.html' %}
+{% load static %}
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex flex-wrap justify-content-between align-items-center">
+        <!-- Botón "Regresar" alineado a la izquierda -->
+        <button class="icon-container button-style custom-button mb-2" data-url="{% url 'microbiologyll' %}">Regresar</button>
+    
+        <!-- Botones alineados a la derecha -->
+        <div class="d-flex flex-wrap gap-2">
+            <button class="enviar-custom custom-button" data-url="{% url 'microbiologyll' %}">Enviar</button>
+            <button class="cancelar-custom custom-button" data-url="{% url 'microbiologyll' %}">Cancelar</button>
+            <button class="guardar-custom custom-button" data-url="{% url 'microbiologyll' %}">Guardar</button>
+        </div>
+    </div>
+    <div class="col-auto">
+        <h1>Cuenta de bacterias aerobias en placa</h1>
+    </div>
+      <div class="col-6">
+            <div class="form-floating mb-2">
+                <input type="date" class="form-control" id="floatingInput" placeholder="Fecha">
+                <label for="floatingInput">Fecha de siembra</label>
+                </div>
+                <div class="form-floating">
+                <input type="hour" class="form-control" id="floatingPassword" placeholder="Hora">
+                <label for="floatingPassword">Hora de siembra</label>
+                </div>
+            </div>
+      </div>
+
+    <div class="table-container">
+        
+        <table class="micro-table">
+            <caption style="caption-side: top; text-align: center; font-size: 1.5em; font-weight: bold; padding: 10px; background-color: #063970; color: white;">
+                Tabla de Resultados
+            </caption>
+            <thead>
+                <tr>
+                    <th rowspan="2">Clave Muestra</th>
+                    <th rowspan="2">Cantidad de muestra</th>
+                    <th colspan="4">Diluciones empleadas</th>
+                    <th colspan="2">Dilución o Directa</th>
+                    <th rowspan="2">Promedio</th> <!-- Columna 4: Promedio -->
+                    <th colspan="2">Dilución</th> <!-- Columnas 5 y 6 -->
+                    <th rowspan="2">Promedio</th> <!-- Columna 7: Promedio entre Diluciones -->
+                    <th colspan="2">Dilución</th> <!-- Columnas 8 y 9 -->
+                    <th rowspan="2">Promedio</th> <!-- Columna 10: Promedio después de la segunda Dilución -->
+                    <th colspan="2">Resultado</th> <!-- Columna 11: Subcolumnas sin título -->
+                    <th rowspan="2">Diferencia entre duplicados <5%</th>
+                </tr>
+                <tr>
+                    <!-- Subencabezados para diluciones empleadas -->
+                    <th>10-1</th>
+                    <th>10-2</th>
+                    <th>10-3</th>
+                    <th>10-4</th>
+                    <!-- Subencabezados para Dilución o Directa -->
+                    <th>Placa 1</th>
+                    <th>Placa 2</th>
+                    <!-- Subencabezados para Dilución (columnas 5 y 6) -->
+                    <th>Placa 1</th>
+                    <th>Placa 2</th>
+                    <!-- Subencabezados para Dilución (columnas 8 y 9) -->
+                    <th>Placa 1</th>
+                    <th>Placa 2</th>
+                </tr>
+            </thead>
+            <tbody id="tabla-body">
+                <!-- Fila adicional debajo de los títulos -->
+                <tr>
+                    <td><input type="text" value="Blanco" readonly></td> <!-- No editable -->
+                    <td><input type="text" name="cantidad_blanco[]"></td>
+                    <td><input type="text" name="dil1_blanco[]"></td>
+                    <td><input type="text" name="dil2_blanco[]"></td>
+                    <td><input type="text" name="dil3_blanco[]"></td>
+                    <td><input type="text" name="dil4_blanco[]"></td>
+                    <td><input type="text" name="dir_placa1_blanco[]"></td>
+                    <td><input type="text" name="dir_placa2_blanco[]"></td>
+                    <td><input type="text" name="promedio1_blanco[]"></td>
+                    <td><input type="text" name="dil_placa1_blanco[]"></td>
+                    <td><input type="text" name="dil_placa2_blanco[]"></td>
+                    <td><input type="text" name="promedio2_blanco[]"></td>
+                    <td><input type="text" name="dil_placa1_dup_blanco[]"></td>
+                    <td><input type="text" name="dil_placa2_dup_blanco[]"></td>
+                    <td><input type="text" name="promedio3_blanco[]"></td>
+                    <!-- Subcolumnas de "Resultado" -->
+                    <td><input type="text" name="resultado_blanco[]"></td> <!-- Editable -->
+                    <td><input type="text" value="UFC/placa" readonly></td> <!-- No editable en "Blanco" -->
+                    <td><input type="text" name="diferencia_blanco[]"></td>
+                </tr>
+                <!-- Fila principal de inputs -->
+                <tr>
+                    <td><input type="text" name="clave[]"></td>
+                    <td><input type="text" name="cantidad[]"></td>
+                    <td><input type="text" name="dil1[]"></td>
+                    <td><input type="text" name="dil2[]"></td>
+                    <td><input type="text" name="dil3[]"></td>
+                    <td><input type="text" name="dil4[]"></td>
+                    <td><input type="text" name="dir_placa1[]"></td>
+                    <td><input type="text" name="dir_placa2[]"></td>
+                    <td><input type="text" name="promedio1[]"></td>
+                    <td><input type="text" name="dil_placa1[]"></td>
+                    <td><input type="text" name="dil_placa2[]"></td>
+                    <td><input type="text" name="promedio2[]"></td>
+                    <td><input type="text" name="dil_placa1_dup[]"></td>
+                    <td><input type="text" name="dil_placa2_dup[]"></td>
+                    <td><input type="text" name="promedio3[]"></td>
+                    <!-- Subcolumnas de "Resultado" -->
+                    <td><input type="text" name="resultado[]"></td> <!-- Editable -->
+                    <td><input type="text" name="ufc_placa[]"></td> <!-- Editable -->
+                    <td><input type="text" name="diferencia[]"></td>
+                </tr>
+                <!-- Se pueden agregar más filas de inputs si es necesario -->
+            </tbody>
+        </table>
+    </div>
+  <!-- Contenedor de los botones, centrado y con espacio entre ellos -->
+<div class="d-flex justify-content-center gap-3">
+    <!-- Botón para agregar filas -->
+    <button id="add-row-btn" class="btn btn-success">
+        <i class="bi bi-plus-circle"></i> Agregar fila
+    </button>
+
+    <!-- Botón para eliminar filas -->
+    <button id="remove-row-btn" class="btn btn-danger">
+        <i class="bi bi-dash-circle"></i> Quitar fila
+    </button>
+</div>
+
+</div>
+{% endblock %}

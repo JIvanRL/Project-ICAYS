@@ -4,3 +4,4 @@ Ivan
 #Archivos de configuracion local
 *.env
 *.pyc
+db.sqlite3
