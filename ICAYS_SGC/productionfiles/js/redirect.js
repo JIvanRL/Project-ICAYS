@@ -22,50 +22,51 @@ document.addEventListener('DOMContentLoaded', function () {
 
     addRowBtn.addEventListener('click', function () {
         // Crear la nueva fila
-        var newRow = document.createElement('tr');
+        
+            var newRow = document.createElement('tr');
 
-        // Array con los nombres de los campos (ajusta según tu tabla)
-        var campos = [
-            'clave', 'cantidad', 'dil1', 'dil2', 'dil3', 'dil4',
-            'dir_placa1', 'dir_placa2', 'promedio1', 'dil_placa1',
-            'dil_placa2', 'promedio2', 'dil_placa1_dup', 'dil_placa2_dup',
-            'promedio3', 'resultado', 'ufc_placa', 'diferencia'
-        ];
+            // Array con los nombres de los campos (ajusta según tu tabla)
+            var campos = [
+                'clave', 'cantidad', 'dil1', 'dil2', 'dil3', 'dil4',
+                'dir_placa1', 'dir_placa2', 'promedio1', 'dil_placa1',
+                'dil_placa2', 'promedio2', 'dil_placa1_dup', 'dil_placa2_dup',
+                'promedio3', 'resultado', 'ufc_placa', 'diferencia'
+            ];
 
-        // Crear las celdas de la fila
-        campos.forEach((campo, index) => {
-            var newCell = document.createElement('td');
+            // Crear las celdas de la fila
+            campos.forEach((campo, index) => {
+                var newCell = document.createElement('td');
 
-            if (campo === 'ufc_placa') {
-                // Celda para "UFC/placa" (editable en nuevas filas)
-                var inputUFC = document.createElement('input');
-                inputUFC.type = 'text';
-                inputUFC.name = 'ufc_placa[]'; // Nombre del campo
-                // inputUFC.readOnly = true; // Comentado para que sea editable
-                newCell.appendChild(inputUFC);
-            } else if (campo === 'resultado') {
-                // Celda para "Resultado" (editable)
-                var inputResultado = document.createElement('input');
-                inputResultado.type = 'text';
-                inputResultado.name = 'resultado[]'; // Nombre del campo
-                newCell.appendChild(inputResultado);
-            } else {
-                // Para el resto de las celdas, creamos un input normal
-                var input = document.createElement('input');
-                input.type = 'text';
-                input.name = `${campo}[]`; // Nombre del campo
-                newCell.appendChild(input);
-            }
+                if (campo === 'ufc_placa') {
+                    // Celda para "UFC/placa" (editable en nuevas filas)
+                    var inputUFC = document.createElement('input');
+                    inputUFC.type = 'text';
+                    inputUFC.name = 'ufc_placa[]'; // Nombre del campo
+                    newCell.appendChild(inputUFC);
+                } else if (campo === 'resultado') {
+                    // Celda para "Resultado" (editable)
+                    var inputResultado = document.createElement('input');
+                    inputResultado.type = 'text';
+                    inputResultado.name = 'resultado[]'; // Nombre del campo
+                    newCell.appendChild(inputResultado);
+                } else {
+                    // Para el resto de las celdas, creamos un input normal
+                    var input = document.createElement('input');
+                    input.type = 'text';
+                    input.name = `${campo}[]`; // Nombre del campo
+                    newCell.appendChild(input);
+                }
 
-            // Añadir la celda a la fila
-            newRow.appendChild(newCell);
-        });
+                // Añadir la celda a la fila
+                newRow.appendChild(newCell);
+            });
 
-        // Añadir la nueva fila al cuerpo de la tabla
-        tableBody.appendChild(newRow);
+            // Añadir la nueva fila al cuerpo de la tabla
+            tableBody.appendChild(newRow);
 
-         // Habilitar el botón de eliminar fila
-         removeRowBtn.disabled = false;
+             // Habilitar el botón de eliminar fila
+             removeRowBtn.disabled = false;
+        
     });
 
     // Hacer que la celda "UFC/placa" en la fila inicial sea no editable
@@ -77,8 +78,9 @@ document.addEventListener('DOMContentLoaded', function () {
             celdaUFC.value = 'UFC/placa'; // Asignar el valor estático solo en la fila inicial
         }
     }
-     // Función para eliminar la última fila
-     removeRowBtn.addEventListener('click', function () {
+
+    // Función para eliminar la última fila
+    removeRowBtn.addEventListener('click', function () {
         var rows = tableBody.getElementsByTagName('tr');
         
         // Si hay más de una fila (para no borrar la fila de "Blanco"), eliminar la última
@@ -91,4 +93,26 @@ document.addEventListener('DOMContentLoaded', function () {
             removeRowBtn.disabled = true;
         }
     });
+
+    // Funcionalidad para mostrar/ocultar contenido con el botón
+    const toggleButton = document.getElementById("toggleFormulario");
+
+    toggleButton.addEventListener("click", function () {
+        console.log("🔘 Botón clickeado!");
+        let formulario = document.getElementById("contenidoOculto");
+        let icono = this.querySelector("i"); // Selecciona el ícono dentro del botón
+
+        if (formulario.classList.contains("oculto")) {
+            formulario.classList.remove("oculto");
+            // Cambiar el ícono a una flecha hacia arriba (para ocultar)
+            icono.classList.remove("bi-arrow-down-circle");
+            icono.classList.add("bi-arrow-up-circle");
+        } else {
+            formulario.classList.add("oculto");
+            // Cambiar el ícono a una flecha hacia abajo (para mostrar)
+            icono.classList.remove("bi-arrow-up-circle");
+            icono.classList.add("bi-arrow-down-circle");
+        }
+    });
+       
 });

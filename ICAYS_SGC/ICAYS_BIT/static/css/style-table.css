@@ -147,4 +147,35 @@ h1 {
   margin-top: 20px; /* Espacio arriba del título */
   margin-bottom: 20px; /* Espacio debajo del título */
 }
+.tabla-firmas {
+  width: 50%; /* Ajusta el ancho de la tabla */
+  min-width: 300px; /* Evita que sea demasiado pequeña */
+  border: 2px solid black; /* Bordes más gruesos */
+}
 
+.tabla-firmas th,
+.tabla-firmas td {
+  padding: 15px; /* Más espacio en las celdas */
+  border: 2px solid black;
+}
+
+.firma {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.firma hr {
+  width: 80%;
+  border: 1px solid black;
+  margin-bottom: 5px;
+}
+
+.firma span {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.oculto {
+  display: none;
+}

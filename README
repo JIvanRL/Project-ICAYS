@@ -11,4 +11,14 @@ git config --global user.email "ejemplo@gmail.com"
  git config --global user.name "usuario"
 
  
- #puto el que lo lea
+# Ver el estado de los archivos
+git status
+
+# Agregar los cambios al área de preparación
+git add nombre_del_archivo.ext
+
+# Confirmar los cambios
+git commit -m "Descripción de los cambios realizados"
+
+# Subir los cambios al repositorio remoto (si tienes uno configurado)
+git push origin main
