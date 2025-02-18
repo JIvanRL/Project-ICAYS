@@ -1,8 +1,11 @@
 from django.urls import path
-from . import views
+from .views import login_view, vistaAnalista, registerNewBita
 
 urlpatterns = [
-    path('ICAYS_BIT/', views.app, name='ICAYS_BIT'),
-    path('areas/microbiologyll/', views.microbiologyll, name='microbiologyll'),
-    path('microbiologyll/registerBita/', views.registerNewBita, name='registerBita'),
+    # URL para la página de inicio de sesión
+    path('', login_view, name='login'),
+    # URL para la vista de microbiología
+    path('areas/microbiologyll/', vistaAnalista, name='microbiologyll'),
+     # URL para la vista de registro de bitácora
+    path('microbiologyll/registerBita/', registerNewBita, name='registerBita'),
 ]

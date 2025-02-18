@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -23,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-q*ryf%qrfk#%$*rvq=&ki(0@r2fj-kgiub*xud-0&dyj1-bncn'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
@@ -56,7 +57,7 @@ ROOT_URLCONF = 'ICAYS_SGC.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'ICAYS_SGC/templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -70,15 +71,36 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'ICAYS_SGC.wsgi.application'
-
-
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
+# Configuración del modelo de usuario personalizado
+AUTH_USER_MODEL = 'ICAYS_BIT.CustomUser'
+
+# URLs de autenticación
+LOGIN_URL = 'login'  # Nombre de la URL de la vista de login
+LOGIN_REDIRECT_URL = 'micriobiologyll'  # URL a la que redirigir después del login
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:8000/',  # Agrega la URL de tu entorno de desarrollo
+]
+# Database
+# https://docs.djangoproject.com/en/5.1/ref/settings/#databases
+# Backends de autenticación
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+]
+
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'db_bits',  # Nombre de la base de datos que creaste en phpMyAdmin
+        'USER': 'root',             # Usuario de MySQL (por defecto es 'root' en XAMPP)
+        'PASSWORD': '',             # Contraseña de MySQL (por defecto está vacía en XAMPP)
+        'HOST': 'localhost',       # Host de la base de datos
+        'PORT': '3306',            # Puerto de MySQL (por defecto es 3306)
+        'OPTIONS': {
+            'sql_mode': 'STRICT_ALL_TABLES',  # Activa el modo estricto
+        },
     }
 }
 

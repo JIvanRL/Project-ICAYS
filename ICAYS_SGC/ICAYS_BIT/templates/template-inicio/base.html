@@ -50,18 +50,26 @@
                                 </h1>
                             </div>
                         </li> 
-                        <div style="width: 17rem;"></div>
+                        <div style="flex-grow: 1"></div>
+                        <div class="flex-grow: 1">
+                            <p class="p-1 mb-1"> <!-- mb-1 para reducir el margen inferior -->
+                                {{ user.first_name }} {{ user.last_name }}
+                            </p>
+                            <p class="p-1 mb-1"> <!-- mb-1 para reducir el margen inferior -->
+                                {{ user.area_user.name_area }}
+                            </p>
+                            <p class="p-1 mb-0"> <!-- mb-0 para eliminar el margen inferior del último elemento -->
+                                {{ user.rol_user.name_rol }}
+                            </p>
+                        </div>
                         <li class="nav-item" style="text-align: left; position: relative;">
-                            <!-- Ícono de usuario -->
-                            <div class="navbar-nav ms-auto">
+                            <!-- Ícono de usuario -->            
                                 <a class="nav-link d-flex align-items-center" href="#" style="color: white;">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-person-circle me-2" viewBox="0 0 16 16">
                                         <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
                                         <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/>
                                     </svg>
-                                    <span>Nombre del Usuario</span>
                                 </a>
-                            </div>
                         </li>
                         
                     </ul>
