@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
@@ -50,5 +50,9 @@ def vistaAnalista(request):
 @login_required
 def registerNewBita(request):
   return render(request, 'areas/microbiologyll/views/registerBita.html')
-
+#Cerrar sesion
+def logout_view(request):
+    logout(request)
+    messages.success(request, 'Has cerrado sesión correctamente.')
+    return redirect('login')
   
