@@ -1,0 +1,35 @@
+/* Contenedor de búsqueda para bitacoras analiticas*/
+.search-container {
+    display: flex;
+    align-items: center;
+    max-width: 400px; /* Ancho máximo del contenedor */
+    margin: 20px auto; /* Centrar el contenedor */
+    border: 1px solid #ccc; /* Borde del contenedor */
+    border-radius: 25px; /* Bordes redondeados */
+    overflow: hidden; /* Evita que los elementos se salgan del contenedor */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Sombra suave */
+}
+
+/* Input de búsqueda */
+.search-input {
+    flex-grow: 1; /* Ocupa todo el espacio disponible */
+    padding: 10px 15px; /* Espacio interno */
+    border: none; /* Sin borde */
+    outline: none; /* Sin contorno al hacer clic */
+    font-size: 16px; /* Tamaño de la fuente */
+}
+
+/* Botón de búsqueda */
+.search-button {
+    padding: 10px 15px; /* Espacio interno */
+    background-color: #007bff; /* Color de fondo */
+    color: white; /* Color del ícono */
+    border: none; /* Sin borde */
+    cursor: pointer; /* Cambia el cursor al pasar sobre el botón */
+    transition: background-color 0.3s ease; /* Transición suave */
+}
+
+/* Efecto al pasar el mouse sobre el botón */
+.search-button:hover {
+    background-color: #0056b3; /* Cambia el color de fondo */
+}

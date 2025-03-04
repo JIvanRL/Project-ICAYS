@@ -110,6 +110,7 @@ td.resultado {
   transition: background-color 0.3s, color 0.3s; /* Para transición suave en el hover */
 }
 
+
 .custom-button:hover {
   background-color: white;  /* El fondo se vuelve blanco */
   color: black; /* El texto se vuelve negro */

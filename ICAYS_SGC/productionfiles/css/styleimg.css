@@ -1,0 +1,5 @@
+.imgConst {
+    width: 100%; /* La imagen ocupará el 100% del ancho de su contenedor */
+    height: auto; /* Mantiene la proporción de la imagen */
+    max-width: 500px; /* Establece un ancho máximo */
+}

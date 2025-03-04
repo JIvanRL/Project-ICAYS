@@ -1,0 +1,8 @@
+.btnC {
+    border-radius: 50%; /* Hace que el botón sea completamente redondo */
+    padding: 10px 20px; /* Ajusta el padding según sea necesario */
+    border: 1px solid #ccc; /* Estilo de borde (opcional) */
+    background-color: #007bff; /* Color de fondo (opcional) */
+    color: white; /* Color del texto (opcional) */
+    cursor: pointer; /* Cambia el cursor al pasar sobre el botón */
+}

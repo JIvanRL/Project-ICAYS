@@ -1,0 +1,69 @@
+/* Contenedor con margen */
+.espacio {
+    margin-top: 30px; 
+    margin: 10px;/* Espacio entre el div y los bordes de la página */
+    border: 1px solid #fafafa; /* Borde opcional para visualizar el div */
+    padding: 10px; /* Espacio interno del div */
+}
+
+.contenedor {
+    margin: 10px; /* Espacio entre el div y los bordes de la página */
+    border: 1px solid #fafafa; /* Borde opcional para visualizar el div */
+    padding: 10px; /* Espacio interno del div */
+}
+
+/* Botón que ocupa todo el ancho del div */
+.boton-completo {
+    width: 100%; /* Ocupa el 100% del ancho del contenedor */
+    padding: 15px; /* Espacio interno del botón */
+    background-color: #063970; /* Color de fondo */
+    color: white; /* Color del texto */
+    border: none; /* Sin borde */
+    border-radius: 5px; /* Bordes redondeados */
+    font-size: 20px; /* Tamaño de la fuente */
+    cursor: pointer; /* Cambia el cursor al pasar sobre el botón */
+}
+
+
+/* Efecto al pasar el mouse sobre el botón */
+.boton-completo:hover {
+    background-color: #0056b3; /* Cambia el color de fondo */
+}
+
+/* Aqui empieza el css de VistaAnalaitica*/
+
+.boton-completoA {
+    width: 100%; /* Ocupa el 100% del ancho del contenedor */
+    padding: 15px; /* Espacio interno del botón */
+    background-color: #063970; /* Color de fondo */
+    color: white; /* Color del texto */
+    border: none; /* Sin borde */
+    border-radius: 5px; /* Bordes redondeados */
+    font-size: 20px; /* Tamaño de la fuente */
+    cursor: pointer; /* Cambia el cursor al pasar sobre el botón */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.izquierda {
+    text-align: left; /* Alinea el texto a la izquierda */
+    margin-right: 10px; /* Espacio entre el texto izquierdo y el centro */
+}
+
+.centro {
+    text-align: center; /* Alinea el texto al centro */
+    flex-grow: 1; /* Ocupa el espacio restante */
+    margin: 5px 0; /* Espacio vertical entre líneas */
+}
+
+.derecha {
+    text-align: right; /* Alinea el texto a la derecha */
+    margin-left: 10px;
+    white-space: pre; /* Conserva los espacios en blanco */
+}
+
+.boton-completoA:hover {
+    background-color: #0056b3; /* Cambia el color de fondo */
+}

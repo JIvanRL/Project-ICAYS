@@ -1,4 +1,3 @@
-
 .main-container {
     min-height: 100vh;
     display: flex;
@@ -21,7 +20,7 @@
 }
 
 .top-row {
-    margin-top: 20px; /* Espacio reducido entre el navbar y la primera fila */
+    margin-top: 80px; /* Espacio reducido entre el navbar y la primera fila */
 }
 
 .icon-container {
@@ -37,10 +36,7 @@
     height: 100px;
 }
 
-.icon-container img[alt="Bitácoras guardadas"] {
-    width: 80px;
-    height: 80px;
-}
+
 
 .icon-text {
     text-align: center;

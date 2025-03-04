@@ -1,0 +1,60 @@
+
+
+label {
+    font-weight: bold; /* Hace el texto en negrita */
+    color: black; /* Cambia el color del texto a negro */
+    padding-right: 10px; /* Agrega algo de espacio alrededor del texto */
+  }
+
+
+input[type="text"] {
+    padding-left: 4px; 
+    border: 2px solid #000000; 
+    border-radius: 5px;
+  }
+
+.centrar {
+    padding-left: 5%; 
+    margin-top: 50px;
+}
+
+.centrar div {
+    display: flex; /* Hace que los label e input estén en línea */
+    align-items: center; /* Alinea verticalmente los label e input */
+  }
+
+
+  @media (max-width: 820px) {
+    
+    label[for="apellidosON"] {
+        padding-left: 0 !important; /* Esto sobrescribe cualquier estilo previo */
+      }
+
+    input[for="nombreON"]{
+        padding-right: 10px;
+    }
+
+    .centrar {
+      flex-direction: column; /* Apila los elementos de forma vertical */
+      align-items: flex-start; /* Alinea los elementos a la izquierda */
+      margin-top: 10px;
+    }
+
+    .centrar input {
+        width: 20%; /* Hace que los inputs ocupen el 100% del ancho */
+      }
+  }
+
+
+.checkbox-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* Dos columnas de igual tamaño */
+    gap: 10px; /* Espacio entre los elementos */
+}
+.checkbox-grid label {
+    display: block; /* Asegura que cada label ocupe una celda completa */
+}
+
+.area-checkbox:disabled + label {
+  color: #ccc; /* Cambia el color del texto de los checkboxes deshabilitados */
+}

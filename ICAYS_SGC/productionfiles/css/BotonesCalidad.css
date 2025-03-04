@@ -1,0 +1,30 @@
+.btnC {
+    background: #063970;
+    font-size: 18px;
+    color: white; /* La letra será blanca por defecto */
+    border: none;
+    padding: 10px 10px;
+    border-radius: 50%;
+    margin-top: 20px; /* Añadido para separar el botón un poco más abajo */
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s; /* Para transición suave en el hover */
+}
+
+.btnC:hover {
+    background-color: rgb(255, 255, 255);  /* El fondo se vuelve blanco */
+    color: black; /* El texto se vuelve negro */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Añadir sombra sutil al pasar el mouse */
+    border: 1px solid rgb(252, 4, 0)
+  }
+  
+  .btnC:focus {
+    outline: none; /* Elimina el borde azul al hacer foco */
+  }
+  
+
+.botnesJ {
+    display: flex; /* Activa Flexbox */
+    justify-content: flex-end;  /* Alinea los botones a la derecha */
+    gap: 20px; /* Espacio entre los botones */
+    padding: 10px; /* Espacio interno (opcional) */
+}

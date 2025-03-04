@@ -171,10 +171,9 @@ CONTENT
 	left: 0px;
 	padding-right: 2px;
 	z-index: -1;
-	
 	-moz-border-radius-topleft: 5px;
 	-moz-border-radius-bottomleft: 5px;
-	-webkit-border-top-left-radius: 5px;
+    -webkit-border-top-left-radius: 5px;
 	-webkit-border-bottom-left-radius: 5px;
 }
 
@@ -285,4 +284,4 @@ FOOTER
 .login-form .footer .register:focus {
 	position: relative;
 	bottom: -1px;
-}
+} 

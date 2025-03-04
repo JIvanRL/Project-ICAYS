@@ -6,9 +6,6 @@ from login.views import role_required
 @role_required('Analista')
 def vistaAnalista(request):
   return render(request, 'microbiologyll.html')
-@login_required
-def registerNewBita(request):
-  return render(request, 'registerBita.html')
 
 @login_required
 @role_required('Analista')
@@ -30,5 +27,6 @@ def paginasNo(request):
 def cuentademohosylevaduras(request):
   return render(request, 'FP133.html')
 
-
+def registerNewBita(request):
+  return render(request, 'registerBita.html')
   
