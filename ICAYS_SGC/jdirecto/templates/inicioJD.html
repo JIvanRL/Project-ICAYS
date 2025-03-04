@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="main-container">
+
+    <div  class="top-row">
+
+        <button class="icon-container button-style" id="nuevo-registro-btn">
+            <img src="{% static 'JD/iconos/agregar.png' %}" class="img-fluid" alt="Nuevo registro">
+            <div class="icon-text" style="font-size: 18px; color: black;">Nuevo registro</div>
+        </button>
+
+        <button class="icon-container button-style" id="nuevo-registro-btn">
+            <img src="{% static 'JD/iconos/salvado.png' %}" class="img-fluid" alt="Bitácoras guardadas">
+            <div class="icon-text" style="font-size: 18px; color: black;">Bitácoras guardadas</div>
+        </button>
+    
+        <button class="icon-container button-style" id="nuevo-registro-btn">
+            <img src="{% static 'JD/iconos/barra-de-carga.png' %}" class="img-fluid" alt="Bitácoras en revisión">
+            <div class="icon-text" style="font-size: 18px; color: black;">Bitácoras en revisión</div>
+        </button>
+
+        <button class="icon-container button-style" id="nuevo-registro-btn">
+            <img src="{% static 'JD/iconos/rechazado.png' %}" class="img-fluid" alt="Bitácoras rechazadas">
+            <div class="icon-text" style="font-size: 18px; color: black;">Bitácoras rechazadas</div>
+        </button>
+       
+    </div>
+
+    <!-- Fila inferior con 2 botones -->
+    <div class="bottom-row">
+        <!-- Botón 5: Bitácoras autorizadas -->
+        <button class="icon-container button-style" id="">
+            <img src="{% static 'JD/iconos/aceptadas.png' %}" class="img-fluid" alt="Bitácoras autorizadas">
+            <div class="icon-text" style="font-size: 18px; color: black;">Bitácoras autorizadas</div>
+        </button>
+
+        <button class="icon-container button-style" id="nuevo-registro-btn">
+            <img src="{% static 'JD/iconos/imagen6.png' %}" class="img-fluid" alt="Bitácoras rechazadas">
+            <div class="icon-text" style="font-size: 18px; color: black;">Solicitudes</div>
+        </button>
+
+        <button class="icon-container button-style" id="nuevo-registro-btn">
+            <img src="{% static 'JD/iconos/imagen2.png' %}" class="img-fluid" alt="Bitácoras rechazadas">
+            <div class="icon-text" style="font-size: 18px; color: black;">Revisar</div>
+        </button>
+
+        <button class="icon-container button-style" id="nuevo-registro-btn">
+            <img src="{% static 'JD/iconos/imagen4.png' %}" class="img-fluid" alt="Bitácoras rechazadas">
+            <div class="icon-text" style="font-size: 18px; color: black;">Autorizar</div>
+        </button>
+
+    </div>
+</div>
+
+<!-- Repite la estructura para los otros modals -->
+{% endblock %}

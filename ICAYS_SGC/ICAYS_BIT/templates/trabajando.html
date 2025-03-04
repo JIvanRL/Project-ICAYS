@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center">
+        <button class="icon-container button-style custom-button mb-2" data-url="{% url 'microalimentos:inicioAnalistas' %}">Regresar</button>
+    </div>
+
+    <h1>Estamos chambeando por favor volver despues</h1>
+
+    <div style="display: grid; place-items: center;">
+        <img src="{% static 'img/imagen1.jpg' %}" alt="Imagen en Django" class="imgConst">
+    </div>
+
+</div>
+
+{% endblock %}

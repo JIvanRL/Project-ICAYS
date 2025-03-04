@@ -18,6 +18,9 @@ from django.contrib import admin
 from django.urls import include, path
 
 urlpatterns = [
-    path('', include('ICAYS_BIT.urls')),
+    path('', include('login.urls')),
+    path('microbiologia/', include('ICAYS_BIT.urls')),
     path('admin/', admin.site.urls),
+    path('jdirecto/', include('jdirecto.urls')),
+    path('calidad/', include('calidad.urls')),
 ]

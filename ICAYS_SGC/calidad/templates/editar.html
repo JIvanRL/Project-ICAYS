@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block extra_css %}
+    <!-- Incluye el archivo CSS específico de esta app -->
+    <link rel="stylesheet" href="{% static 'css/inputCrear.css' %}">
+{% endblock %}
+
+
+ {% block content %}
+
+<div class="container mt-5">
+    <h2>Modificar Usuario</h2>
+    <form method="post" action="{% url 'calidadApp:editarUser' usuario.id_user %}">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="nombreON" class="form-label">Nombre(s)</label>
+            <input type="text" class="form-control" id="nombreON" name="nombreON" value="{{ usuario.first_name }}">
+        </div>
+        <div class="mb-3">
+            <label for="apellidosON" class="form-label">Apellido materno y paterno</label>
+            <input type="text" class="form-control" id="apellidosON" name="apellidosON" value="{{ usuario.last_name }}">
+        </div>
+        <div class="mb-3">
+            <label for="emailON" class="form-label">Correo electronico</label>
+            <input type="text" class="form-control" id="emailON" name="emailON" value="{{ usuario.email }}">
+        </div>
+        <div class="mb-3">
+            <label for="userON" class="form-label">Nombre usuario</label>
+            <input type="text" class="form-control" id="userON" name="userON" value="{{ usuario.username }}">
+        </div>
+        <div class="mb-3">
+            <label for="passwON" class="form-label">Contraseña</label>
+            <input type="text" class="form-control" id="passwON" name="passwON" value="{{ usuario.password }}">
+        </div>
+        <div class="mb-3">
+            <label for="rol" class="form-label">Rol</label>
+            <select class="form-select" id="rol" name="rol">
+                {% for rol in roles %}
+                    <option value="{{ rol.id_rol }}" {% if rol.id_rol == usuario.rol_user.id_rol %}selected{% endif %}>
+                        {{ rol.name_rol }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="areasON">Área: </label>
+
+            <div class="checkbox-grid">
+                {% for area in areas %}
+                    <label>
+                        <input type="checkbox" 
+                        name="areasON" value="{{ area.id_area }}"
+                        class="area-checkbox"
+                        {% if area.id_area == usuario.area_user.id_area %}checked{% endif %}> {{ area.name_area }}
+                    </label>
+                {% endfor %}
+            </div>
+        </div>
+
+
+        <button type="submit" class="btn btn-primary">Guardar cambios</button>
+        <a href="{% url 'calidadApp:adminUsuarios' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+
+
+
+
+
+
+
+{% endblock %}

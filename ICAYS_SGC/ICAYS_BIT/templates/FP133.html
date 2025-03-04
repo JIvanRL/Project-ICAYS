@@ -1,0 +1,302 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex flex-wrap justify-content-between align-items-center">
+        <!-- Botón "Regresar" alineado a la izquierda -->
+        <button class="icon-container button-style custom-button mb-2" data-url="{% url 'microalimentos:BitacorasAnaliticas' %}">Regresar</button>
+
+        <div class="d-flex justify-content-center flex-grow-1 ms-10">
+            <button class="icon-container button-style custom-button mb-2" data-url="{% url 'microalimentos:inicioAnalistas' %}">Menu Principal</button>
+        </div>
+    
+        <!-- Botones alineados a la derecha -->
+        <div class="d-flex flex-wrap gap-2">
+            <button class="enviar-custom custom-button" data-url="{% url 'microalimentos:BitacorasAnaliticas' %}">Enviar</button>
+            <button class="cancelar-custom custom-button" data-url="{% url 'microalimentos:BitacorasAnaliticas' %}">Cancelar</button>
+            <button class="guardar-custom custom-button" data-url="{% url 'microalimentos:BitacorasAnaliticas' %}">Guardar</button>
+        </div>
+    </div>
+        <div class="col-auto">
+            <h1>Cuenta de mohos y levaduras en alimentos</h1>
+        </div>
+
+<!-- aqui puse el div del contenedor-->
+
+
+    <div class="contenedor-flex">   
+
+        <div class="div-izquierdo">
+
+            <div class="a">
+
+                <div class="form-floating">
+                    <input type="date" class="form-control fechaC" id="fecha" name="fecha" required>
+                    <label for="fecha" class="fechaL" >Fecha de siembra:</label>
+                </div>
+
+                <div style="padding-left: 15px;">
+                    <div class="form-floating">
+                        <input type="time" id="horaSiembra" name="horaSiembra" class="form-control fechaC"required>
+                        <label for="horaSiembra">Hora de siembra:</label>
+                    </div>
+                </div>
+                
+                <div style="padding-left: 15px;">
+                    <div class="form-floating">
+                        <input type="time" id="horaIncubacion" name="horaIncubacion" class="form-control fechaC"required>
+                        <label for="horaIncubacion">Hora de incubación:</label>
+                    </div>
+                </div>
+
+
+            </div>
+
+            <div class="input-container">
+                
+                <div>
+                    <p class="mismoRenglon">Procedimiento: <span class="texto-con-linea">LAI-05M2</span></p>
+
+                    <p class="mismoRenglon espacioPalabras">Equipo de incubación: <span class="texto-con-linea">LAT-147 (25°C)</span></p>
+                    
+                </div>
+                <div>
+
+                    <p class="mismoRenglon">Registro de muestras: <span class="espacioLetras">LAF-50</span></p>
+
+                    <label for="Tomo1" class="espacioToms">Tomo:</label>
+                    <input type="text" id="Tomo1" class="underline-input" placeholder="________">
+
+                    <label for="PaginaLAF50" class="espacioPag">Página:</label>
+                    <input type="text" id="PaginaLAF50" class="underline-input" placeholder="________">
+
+                </div>
+
+                <div>
+
+                    <p class="mismoRenglon">Reactivos y medios de cultivo: <span class="espacioLetras">LAF-02</span></p>
+
+                    <label for="Tomo1" class="espacioToms">Tomo:</label>
+                    <input type="text" id="T1" class="underline-input" placeholder="________">
+
+                </div>
+
+                <div class="fuentePeq">
+                    <p class="mismoRenglon">Solución reguladora de fosfato</p>
+
+                    <label for="Tomo1" class="espacioPag">Página:</label>
+                    <input type="text" id="Tomo1" class="underline-input-peque" placeholder="________">
+
+                    <label for="Tomo1" class="espacioPag">Numero:</label>
+                    <input type="text" id="Tomo1" class="underline-input-peque" placeholder="________">
+
+                </div>
+
+                <div class="fuentePeq">
+                    <p class="mismoRenglon">Agar Papa dextrosa</p>
+
+                    <label for="Tomo1" class="espacioPag">Página:</label>
+                    <input type="text" id="Tomo1" class="underline-input-peque" placeholder="________">
+
+                    <label for="Tomo1" class="espacioPag">Numero:</label>
+                    <input type="text" id="Tomo1" class="underline-input-peque" placeholder="________">
+
+                    <p class="mismoRenglon" style="padding-left: 40px;">Hidroxido de sodio 1.0.N</p>
+
+                    <label for="Tomo1" class="espacioPag">Página:</label>
+                    <input type="text" id="Tomo1" class="underline-input-peque" placeholder="________">
+
+                    <label for="Tomo1" class="espacioPag">Numero:</label>
+                    <input type="text" id="Tomo1" class="underline-input-peque" placeholder="________">
+
+                </div>
+
+                <div class="fuentePeq">
+                    <p style="display: inline-block;">Ácido tartárico 10%</p>
+
+                    <label for="Tomo1" class="espacioPag">Página:</label>
+                    <input type="text" id="Tomo1" class="underline-input-peque" placeholder="________">
+
+                    <label for="Tomo1" class="espacioPag">Numero:</label>
+                    <input type="text" id="Tomo1" class="underline-input-peque" placeholder="________">
+                </div>
+
+                <div class="fuentePeq">
+                    <p style="display: inline-block;">Verificación de la balanza granataria LAM-12</p>
+
+                    <p style="display: inline-block;">Ver verificación mensual de la balanza en:</p>
+                </div>
+
+                <div>
+                    <table class="fuentePeq" style="width: 80%;">
+                        <tr>
+                            <th>Hora</th>
+                            <th>Actividad</th>
+                            <th>Ajuste de balanza</th>
+                            <th>Valor nominal</th>
+                            <th>Valor convencional</th>
+                            <th>Valor obtenido de la masa</th>
+                            <th>Diferencia absoluta</th>
+                            <th>incertidumbre aceptada</th>
+                            <th>EMT</th>
+                            <th>Criterios de aceptación</th>
+                        </tr>
+
+                        <tr>
+                            <td><input type="text"></td>
+                            <td>Verificación</td>
+                            <td><input type="text"></td>
+                            <td><input type="text"></td>
+                            <td><input type="text"></td>
+                            <td><input type="text"></td>
+                            <td><input type="text"></td>
+                            <td><input type="text"></td>
+                            <td><input type="text"></td>
+                            <td><input type="text"></td>
+                        </tr>
+
+                        <tr>
+                            <td><input type="text"></td>
+                            <td>Pesado de la(s) muestra(s)</td>
+                            <td><input type="text"></td>
+                            <td><input type="text"></td>
+                            <td><input type="text"></td>
+                            <td><input type="text"></td>
+                            <td><input type="text"></td>
+                            <td><input type="text"></td>
+                            <td><input type="text"></td>
+                            <td><input type="text"></td>
+                        </tr>
+                    </table>
+                </div>
+
+                <!--  Input con raya para usarlo mas tarde 
+                <label for="valor">Procedimiento:</label>
+                <input type="text" id="valor" class="underline-input" placeholder="________"> -->
+
+                
+                
+            </div> 
+
+        </div>
+
+        <div class="div-derecho">
+
+            <div class="contenedor-tabla">
+                <table class="fuentePeq">
+                    <!-- Primera fila: Título -->
+                    <tr>
+                        <th colspan="4">Ver cumplimiento de controles de calidad en:</th>
+                    </tr>
+            
+                    <!-- Segunda fila: 4 columnas -->
+                    <tr>
+                        <th>Bitacora/Tomo</th>
+                        <th>Página</th>
+                        <th>Bitacora/Tomo</th>
+                        <th>Página</th>
+                    </tr>
+            
+                    <!-- Tercera fila: 4 columnas -->
+                    <tr>
+                        <td>
+                            <div class="celda-flex">
+                                <label for="valor" >LAF-45/</label>
+                                <input type="text" id="LAF-45">
+                            </div>
+                        </td>
+                        <td><input type="text"></td>
+                        <td>
+                            <div class="celda-flex">
+                                <label for="valor">LAF-44/</label>
+                                <input type="text" id="LAF-45">
+                            </div>
+                        </td>
+                        <td><input type="text"></td>
+                    </tr>
+            
+                    <!-- Cuarta fila: 4 columnas -->
+                    <tr>
+                        <td>
+                            <div class="celda-flex">
+                                <label for="valor">LAF-57/</label>
+                                <input type="text" id="LAF-45">
+                            </div>
+                        </td>
+                        <td><input type="text"></td>
+                        <td>
+                            <div class="celda-flex">
+                                <label for="valor">LAF-52/</label>
+                                <input type="text" id="LAF-45">
+                            </div>
+                        </td>
+                        <td><input type="text"></td>
+                    </tr>
+            
+                    <!-- Quinta fila: Sin columnas (título) -->
+                    <tr>
+                        <th colspan="4">LAF-45: Bitácora de control de calidad de microbiologia,
+                            LAF-44: Bitácora de control de medio ambiente, LAF-57: Bitácora de bacterias aerobias en placa,
+                            LAF-52: Bitácora de mohos y levaduras
+                        </th>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- Nueva tabla -->
+            <div class="contenedor-tabla">
+                <table class="tabla2 fuentePeq">
+                    <!-- Primera fila: Título -->
+                    <tr>
+                        <th colspan="3">Lectura de placas</th>
+                    </tr>
+            
+                    <!-- Segunda fila: 4 columnas -->
+                    <tr>
+                        <th>Día</th>
+                        <th>Fecha</th>
+                        <th>Hora</th>
+                    </tr>
+            
+                    <!-- Tercera fila: 4 columnas -->
+                    <tr>
+                        <td>3er Día</td>
+
+                        <td><input type="text"></td>
+                        
+                        <td><input type="text"></td>
+                    </tr>
+            
+                    <!-- Cuarta fila: 4 columnas -->
+                    <tr>
+                        <td>4to Día</td>
+
+                        <td><input type="text"></td>
+                        
+                        <td><input type="text"></td>
+                    </tr>
+            
+                    <!-- Quinta fila: Sin columnas (título) -->
+                    <tr>
+                        <td>5to Día</td>
+                        
+                        <td><input type="text"></td>
+                        
+                        <td><input type="text"></td>
+                    </tr>
+                </table>
+            </div>
+
+        </div> 
+
+    </div>
+
+
+
+
+</div>
+
+<script src="{% static 'js/bloquear.js' %}"></script>
+
+{% endblock %}

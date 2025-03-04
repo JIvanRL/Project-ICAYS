@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+ {% block content %}
+
+ <div class="container-fluid">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center">
+
+        <button class="icon-container button-style custom-button mb-2" 
+        data-url="{% if query %}{% url 'calidadApp:adminUsuarios' %}{% else %}{% url 'calidadApp:inicioCalidad' %}{% endif %}">Regresar</button>
+        
+        <div class="botnesJ">
+            
+                <button class="btnC mb-2" data-url="{% url 'calidadApp:crearUsuario' %}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-person-plus-fill" viewBox="0 0 16 16">
+                        <path d="M1 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6"/>
+                        <path fill-rule="evenodd" d="M13.5 5a.5.5 0 0 1 .5.5V7h1.5a.5.5 0 0 1 0 1H14v1.5a.5.5 0 0 1-1 0V8h-1.5a.5.5 0 0 1 0-1H13V5.5a.5.5 0 0 1 .5-.5"/>
+                    </svg>
+                </button>
+        
+                <button class="btnC mb-2"  type="button" id="btn-editar">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-person-fill-gear" viewBox="0 0 16 16">
+                        <path d="M11 5a3 3 0 1 1-6 0 3 3 0 0 1 6 0m-9 8c0 1 1 1 1 1h5.256A4.5 4.5 0 0 1 8 12.5a4.5 4.5 0 0 1 1.544-3.393Q8.844 9.002 8 9c-5 0-6 3-6 4m9.886-3.54c.18-.613 1.048-.613 1.229 0l.043.148a.64.64 0 0 0 .921.382l.136-.074c.561-.306 1.175.308.87.869l-.075.136a.64.64 0 0 0 .382.92l.149.045c.612.18.612 1.048 0 1.229l-.15.043a.64.64 0 0 0-.38.921l.074.136c.305.561-.309 1.175-.87.87l-.136-.075a.64.64 0 0 0-.92.382l-.045.149c-.18.612-1.048.612-1.229 0l-.043-.15a.64.64 0 0 0-.921-.38l-.136.074c-.561.305-1.175-.309-.87-.87l.075-.136a.64.64 0 0 0-.382-.92l-.148-.045c-.613-.18-.613-1.048 0-1.229l.148-.043a.64.64 0 0 0 .382-.921l-.074-.136c-.306-.561.308-1.175.869-.87l.136.075a.64.64 0 0 0 .92-.382zM14 12.5a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0"/>
+                    </svg>
+                </button>
+                       
+                <button type="button" class="btnC mb-2" data-bs-toggle="modal" data-bs-target="#elimidarUsuario" id="btn-eliminar">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-person-dash-fill" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd" d="M11 7.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1h-4a.5.5 0 0 1-.5-.5"/>
+                        <path d="M1 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6"/>
+                    </svg>
+                </button>
+                <!--class="btnC mb-2" type="button" name="accion" value="eliminar" id="btn-eliminar"-->
+
+                <div class="input-group mb-3"  style="max-width: 250px; margin: 20px auto; margin-left: 60px;">
+                    <form method="GET" action="{% url 'calidadApp:adminUsuarios' %}" class="d-flex w-100">
+                        <input type="text" class="form-control" placeholder="Name user" name="q" value="{{ request.GET.q }}">
+                        <button class="btn btn-primary" type="submit">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </form>
+                </div>
+            
+        </div>           
+                
+            
+        
+    </div>
+
+    <div style="padding-left: 5%; margin-top: 50px;">
+        <h2>Lista de usuarios</h2>
+    </div>
+
+    <form id="form-usuarios" method="post" action="{% url 'calidadApp:adminUsuarios' %}">
+            {% csrf_token %}
+
+    {% if query %}
+        <p>Resultados para: <strong>{{ query }}</strong></p>
+    {% endif %}
+
+    <div class="contenedor-tabla table">
+
+        <table class="tabla-reducida table" style="height: 20px;" >
+            <tr>
+                <th colspan="2"  style="background-color: #063970; color: white;">Nombre</th>
+                <th scope="col" style="background-color: #063970; color: white;">Puesto</th>
+                <th scope="col" style="background-color: #063970; color: white;">Correo</th>
+                <th scope="col" style="background-color: #063970; color: white;">Usuario</th>
+                <th scope="col" style="background-color: #063970; color: white;">Contraseña</th>
+            </tr>
+
+            <tbody>
+                {% for usuario in usuarios %}
+                <tr>
+                    <td><input type="checkbox" class="row-checkbox" value="{{ usuario.id_user }}" name="datos"></td>
+                    <td>{{ usuario.first_name }} {{ usuario.last_name }}</td>
+                    <td>{{ usuario.rol_user }}</td>
+                    <td>{{ usuario.email }}</td>
+                    <td>{{ usuario.username }}</td>
+                    <td>{{ usuario.password }}</td>
+                </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6">No se encontraron resultados.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+
+        </table>
+    </div>
+    <!-- Modal -->
+        <div class="modal fade" id="modal-confirmacion" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                <h5 class="modal-title text-danger" id="exampleModalLabel">Eliminar usuario</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    ¿Estás seguro de que deseas eliminar los usuarios seleccionados?
+                </div>
+                <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button class=" btn btn-primary" type="button" name="accion" value="eliminar" id="btn-confirmar-eliminar">aceptar</button>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <!-- Modal Seleccion-->
+        <div class="modal fade" id="modal-seleccion" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                <h5 class="modal-title text-danger" id="exampleModalLabel">Advertencia</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Por favor, selecciona al menos un usuarios.
+                </div>
+                <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+            </div>
+        </div>
+    </form> 
+
+ </div>
+
+
+ {% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'js/adminUsers.js' %}"></script>
+{% endblock %}

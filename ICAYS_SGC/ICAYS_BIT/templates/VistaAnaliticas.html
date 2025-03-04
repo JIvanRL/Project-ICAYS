@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<div class="container-fluid">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center">
+
+        <button class="icon-container button-style custom-button mb-2" data-url="{% url 'microalimentos:tipoBitacoras' %}">Regresar</button>
+
+        <div class="d-flex justify-content-center flex-grow-1 ms-10">
+            <button class="icon-container button-style custom-button mb-2" data-url="{% url 'microalimentos:inicioAnalistas' %}">Menu Principal</button>
+        </div>
+
+        <!--<div class="search-container">
+            <input type="text" class="search-input" placeholder="Clave">
+            <button class="search-button">
+                <i class="fas fa-search"></i>
+            </button>
+        </div>-->
+
+        <div class="input-group mb-3" style="max-width: 250px; margin: 20px auto;">
+            <input type="text" class="form-control" placeholder="Clave">
+            <button class="btn btn-primary" type="button">
+                <i class="fas fa-search"></i>
+            </button>
+        </div>
+
+    </div>
+
+    <div class= "espacio">
+        <button class="boton-completoA" data-url="{% url 'microalimentos:FP-131' %}">
+            <span class="izquierda">Clave: FP-131</span>
+            <span class="centro">Cuenta de bacterias aerobicas en placa</span>
+            <span class="derecha">Rev: 04   Fecha: Dic 2023</span>
+        </button>
+    </div>
+
+    <div class="contenedor">
+        <button class="boton-completoA" data-url="{% url 'microalimentos:FP-133' %}">
+            <span class="izquierda">Clave: FP-133</span>
+            <span class="centro">Cuenta de mohos y levaduras en alimentos</span>
+            <span class="derecha">Rev: 05    Fecha:FEB 2024</span>
+        </button>
+    </div>
+
+</div>
+
+
+{% endblock %}

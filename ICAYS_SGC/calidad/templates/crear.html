@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block extra_css %}
+    <!-- Incluye el archivo CSS específico de esta app -->
+    <link rel="stylesheet" href="{% static 'css/inputCrear.css' %}">
+{% endblock %}
+
+{% block content %}
+
+
+<div class="container-fluid">
+    <div class="d-flex flex-wrap justify-content-between align-items-center">
+
+        <button class="icon-container button-style custom-button mb-2" data-url="{% url 'calidadApp:adminUsuarios' %}">Regresar</button>
+            
+        </div>           
+    </div>
+
+    <div class="centrar">
+        <h2>Crear usuario</h2>
+    </div>
+    <form method="post">
+        {% csrf_token %}  <!-- Token de seguridad de Django -->
+
+        <div class="centrar">
+
+            <label for="nombreON">Nombre(s): </label>
+            <input type="text" id="nombreON" name="nombreON" required>
+
+            <label for="apellidosON" style="padding-left: 250px;">Apellido paterno y materno: </label>
+            <input type="text" id="apellidosON" name="apellidosON"  style=" width: 280px;"required>
+
+        </div>
+
+        <div class="centrar">
+            
+            <label for="emailON">Correo electronico: </label>
+            <input type="text" id="emailON" name="emailON" required>
+
+            <label for="userON" style="padding-left: 250px;">Nombre de usuario: </label>
+            <input type="text" id="userON" name="userON" style=" width: 280px;" required>
+
+        </div>
+
+        <div class="centrar">
+
+            <label for="passwON">Contraseña: </label>
+            <input type="text" id="passwON" name="passwON" required>
+
+            <div class="mb-3">
+                <label for="rolON" style="padding-left: 650px;">Escoja el puesto: </label>
+                <select id="rolON" name="rolON" required>
+                    <option value="">Selecciona un rol</option>
+                    {% for rol in roles %}
+                        <option value="{{ rol.id_rol }}">{{ rol.name_rol }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+        </div>
+
+        <div class="centrar">
+            
+            <label for="areasON">Área: </label>
+
+            <div class="checkbox-grid">
+                {% for area in areas %}
+                    <label>
+                        <input type="checkbox" name="areasON" value="{{ area.id_area }}" class="area-checkbox"> {{ area.name_area }}
+                    </label>
+                {% endfor %}
+            </div>
+
+
+            <div style="padding-left: 70%;">
+                <button type="submit" class="icon-container button-style custom-button mb-2">Aceptar</button>
+            </div>
+
+        </div>
+
+    </form>
+    
+
+</div>
+
+
+ {% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'js/crear.js' %}"></script>
+{% endblock %}

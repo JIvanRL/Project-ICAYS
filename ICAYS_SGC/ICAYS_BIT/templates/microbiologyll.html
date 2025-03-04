@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="main-container">
+    <!-- Fila superior con 3 botones -->
+    <div class="top-row">
+        <button class="icon-container button-style" data-url="{% url 'microalimentos:tipoBitacoras' %}">
+          <img src="{% static 'iconos/agregar.png' %}" class="img-fluid" alt="Nuevo registro">
+          <div class="icon-text" style="font-size: 18px; color: black;">Nuevo registro</div>
+        </button>
+
+        <div class="icon-container button-style" data-bs-toggle="modal" data-bs-target="#modalBitacorasGuardadas">
+            <img src="{% static 'iconos/salvado.png' %}" class="img-fluid" alt="Bitácoras guardadas">
+            <div class="icon-text" style="font-size: 18px; color: black;">Bitácoras guardadas</div>
+        </div>
+
+        <div class="icon-container button-style" data-bs-toggle="modal" data-bs-target="#modalBitacorasRevision">
+            <img src="{% static 'iconos/barra-de-carga.png' %}" class="img-fluid" alt="Bitácoras en revisión">
+            <div class="icon-text" style="font-size: 18px; color: black;">Bitácoras en revisión</div>
+        </div>
+    </div>
+
+    <div class="bottom-row">
+        <div class="icon-container button-style" data-bs-toggle="modal" data-bs-target="#modalBitacorasRechazadas">
+            <img src="{% static 'iconos/rechazado.png' %}" class="img-fluid" alt="Bitácoras rechazadas">
+            <div class="icon-text" style="font-size: 18px; color: black;">Bitácoras rechazadas</div>
+        </div>
+
+        <div class="icon-container button-style" data-bs-toggle="modal" data-bs-target="#modalBitacorasAutorizadas">
+            <img src="{% static 'iconos/aceptadas.png' %}" class="img-fluid" alt="Bitácoras autorizadas">
+            <div class="icon-text" style="font-size: 18px; color: black;">Bitácoras autorizadas</div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'js/redirect.js' %}"></script>
+{% endblock %}

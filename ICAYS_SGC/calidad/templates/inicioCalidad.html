@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+<div class="main-container">
+
+    <div  class="top-row">
+
+        <button class="icon-container button-style" id="nuevo-registro-btn" data-url="{% url 'calidadApp:adminUsuarios' %}">
+            <img src="{% static 'iconos/blogger.png' %}" class="img-fluid" alt="Nuevo registro">
+            <div class="icon-text" style="font-size: 18px; color: black;">Administrar usuarios</div>
+        </button>
+
+        <button class="icon-container button-style" id="nuevo-registro-btn">
+            <img src="{% static 'iconos/barra-de-carga.png' %}" class="img-fluid" alt="Bitácoras guardadas">
+            <div class="icon-text" style="font-size: 18px; color: black;">Bitácoras General</div>
+        </button>
+       
+    </div>
+
+    <!-- Fila inferior con 2 botones -->
+    <div class="bottom-row">
+        <!-- Botón 5: Bitácoras autorizadas -->
+        <button class="icon-container button-style" id="">
+            <img src="{% static 'iconos/aceptable.png' %}" class="img-fluid" alt="Bitácoras autorizadas">
+            <div class="icon-text" style="font-size: 18px; color: black;">Autorizar bitacoras</div>
+        </button>
+
+        <button class="icon-container button-style" id="nuevo-registro-btn">
+            <img src="{% static 'iconos/imagen6.png' %}" class="img-fluid" alt="Bitácoras rechazadas">
+            <div class="icon-text" style="font-size: 18px; color: black;">Cambios de bitacoras</div>
+        </button>
+
+    </div>
+</div>
+
+{% endblock %}
