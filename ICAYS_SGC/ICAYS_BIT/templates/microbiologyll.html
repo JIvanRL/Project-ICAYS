@@ -9,9 +9,14 @@
           <div class="icon-text" style="font-size: 18px; color: black;">Nuevo registro</div>
         </button>
 
-        <div class="icon-container button-style" data-bs-toggle="modal" data-bs-target="#modalBitacorasGuardadas">
-            <img src="{% static 'iconos/salvado.png' %}" class="img-fluid" alt="Bitácoras guardadas">
-            <div class="icon-text" style="font-size: 18px; color: black;">Bitácoras guardadas</div>
+        <div class="icon-container button-style position-relative" data-url="{% url 'microalimentos:lista_bitacoras' %}">
+            <!-- Badge con diferentes estilos de Bootstrap -->
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded bg-danger shadow-sm fs-4 p-2">
+                    {{ cantidad_bitacoras }}
+                    <span class="visually-hidden">bitácoras guardadas</span>
+                    </span>
+                    <img src="{% static 'iconos/salvado.png' %}" class="img-fluid" alt="Bitácoras guardadas">
+                    <div class="icon-text" style="font-size: 18px; color: black;">Bitácoras guardadas</div>
         </div>
 
         <div class="icon-container button-style" data-bs-toggle="modal" data-bs-target="#modalBitacorasRevision">

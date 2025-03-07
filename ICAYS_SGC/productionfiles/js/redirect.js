@@ -20,69 +20,151 @@ document.addEventListener('DOMContentLoaded', function () {
     var removeRowBtn = document.getElementById('remove-row-btn'); // Botón para eliminar filas
     var tableBody = document.getElementById('tabla-body'); // Cuerpo de la tabla
 
-    addRowBtn.addEventListener('click', function () {
-        // Crear la nueva fila
-        
-            var newRow = document.createElement('tr');
 
-            // Array con los nombres de los campos (ajusta según tu tabla)
-            var campos = [
-                'clave', 'cantidad', 'dil1', 'dil2', 'dil3', 'dil4',
-                'dir_placa1', 'dir_placa2', 'promedio1', 'dil_placa1',
-                'dil_placa2', 'promedio2', 'dil_placa1_dup', 'dil_placa2_dup',
-                'promedio3', 'resultado', 'ufc_placa', 'diferencia'
-            ];
+    // Función para configurar los checkboxes
+    function setupCheckboxes(row) {
+        const checkboxes = row.querySelectorAll('input[type="checkbox"]');
 
-            // Crear las celdas de la fila
-            campos.forEach((campo, index) => {
-                var newCell = document.createElement('td');
-
-                if (campo === 'ufc_placa') {
-                    // Celda para "UFC/placa" (editable en nuevas filas)
-                    var inputUFC = document.createElement('input');
-                    inputUFC.type = 'text';
-                    inputUFC.name = 'ufc_placa[]'; // Nombre del campo
-                    newCell.appendChild(inputUFC);
-                } else if (campo === 'resultado') {
-                    // Celda para "Resultado" (editable)
-                    var inputResultado = document.createElement('input');
-                    inputResultado.type = 'text';
-                    inputResultado.name = 'resultado[]'; // Nombre del campo
-                    newCell.appendChild(inputResultado);
-                } else {
-                    // Para el resto de las celdas, creamos un input normal
-                    var input = document.createElement('input');
-                    input.type = 'text';
-                    input.name = `${campo}[]`; // Nombre del campo
-                    newCell.appendChild(input);
-                }
-
-                // Añadir la celda a la fila
-                newRow.appendChild(newCell);
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function () {
+                // No necesitamos desmarcar otros checkboxes, ya que queremos selección múltiple
             });
+        });
+    }
 
-            // Añadir la nueva fila al cuerpo de la tabla
-            tableBody.appendChild(newRow);
-
-             // Habilitar el botón de eliminar fila
-             removeRowBtn.disabled = false;
-        
+    // Configurar los checkboxes en las filas existentes al cargar la página
+    const rows = document.querySelectorAll('#tabla-body tr');
+    rows.forEach(row => {
+        setupCheckboxes(row);
     });
 
-    // Hacer que la celda "UFC/placa" en la fila inicial sea no editable
-    var filaBlanco = tableBody.querySelector('tr'); // Selecciona la primera fila (fila de "Blanco")
-    if (filaBlanco) {
-        var celdaUFC = filaBlanco.querySelector('input[name="ufc_placa[]"]'); // Selecciona el input de "UFC/placa"
-        if (celdaUFC) {
-            celdaUFC.readOnly = true; // Hacer que no sea editable
-            celdaUFC.value = 'UFC/placa'; // Asignar el valor estático solo en la fila inicial
+    addRowBtn.addEventListener('click', function () {
+    var newRow = document.createElement('tr');
+
+    // Array con los nombres de los campos
+    var campos = [
+        'clave_c_m[]', 'cantidad_c_m[]', 'dE_1[]', 'dE_2[]', 'dE_3[]', 'dE_4[]',
+        'placa_dD[]', 'placa_dD2[]', 'promedio_dD[]', 'placa_d[]',
+        'placa_d2[]', 'promedio_d[]', 'placa_d_2[]', 'placa_d2_2[]',
+        'promedio_d_2[]', 'resultado_r[]', 'ufC_placa_r[]', 'diferencia_r[]'
+    ];
+
+    // Valores para los checkboxes
+    const dilucionesValues = {
+        'dE_1': '1',
+        'dE_2': '0.1',
+        'dE_3': '0.01',
+        'dE_4': '0.001'
+    };
+
+    // Crear las celdas de la fila
+    campos.forEach((campo) => {
+        var newCell = document.createElement('td');
+
+        if (campo.startsWith('dE_')) {
+            // Crear checkbox
+            var checkboxInput = document.createElement('input');
+            checkboxInput.type = 'checkbox';
+            checkboxInput.name = campo;
+            checkboxInput.value = dilucionesValues[campo.replace('[]', '')];
+
+            // Crear campo oculto para el valor cuando no está marcado
+            var hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = campo;
+            hiddenInput.value = '0';
+
+            // Añadir los inputs a la celda
+            newCell.appendChild(checkboxInput);
+            newCell.appendChild(hiddenInput);
+        } else {
+            // Para los demás campos, crear input de texto normal
+            var textInput = document.createElement('input');
+            textInput.type = 'text';
+            textInput.name = campo;
+
+            // Asignar clases específicas según el campo
+            if (campo === 'placa_dD') {
+                textInput.classList.add('placa1');
+            } else if (campo === 'placa_dD2') {
+                textInput.classList.add('placa2');
+            } else if (campo === 'placa_d') {
+                textInput.classList.add('placa3');
+            } else if (campo === 'placa_d2') {
+                textInput.classList.add('placa4');
+            } else if (campo === 'placa_d_2') {
+                textInput.classList.add('placa5');
+            } else if (campo === 'placa_d2_2') {
+                textInput.classList.add('placa6');
+            } else if (campo === 'promedio_dD') {
+                textInput.classList.add('promedio');
+            } else if (campo === 'promedio_d') {
+                textInput.classList.add('promedio2');
+            } else if (campo === 'promedio_d_2') {
+                textInput.classList.add('promedio3');
+            }
+
+            newCell.appendChild(textInput);
         }
+
+        newRow.appendChild(newCell);
+    });
+
+    // Añadir la nueva fila al cuerpo de la tabla
+    tableBody.appendChild(newRow);
+    removeRowBtn.disabled = false;
+
+    // Configurar los checkboxes en la nueva fila
+    setupCheckboxes(newRow);
+});
+
+// Modificar el event listener del formulario
+document.querySelector('form').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    // Preparar los datos de los checkboxes
+    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+    checkboxes.forEach(checkbox => {
+        const hiddenInput = checkbox.nextElementSibling;
+        if (checkbox.checked) {
+            hiddenInput.disabled = true;
+        } else {
+            checkbox.disabled = true;
+            hiddenInput.disabled = false;
+        }
+    });
+
+    // Enviar el formulario
+    this.submit();
+});
+
+    // Función para preparar los datos antes de enviar el formulario
+    function prepararDatosFormulario() {
+        const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach(checkbox => {
+            const hiddenInput = checkbox.nextElementSibling; // Obtener el campo oculto asociado
+            if (checkbox.checked) {
+                // Si el checkbox está marcado, deshabilitar el campo oculto
+                hiddenInput.disabled = true;
+            } else {
+                // Si el checkbox no está marcado, deshabilitar el checkbox y habilitar el campo oculto
+                checkbox.disabled = true;
+                hiddenInput.disabled = false;
+            }
+        });
     }
+
+    // Escuchar el evento de envío del formulario
+    const formulario = document.querySelector('form'); // Asegúrate de seleccionar el formulario correcto
+    formulario.addEventListener('submit', function (event) {
+        // Preparar los datos antes de enviar el formulario
+        prepararDatosFormulario();
+    });
 
     // Función para eliminar la última fila
     removeRowBtn.addEventListener('click', function () {
         var rows = tableBody.getElementsByTagName('tr');
-        
+
         // Si hay más de una fila (para no borrar la fila de "Blanco"), eliminar la última
         if (rows.length > 1) {
             tableBody.removeChild(rows[rows.length - 1]);
@@ -114,5 +196,35 @@ document.addEventListener('DOMContentLoaded', function () {
             icono.classList.add("bi-arrow-down-circle");
         }
     });
-       
+
+    // Escuchar cambios en los inputs
+    document.addEventListener('input', function (event) {
+        // Obtener la fila actual donde se realizó el cambio
+        const fila = event.target.closest('tr');
+        if (!fila) return; // Salir si no hay fila encontrada
+
+        // Calcular promedio1 (placa1 y placa2)
+        if (event.target.classList.contains('placa1') || event.target.classList.contains('placa2')) {
+            const placa1 = parseFloat(fila.querySelector('.placa1').value) || 0;
+            const placa2 = parseFloat(fila.querySelector('.placa2').value) || 0;
+            const promedio1 = (placa1 + placa2) / 2;
+            fila.querySelector('.promedio').value = promedio1.toFixed(2);
+        }
+
+        // Calcular promedio2 (placa3 y placa4)
+        if (event.target.classList.contains('placa3') || event.target.classList.contains('placa4')) {
+            const placa3 = parseFloat(fila.querySelector('.placa3').value) || 0;
+            const placa4 = parseFloat(fila.querySelector('.placa4').value) || 0;
+            const promedio2 = (placa3 + placa4) / 2;
+            fila.querySelector('.promedio2').value = promedio2.toFixed(2);
+        }
+
+        // Calcular promedio3 (placa5 y placa6)
+        if (event.target.classList.contains('placa5') || event.target.classList.contains('placa6')) {
+            const placa5 = parseFloat(fila.querySelector('.placa5').value) || 0;
+            const placa6 = parseFloat(fila.querySelector('.placa6').value) || 0;
+            const promedio3 = (placa5 + placa6) / 2;
+            fila.querySelector('.promedio3').value = promedio3.toFixed(2);
+        }
+    });
 });

@@ -1,5 +1,9 @@
 {% extends 'base.html' %}
 {% load static %}
+{% block extra_css %}
+    <!-- Incluye el archivo CSS específico de esta app -->
+    <link rel="stylesheet" href="{% static 'css/style-133.css' %}">
+{% endblock %}
 
 {% block content %}
 <div class="container-fluid">

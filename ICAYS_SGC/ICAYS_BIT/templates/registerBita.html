@@ -2,17 +2,18 @@
 {% load static %}
 {% block content %}
 <div class="container-fluid">
-    <form action="" method="get">
+    <form id="form-principal" method="post" enctype="multipart/form-data" >
+        {% csrf_token %}
         <div class="d-flex flex-wrap justify-content-between align-items-center">
             <!-- Botón "Regresar" alineado a la izquierda -->
-            <button class="icon-container button-style custom-button mb-2" type="button" data-url="{% url 'microalimentos:BitacorasAnaliticas' %}">Regresar</button>
+            <button class="icon-container button-style custom-button mb-2" type="button" data-url="{% url 'microalimentos:inicioAnalistas' %}">Regresar</button>
     
         
             <!-- Botones alineados a la derecha -->
             <div class="d-flex flex-wrap gap-2">
-                <button class="enviar-custom custom-button" data-url="{% url 'microalimentos:inicioAnalistas' %}">Enviar</button>
+                <button class="enviar-custom custom-button"  type="button" data-bs-toggle="modal" data-bs-target="#enviar">Enviar</button>
                 <button class="cancelar-custom custom-button" data-url="{% url 'microalimentos:inicioAnalistas' %}" type="button">Cancelar</button>
-                <button class="guardar-custom custom-button" data-url="{% url 'microalimentos:inicioAnalistas' %}">Guardar</button>
+                <button class="guardar-custom custom-button" type="button" onclick="guardarFormulario()">Guardar</button>
             </div>
         </div>
         
@@ -34,298 +35,373 @@
             </div>
         
             <!-- Título centrado -->
-            <h1 class="text-center flex-grow-1 m-0">Cuenta de bacterias aerobias en placa</h1>
-        </div>            
+            <h1 class="text-center flex-grow-1 m-0" >Cuenta de bacterias aerobias en placa</h1>
+            <input type="hidden" name="nombre_cbap" value="Cuenta de bacterias aerobias en placa" >
+            <div class="d-flex gap-3">
+                <div class="col-12 col-md-5">
+                    <div class="form-floating">
+                        <input type="text" class="form-control form-control-sm" id="pagina_cbap" name="pagina_cbap" placeholder="Página" >
+                        <label for="pagina_cbap">Página</label>
+                    </div>
+                </div>
+            </div>
+            
+        </div>             
         
                
         <div id="contenidoOculto" class="oculto"> 
-            <div class="card card-body">
-                <!-- Formulario -->
-                <div class="row mb-4" >
-                    <div class="col-12">
-                        <div class="row g-1 mb-2"> <!-- Reducir el espacio entre filas -->
-                            <!-- Fecha, Hora, Procedimiento y Equipo de incubación -->
-                            <div class="col-12 col-md-6 col-lg-3">
-                                <div class="form-floating">
-                                    <input type="date" class="form-control form-control-sm" id="floatingInput" placeholder="Fecha" style="font-size: 12px;">
-                                    <label for="floatingInput" style="font-size: 12px;">Fecha de siembra</label>
-                                </div>
-                            </div>
-                            <div class="col-12 col-md-6 col-lg-3">
-                                <div class="form-floating">
-                                    <input type="time" class="form-control form-control-sm" id="floatingSiembra" placeholder="Hora" style="font-size: 12px;">
-                                    <label for="floatingSiembra" style="font-size: 12px;">Hora de siembra</label>
-                                </div>
-                            </div>
-                            <div class="col-12 col-md-6 col-lg-3">
-                                <div class="form-floating">
-                                    <input type="text" class="form-control form-control-sm" id="Procedimiento" placeholder="LAI-04M2" value="LAI-04M2" readonly style="font-size: 12px;">
-                                    <label for="Procedimiento" style="font-size: 12px;">Procedimiento</label>
-                                </div>
-                            </div>
-                            <div class="col-12 col-md-6 col-lg-3">
-                                <div class="form-floating">
-                                    <input type="text" class="form-control form-control-sm" id="Incubacion" placeholder="LAT-63 (35C°)" value="LAT-63 (35C°)" readonly style="font-size: 12px;">
-                                    <label for="Incubacion" style="font-size: 12px;">Equipo de incubación</label>
-                                </div>
-                            </div>
-                        </div>
-            
-                        <!-- Título "Registro de muestras LAF-50" -->
-                        <div class="row mb-2"> <!-- Reducir el margen inferior -->
-                            <div class="col-12 text-center">
-                                <h3 class="h6" style="font-size: 14px;">Registro de muestras LAF-50</h3>
-                            </div>
-                        </div>
-            
-                        <!-- Letra Analista, Tomo y Página -->
-                        <div class="row g-1 mb-2"> <!-- Reducir el espacio entre filas -->
-                            <div class="col-12 col-md-4">
-                                <div class="form-floating">
-                                    <input type="text" class="form-control form-control-sm" id="LA" placeholder="Hora" style="font-size: 12px;">
-                                    <label for="LA" style="font-size: 12px;">Letra Analista</label>
-                                </div>
-                            </div>
-                            <div class="col-12 col-md-4">
-                                <div class="form-floating">
-                                    <input type="text" class="form-control form-control-sm" id="Tomo" placeholder="Hora" style="font-size: 12px;">
-                                    <label for="Tomo" style="font-size: 12px;">Tomo</label>
-                                </div>
-                            </div>
-                            <div class="col-12 col-md-4">
-                                <div class="form-floating">
-                                    <input type="text" class="form-control form-control-sm" id="Pagina" placeholder="Hora" style="font-size: 12px;">
-                                    <label for="Pagina" style="font-size: 12px;">Página</label>
+        <div class="container-fluid">
+            <div class="container-fluid">
+                <div class="card card-body">
+                    <div class="row justify-content-center"> <!-- Centrar las tarjetas horizontalmente -->
+                        <!-- Primera tarjeta -->
+                        <div class="col-md-4 mb-3">
+                            <div class="card h-100 shadow-sm"> <!-- Añadí sombra y altura fija -->
+                                <div class="card-body">
+                                    <div class="row g-2"> <!-- Reducir el espacio entre filas -->
+                                        <!-- Fecha, Hora, Procedimiento y Equipo de incubación -->
+                                        <div class="col-12 col-md-6">
+                                            <div class="form-floating">
+                                                <input type="date" class="form-control form-control-sm" id="fecha_siembra" name="fecha_siembra" placeholder="Fecha" >
+                                                <label for="fecha_siembra">Fecha de siembra</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-md-6 center">
+                                            <div class="form-floating">
+                                                <input type="time" class="form-control form-control-sm" id="hora_siembra" name="hora_siembra" placeholder="Hora" >
+                                                <label for="hora_siembra">Hora de siembra</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-md-6">
+                                            <div class="form-floating">
+                                                <input type="time" class="form-control form-control-sm" id="hora_incubacion" name="hora_incubacion" placeholder="Hora" >
+                                                <label for="hora_incubacion">Hora de incubación</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-md-6">
+                                            <div class="form-floating">
+                                                <input type="text" class="form-control form-control-sm" id="procedimiento" name="procedimiento" placeholder="LAI-04M2" value="LAI-04M2" readonly>
+                                                <label for="procedimiento">Procedimiento</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-md-6">
+                                            <div class="form-floating">
+                                                <input type="text" class="form-control form-control-sm" id="equipo_incubacion" name="equipo_incubacion" placeholder="LAT-63 (35C°)" value="LAT-63 (35C°)" readonly>
+                                                <label for="equipo_incubacion">Equipo de incubación</label>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-            
-                        <!-- Título "Reactivos y medios de cultivo LAF-02" -->
-                        <div class="row mb-2"> <!-- Reducir el margen inferior -->
-                            <div class="col-12 text-center">
-                                <h3 class="h6" style="font-size: 14px;">Reactivos y medios de cultivo LAF-02</h3>
+                
+                        <!-- Segunda tarjeta -->
+                        <div class="col-md-4 mb-3">
+                            <div class="card h-100 shadow-sm"> <!-- Añadí sombra y altura fija -->
+                                <div class="card-body">
+                                    <!-- Título "Registro de muestras LAF-50" -->
+                                    <div class="row mb-3">
+                                        <div class="col-12 text-center">
+                                            <h5 class="card-title">Registro de muestras LAF-50</h5> <!-- Usé h5 para el título -->
+                                        </div>
+                                    </div>
+                
+                                    <!-- Letra Analista, Tomo y Página -->
+                                    <div class="row g-2">
+                                        <div class="col-12 col-md-4">
+                                            <div class="form-floating">
+                                                <input type="text" class="form-control form-control-sm" id="letra_analista_cbap" name="letra_analista_cbap" placeholder="Letra Analista" >
+                                                <label for="letra_analista_cbap">Letra Analista</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-md-4">
+                                            <div class="form-floating">
+                                                <input type="date" class="form-control form-control-sm" id="mes_muestra_cbap" name="mes_muestra_cbap" placeholder="Tomo" >
+                                                <label for="mes_muestra_cbap">Mes</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-md-4">
+                                            <div class="form-floating">
+                                                <input type="text" class="form-control form-control-sm" id="pagina_muestra_cbap" name="pagina_muestra_cbap" placeholder="Página" >
+                                                <label for="pagina_muestra_cbap">Página</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-            
-                        <!-- Solución reguladora de fosfato -->
-                        <div class="row g-1 mb-2"> <!-- Reducir el espacio entre filas -->
-                            <div class="col-12 col-md-6">
-                                <div class="text-center">
-                                    <h3 class="h6" style="font-size: 14px;">Solución reguladora de fosfato</h3>
-                                </div>
-                            </div>
-                            <div class="col-12 col-md-3">
-                                <div class="form-floating">
-                                    <input type="text" class="form-control form-control-sm" id="floatingPassword" placeholder="Hora" style="font-size: 12px;">
-                                    <label for="floatingPassword" style="font-size: 12px;">Página</label>
-                                </div>
-                            </div>
-                            <div class="col-12 col-md-3">
-                                <div class="form-floating">
-                                    <input type="text" class="form-control form-control-sm" id="floatingPassword" placeholder="Hora" style="font-size: 12px;">
-                                    <label for="floatingPassword" style="font-size: 12px;">Número</label>
+                        <div class="col-md-4 mb-3">
+                            <div class="card h-100 shadow-sm"> <!-- Añadí sombra y altura fija -->
+                                <div class="card-body">
+                                    <div class="row g-2"> <!-- Reducir el espacio entre filas -->
+                                        <h2 class="card-title">Fecha y hora de lecturas</h2>
+                                        <!-- Fecha, Hora, Procedimiento y Equipo de incubación -->
+                                        <div class="col-12 col-md-6">
+                                            <div class="form-floating">
+                                                <input type="date" class="form-control form-control-sm" id="fecha_lectura_cbap" name="fecha_lectura_cbap" placeholder="Fecha">
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-md-6 center">
+                                            <div class="form-floating">
+                                                <input type="time" class="form-control form-control-sm" id="hora_lectura_cbap" name="hora_lectura_cbap" placeholder="Hora">
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-md-6">
+                                            <div class="form-floating">
+                                                <input type="date" class="form-control form-control-sm" id="floatingInput" placeholder="Fecha">
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-md-6 center">
+                                            <div class="form-floating">
+                                                <input type="time" class="form-control form-control-sm" id="floatingSiembra" placeholder="Hora">
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+                        <!-- Tercera tarjeta -->
+                        <div class="col-md-8 mb-3">
+                            <div class="card h-100 shadow-sm"> <!-- Añadí sombra y altura fija -->
+                                <div class="card-body">
+                                    <!-- Título "Reactivos y medios de cultivo LAF-02" -->
+                                    <div class="row mb-3">
+                                        <div class="col-12 text-center">
+                                            <h5 class="card-title">Reactivos y medios de cultivo LAF-02</h5> <!-- Usé h5 para el título -->
+                                        </div>
+                                    </div>
+                
+                                    <!-- Solución reguladora de fosfato -->
+                                    <div class="row g-2 mb-3">
+                                        <div class="col-12 col-md-6">
+                                            <div class="text-center">
+                                                <h6 class="mb-0">Solución reguladora de fosfato</h6> <!-- Usé h6 para subtítulos -->
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-md-3">
+                                            <div class="form-floating">
+                                                <input type="text" name="pagina_fosfato_cbap" class="form-control form-control-sm" id="pagina_fosfato_cbap" placeholder="Página">
+                                                <label for="pagina_fosfato_cbap">Página</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-md-3">
+                                            <div class="form-floating">
+                                                <input type="text" name="numero_fosfato_cbap" class="form-control form-control-sm" id="numero_fosfato_cbap" placeholder="Número">
+                                                <label for="numero_fosfato_cbap">Número</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                
+                                    <!-- Agar para métodos estándar -->
+                                    <div class="row g-2">
+                                        <div class="col-12 col-md-6">
+                                            <div class="text-center">
+                                                <h6 class="mb-0">Agar para métodos estándar</h6> <!-- Usé h6 para subtítulos -->
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-md-3">
+                                            <div class="form-floating">
+                                                <input type="text" name="pagina_agar_cbap" class="form-control form-control-sm" id="pagina_agar_cbap" placeholder="Página">
+                                                <label for="pagina_agar_cbap">Página</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-md-3">
+                                            <div class="form-floating">
+                                                <input type="text" name="numero_agar_cbap" class="form-control form-control-sm" id="numero_agar_cbap" placeholder="Número">
+                                                <label for="numero_agar_cbap">Número</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>                    
+                    </div>
+           
+            <!-- Tabla 2: Verificacion de balanza-->
+                    <div class="container">
+                        <div class="row justify-content-center">
+                            <div class="col-md-12">
+                                <div class="card shadow-sm"> <!-- Card con sombra -->
+                                    <div class="card-body">
+                                        <!-- Título de la card -->
+                                        <h5 style="caption-side: top; text-align: center; font-size: 1.5em; font-weight: bold; padding: 10px; background-color: #063970; color: white; border-radius: 10px;">
+                                            Verificación de la balanza granataria LAM-12
+                                        </h5>
+                    
+                                        <!-- Tabla con labels fuera de los campos -->
+                                        <div class="table-responsive">
+                                            <table class="table table-bordered">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Hora</th>
+                                                        <th>Actividad</th>
+                                                        <th>Ajuste de balanza</th>
+                                                        <th>Valor nominal</th>
+                                                        <th>Valor convencional</th>
+                                                        <th>Valor obtenido de la masa</th>
+                                                        <th>Diferencia absoluta</th>
+                                                        <th>Incertidumbre aceptada</th>
+                                                        <th>EMT</th>
+                                                        <th>Criterio de aceptación</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <!-- Fila 1 -->
+                                                    <tr>
+                                                        <td>
+                                                            <input type="time" name="hora_vb_1" class="form-control form-control-sm">
+                                                        </td>
+                                                        <td>
+                                                            <div class="form-floating">
+                                     
+                                                                <input type="text" name="actividad_vb_1" value="Verificación" class="form-control form-control-sm" readonly>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <input type="text" name="ajuste_vb_1" class="form-control form-control-sm">
+                                                        </td>
+                                                        <td>
+                                                            <input type="text" name="valor_nominal_vb_1" class="form-control form-control-sm">
+                                                        </td>
+                                                        <td>
+                                                            <input type="text" name="valor_convencional_vb_1" class="form-control form-control-sm">
+                                                        </td>
+                                                        <td>
+                                                            <input type="text" name="valo_masa_vb_1" class="form-control form-control-sm">
+                                                        </td>
+                                                        <td>
+                                                            <input type="text" name="diferecnia_vb_1" class="form-control form-control-sm">
+                                                        </td>
+                                                        <td>
+                                                            <input type="text" name="incertidumbre_vb_1" class="form-control form-control-sm">
+                                                        </td>
+                                                        <td>
+                                                            <input type="text" name="emt_vb_1" class="form-control form-control-sm">
+                                                        </td>
+                                                        <td>
+                                                            <input type="text" name="aceptacion_vb_1" class="form-control form-control-sm">
+                                                        </td>
+                                                    </tr>
+                                                    <!-- Fila 2 -->
+                                                    <tr>
+                                                        <td>
+                                                            <input type="time" name="hora_vb_2" class="form-control form-control-sm">
+                                                        </td>
+                                                        <td>
+                                                            <div class="input-group">
+                                                                <textarea name="actividad_vb_2" class="form-control form-control-sm" readonly 
+          style="height: auto; text-align: center; font-size: 12px; resize: none; border: none; overflow: hidden; white-space: pre-wrap; word-wrap: break-word;">
+                                                                    Pesado de la(S) muestra(a)
+                                                                    </textarea>
             
-                        <!-- Agar para métodos estándar -->
-                        <div class="row g-1 mb-2"> <!-- Reducir el espacio entre filas -->
-                            <div class="col-12 col-md-6">
-                                <div class="text-center">
-                                    <h3 class="h6" style="font-size: 14px;">Agar para métodos estándar</h3>
-                                </div>
-                            </div>
-                            <div class="col-12 col-md-3">
-                                <div class="form-floating">
-                                    <input type="text" class="form-control form-control-sm" id="floatingPassword" placeholder="Hora" style="font-size: 12px;">
-                                    <label for="floatingPassword" style="font-size: 12px;">Página</label>
-                                </div>
-                            </div>
-                            <div class="col-12 col-md-3">
-                                <div class="form-floating">
-                                    <input type="text" class="form-control form-control-sm" id="floatingPassword" placeholder="Hora" style="font-size: 12px;">
-                                    <label for="floatingPassword" style="font-size: 12px;">Número</label>
+                                                            </div>
+                                                        </td>
+                                                        <td colspan="8">
+                                                            <input type="text" name="valor_pesado_muestra_vb_2" class="form-control form-control-sm">
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            
-                <!-- Tabla 1: Verificación de la balanza -->
-                <div class="row mb-4">
-                    <div class="col-12">
-                        <div class="table-responsive"> <!-- Contenedor responsivo para la tabla -->
-                            <div class="row g-2 mb-2">
-                                <div class="col-12 col-md-6 col-lg-3 text-center">
-                                    <h3 class="h6 mb-0" style="font-size: 10px;">Verificación de la balanza granática LAM-12</h3>
-                                </div>
-                                <div class="col-12 col-md-6 col-lg-3 text-center">
-                                    <h3 class="h6 mb-0" style="font-size: 10px;">Ver verificación mensual de la balanza en: LAF-02</h3>
-                                </div>
-                                <div class="col-12 col-md-6 col-lg-3">
-                                    <div class="input-group input-group-sm">
-                                        <span class="input-group-text" style="font-size: 10px;">Página</span>
-                                        <input type="text" class="form-control form-control-sm" style="font-size: 10px;">
-                                    </div>
-                                </div>
-                                <div class="col-12 col-md-6 col-lg-3">
-                                    <div class="input-group input-group-sm">
-                                        <span class="input-group-text" style="font-size: 10px;">Número</span>
-                                        <input type="text" class="form-control form-control-sm" style="font-size: 10px;">
-                                    </div>
-                                </div>
-                            </div>
-                            <table class="micro-table table-sm" style="font-size: 10px;">
-                                <thead>
-                                    <tr>
-                                        <th style="font-size: 10px;">Hora</th>
-                                        <th style="font-size: 10px;">Actividad</th>
-                                        <th style="font-size: 10px;">Ajuste de balanza</th>
-                                        <th style="font-size: 10px;">Valor nominal</th>
-                                        <th style="font-size: 10px;">Valor convencional</th>
-                                        <th style="font-size: 10px;">Valor obtenido de la masa</th>
-                                        <th style="font-size: 10px;">Diferencia absoluta</th>
-                                        <th style="font-size: 10px;">Incertidumbre aceptada</th>
-                                        <th style="font-size: 10px;">EMT</th>
-                                        <th style="font-size: 10px;">Criterio de aceptación</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td><input type="time" class="form-control form-control-sm" style="font-size: 10px;"></td>
-                                        <td><input type="text" class="form-control form-control-sm" style="font-size: 10px;"></td>
-                                        <td><input type="text" class="form-control form-control-sm" style="font-size: 10px;"></td>
-                                        <td><input type="text" class="form-control form-control-sm" style="font-size: 10px;"></td>
-                                        <td><input type="text" class="form-control form-control-sm" style="font-size: 10px;"></td>
-                                        <td><input type="text" class="form-control form-control-sm" style="font-size: 10px;"></td>
-                                        <td><input type="text" class="form-control form-control-sm" style="font-size: 10px;"></td>
-                                        <td><input type="text" class="form-control form-control-sm" style="font-size: 10px;"></td>
-                                        <td><input type="text" class="form-control form-control-sm" style="font-size: 10px;"></td>
-                                        <td><input type="text" class="form-control form-control-sm" style="font-size: 10px;"></td>
-                                    </tr>
-                                    <tr>
-                                        <td><input type="time" class="form-control form-control-sm" style="font-size: 10px;"></td>
-                                        <td><input type="text" class="form-control form-control-sm" style="font-size: 10px;"></td>
-                                        <td><input type="text" class="form-control form-control-sm" style="font-size: 10px;"></td>
-                                        <td><input type="text" class="form-control form-control-sm" style="font-size: 10px;"></td>
-                                        <td><input type="text" class="form-control form-control-sm" style="font-size: 10px;"></td>
-                                        <td><input type="text" class="form-control form-control-sm" style="font-size: 10px;"></td>
-                                        <td><input type="text" class="form-control form-control-sm" style="font-size: 10px;"></td>
-                                        <td><input type="text" class="form-control form-control-sm" style="font-size: 10px;"></td>
-                                        <td><input type="text" class="form-control form-control-sm" style="font-size: 10px;"></td>
-                                        <td><input type="text" class="form-control form-control-sm" style="font-size: 10px;"></td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            
                                     <!-- Tabla 2: Cumplimientos de calidad -->
                     <div class="row mb-4">
                         <div class="col-12 text-center">
                             <div class="table-responsive"> <!-- Contenedor responsivo para la tabla -->
-                                <div class="row g-2 mb-2">
-                                    <div class="col-12 col-md-4 col-lg-2 text-center">
-                                        <h3 class="h6 mb-0" style="font-size: 12px;">Hora de incubación</h3>
-                                    </div>
-                                    <div class="col-12 col-md-4 col-lg-2">
-                                        <div class="input-group input-group-sm">
-                                            <span class="input-group-text" style="font-size: 10px;">🕒</span>
-                                            <input type="time" class="form-control form-control-sm" style="font-size: 10px;">
-                                        </div>
-                                    </div>
-                                </div>
-                                <table class="micro-table table-sm" style="font-size: 12px;">
-                                    <caption style="caption-side: top; text-align: center; font-size: 12px; font-weight: bold; padding: 5px; background-color: #063970; color: white;">
-                                        Ver cumplimiento de controles de calidad en:
-                                    </caption>
-                                    <thead>
-                                        <tr>
-                                            <th style="font-size: 12px;">Bitácora/Tomo</th>
-                                            <th style="font-size: 12px;">Página</th>
-                                            <th style="font-size: 12px;">Bitácora/Tomo</th>
-                                            <th style="font-size: 12px;">Página</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>
-                                                <div class="input-group input-group-sm">
-                                                    <span class="input-group-text" style="font-size: 10px;">LAF-45/</span>
-                                                    <input type="text" class="form-control form-control-sm" style="font-size: 10px;">
+
+                                <div class="container">
+                                    <div class="row justify-content-center">
+                                        <div class="col-md-12">
+                                            <div class="card shadow-sm"> <!-- Card con sombra -->
+                                                <div class="card-body">
+                                                    <!-- Título de la card -->
+                                                    <h5 style="caption-side: top; text-align: center; font-size: 1.5em; font-weight: bold; padding: 10px; background-color: #063970; color: white; border-radius: 10px;" >
+                                                        Ver cumplimiento de controles de calidad en:
+                                                    </h5>
+                                
+                                                    <!-- Primera fila de inputs -->
+                                                    <div class="row g-3 mb-3">
+                                                        <!-- Bitácora/Tomo 1 -->
+                                                        <div class="col-12 col-md-6 col-lg-3">
+                                                            <div class="input-group input-group-sm">                                                               
+                                                                <input type="text" class="form-control" name="nombre_laf_1" value="LAF-45/" readonly>
+                                                                <input type="date" class="form-control" name="fecha_1cc_1" placeholder="Mes">
+                                                            </div>
+                                                        </div>
+                                                        <!-- Página 1 -->
+                                                        <div class="col-12 col-md-6 col-lg-3">
+                                                            <input type="text" name="page_1cc_1" class="form-control form-control-sm" placeholder="Página">
+                                                        </div>
+                                                        <!-- Bitácora/Tomo 2 -->
+                                                        <div class="col-12 col-md-6 col-lg-3">
+                                                            <div class="input-group input-group-sm">
+                                                                <input type="text" class="form-control" name="nombre_laf_2" value="LAF-44/" readonly>
+                                                                <input type="date" class="form-control" name="fecha_1cc_2" placeholder="Mes">
+                                                            </div>
+                                                        </div>
+                                                        <!-- Página 2 -->
+                                                        <div class="col-12 col-md-6 col-lg-3">
+                                                            <input type="text" name="page_1cc_2" class="form-control form-control-sm" placeholder="Página">
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Segunda fila de inputs -->
+                                                    <div class="row g-3 mb-3">
+                                                        <!-- Bitácora/Tomo 3 -->
+                                                        <div class="col-12 col-md-6 col-lg-3">
+                                                            <div class="input-group input-group-sm">
+                                                                
+                                                                <input type="text" class="form-control" name="nombre_laf_3" value="LAF-57/" readonly>
+                                                                <input type="date" class="form-control" name="fecha_1cc_3" placeholder="Mes">
+                                                            </div>
+                                                        </div>
+                                                        <!-- Página 3 -->
+                                                        <div class="col-12 col-md-6 col-lg-3">
+                                                            <input type="text" name="page_1cc_3" class="form-control form-control-sm" placeholder="Página">
+                                                        </div>
+                                                        <!-- Bitácora/Tomo 4 -->
+                                                        <div class="col-12 col-md-6 col-lg-3">
+                                                            <div class="input-group input-group-sm">                                                                
+                                                                <input type="text" class="form-control" name="nombre_laf_4" value="LAF-52/" readonly>
+                                                                <input type="date" class="form-control" name="fecha_1cc_4" placeholder="Mes">
+                                                            </div>
+                                                        </div>
+                                                        <!-- Página 4 -->
+                                                        <div class="col-12 col-md-6 col-lg-3">
+                                                            <input type="text" name="page_1cc_4"class="form-control form-control-sm" placeholder="Página">
+                                                        </div>
+                                                    </div>
+                                
+                                                    <!-- Descripción de las bitácoras -->
+                                                    <div class="row mt-4">
+                                                        <div class="col-12 text-center">
+                                                            <p class="mb-0 small">
+                                                                <strong>LAF-45:</strong> Bitácora de control de calidad de microbiología,
+                                                                <strong>LAF-44:</strong> Bitácora de control de medio ambiente,
+                                                                <strong>LAF-57:</strong> Bitácora de bacterias aerobias en placa,
+                                                                <strong>LAF-52:</strong> Bitácora de mohos y levaduras
+                                                            </p>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                            </td>
-                                            <td><input type="text" class="form-control form-control-sm" style="font-size: 10px;"></td>
-                                            <td>
-                                                <div class="input-group input-group-sm">
-                                                    <span class="input-group-text" style="font-size: 10px;">LAF-44/</span>
-                                                    <input type="text" class="form-control form-control-sm" style="font-size: 10px;">
-                                                </div>
-                                            </td>
-                                            <td><input type="text" class="form-control form-control-sm" style="font-size: 10px;"></td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <div class="input-group input-group-sm">
-                                                    <span class="input-group-text" style="font-size: 10px;">LAF-57/</span>
-                                                    <input type="text" class="form-control form-control-sm" style="font-size: 10px;">
-                                                </div>
-                                            </td>
-                                            <td><input type="text" class="form-control form-control-sm" style="font-size: 10px;"></td>
-                                            <td>
-                                                <div class="input-group input-group-sm">
-                                                    <span class="input-group-text" style="font-size: 10px;">LAF-52/</span>
-                                                    <input type="text" class="form-control form-control-sm" style="font-size: 10px;">
-                                                </div>
-                                            </td>
-                                            <td><input type="text" class="form-control form-control-sm" style="font-size: 10px;"></td>
-                                        </tr>
-                                        <tr>
-                                            <td colspan="4" class="text-center">
-                                                <strong style="font-size: 12px;">LAF-45: Bitácora de control de calidad de microbiología, LAF-44: Bitácora de control de medio ambiente, LAF-57: Bitácora de bacterias aerobias en placa, LAF-52: Bitácora de mohos y levaduras</strong>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                                <div class="row g-2 mt-2">
-                                    <div class="col-6 col-md-3 col-lg-2 text-center">
-                                        <h3 class="h6 mb-0" style="font-size: 12px;">Fecha y hora de las lecturas</h3>
-                                    </div>
-                                    <div class="col-6 col-md-3 col-lg-2">
-                                        <div class="input-group input-group-sm">
-                                            <span class="input-group-text" style="font-size: 10px;">🕒</span>
-                                            <input type="date" class="form-control form-control-sm" style="font-size: 10px;">
-                                        </div>
-                                    </div>
-                                    <div class="col-6 col-md-3 col-lg-2">
-                                        <div class="input-group input-group-sm">
-                                            <span class="input-group-text" style="font-size: 10px;">🕒</span>
-                                            <input type="time" class="form-control form-control-sm" style="font-size: 10px;">
-                                        </div>
-                                    </div>
-                                    <div class="col-6 col-md-3 col-lg-2">
-                                        <div class="input-group input-group-sm">
-                                            <span class="input-group-text" style="font-size: 10px;">🕒</span>
-                                            <input type="date" class="form-control form-control-sm" style="font-size: 10px;">
-                                        </div>
-                                    </div>
-                                    <div class="col-6 col-md-3 col-lg-2">
-                                        <div class="input-group input-group-sm">
-                                            <span class="input-group-text" style="font-size: 10px;">🕒</span>
-                                            <input type="time" class="form-control form-control-sm" style="font-size: 10px;">
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    
+                    </div>                 
             </div>
         </div>
+    </div>
+    </div>
            
         <div class="table-container">
-            
             <table class="micro-table">
                 <caption style="caption-side: top; text-align: center; font-size: 1.5em; font-weight: bold; padding: 10px; background-color: #063970; color: white;">
                     Tabla de Resultados
@@ -346,10 +422,10 @@
                     </tr>
                     <tr>
                         <!-- Subencabezados para diluciones empleadas -->
-                        <th>10-1</th>
-                        <th>10-2</th>
-                        <th>10-3</th>
-                        <th>10-4</th>
+                        <th>1</th>
+                        <th>0.1</th>
+                        <th>0.01</th>
+                        <th>0.001</th>
                         <!-- Subencabezados para Dilución o Directa -->
                         <th>Placa 1</th>
                         <th>Placa 2</th>
@@ -365,19 +441,19 @@
                     <!-- Fila adicional debajo de los títulos -->
                     <tr>
                         <td><input type="text" value="Blanco" readonly></td> <!-- No editable -->
-                        <td><input type="text" name="cantidad_blanco[]"></td>
-                        <td><input type="text" name="dil1_blanco[]"></td>
-                        <td><input type="text" name="dil2_blanco[]"></td>
-                        <td><input type="text" name="dil3_blanco[]"></td>
-                        <td><input type="text" name="dil4_blanco[]"></td>
-                        <td><input type="text" name="dir_placa1_blanco[]"></td>
-                        <td><input type="text" name="dir_placa2_blanco[]"></td>
-                        <td><input type="text" name="promedio1_blanco[]"></td>
-                        <td><input type="text" name="dil_placa1_blanco[]"></td>
-                        <td><input type="text" name="dil_placa2_blanco[]"></td>
-                        <td><input type="text" name="promedio2_blanco[]"></td>
-                        <td><input type="text" name="dil_placa1_dup_blanco[]"></td>
-                        <td><input type="text" name="dil_placa2_dup_blanco[]"></td>
+                        <td><input type="text" name="cantidad_blanco[]" readonly></td>
+                        <td><input type="text" name="dil1_blanco[]" readonly></td>
+                        <td><input type="text" name="dil2_blanco[]" readonly></td>
+                        <td><input type="text" name="dil3_blanco[]" readonly></td>
+                        <td><input type="text" name="dil4_blanco[]" readonly></td>
+                        <td><input type="text" name="dir_placa1_blanco[]" readonly></td>
+                        <td><input type="text" name="dir_placa2_blanco[]" readonly></td>
+                        <td><input type="text" name="promedio1_blanco[]" readonly></td>
+                        <td><input type="text" name="dil_placa1_blanco[]" readonly></td>
+                        <td><input type="text" name="dil_placa2_blanco[]" readonly></td>
+                        <td><input type="text" name="promedio2_blanco[]" readonly></td>
+                        <td><input type="text" name="dil_placa1_dup_blanco[]" readonly></td>
+                        <td><input type="text" name="dil_placa2_dup_blanco[]" readonly></td>
                         <td><input type="text" name="promedio3_blanco[]"></td>
                         <!-- Subcolumnas de "Resultado" -->
                         <td><input type="text" name="resultado_blanco[]"></td> <!-- Editable -->
@@ -386,68 +462,221 @@
                     </tr>
                     <!-- Fila principal de inputs -->
                     <tr>
-                        <td><input type="text" name="clave[]"></td>
-                        <td><input type="text" name="cantidad[]"></td>
-                        <td><input type="text" name="dil1[]"></td>
-                        <td><input type="text" name="dil2[]"></td>
-                        <td><input type="text" name="dil3[]"></td>
-                        <td><input type="text" name="dil4[]"></td>
-                        <td><input type="text" name="dir_placa1[]"></td>
-                        <td><input type="text" name="dir_placa2[]"></td>
-                        <td><input type="text" name="promedio1[]"></td>
-                        <td><input type="text" name="dil_placa1[]"></td>
-                        <td><input type="text" name="dil_placa2[]"></td>
-                        <td><input type="text" name="promedio2[]"></td>
-                        <td><input type="text" name="dil_placa1_dup[]"></td>
-                        <td><input type="text" name="dil_placa2_dup[]"></td>
-                        <td><input type="text" name="promedio3[]"></td>
+                        <td><input type="text" name="clave_c_m[]" id="clave_c_m[]"></td>
+                        <td><input type="text" name="cantidad_c_m[]" id="cantidad_c_m[]"></td>
+                        <!-- Columna empleadas -->
+                        <td><input  type="checkbox" name="dE_1[]" id="dE_1[]" value="1"><input type="hidden" name="dE_1[]" value="0"></td>
+                        <td><input  type="checkbox" name="dE_2[]" id="dE_2[]" value="0.1"><input type="hidden" name="dE_2[]" value="0"></td>
+                        <td><input  type="checkbox" name="dE_3[]" id="dE_3[]" value="0.01"><input type="hidden" name="dE_3[]" value="0"></td>
+                        <td><input  type="checkbox" name="dE_4[]" id="dE_4[]" value="0.001"><input type="hidden" name="dE_4[]" value="0"></td>
+                        <!--  -->
+                        <!-- Columna directo o dilusción -->
+                        <td><input type="number" name="placa_dD[]" class="placa1" id="placa_dD[]"></td>
+                        <td><input type="number" name="placa_dD2[]" class="placa2" id="placa_dD2[]"></td>
+                        <td><input type="text" name="promedio_dD[]" class="promedio" id="promedio_dD[]"></td>
+                        <!--  -->
+                        <td><input type="text" name="placa_d[]" class="placa3" id="placa_d[]"></td>
+                        <td><input type="text" name="placa_d2[]" class="placa4" id="placa_d2[]"></td>
+                        <td><input type="text" name="promedio_d[]" class="promedio2" id="promedio_d[]"></td>
+                        <td><input type="text" name="placa_d_2[]" class="placa5" id="placa_d_2[]"></td>
+                        <td><input type="text" name="placa_d2_2[]" class="placa6" id="placa_d2_2[]"></td>
+                        <td><input type="text" name="promedio_d_2[]" class="promedio3" id="promedio_d_2[]"></td>
                         <!-- Subcolumnas de "Resultado" -->
-                        <td><input type="text" name="resultado[]"></td> <!-- Editable -->
-                        <td><input type="text" name="ufc_placa[]"></td> <!-- Editable -->
-                        <td><input type="text" name="diferencia[]"></td>
+                        <td><input type="text" name="resultado_r[]" id="resultado_r[]"></td> <!-- Editable -->
+                        <td><input type="text" name="ufC_placa_r[]" id="ufC_placa_r[]"></td> <!-- Editable -->
+                        <td><input type="text" name="diferencia_r[]" id="diferencia_r[]"></td>
                     </tr>
                     <!-- Se pueden agregar más filas de inputs si es necesario -->
                 </tbody>
             </table>
+            
+        
             <div class="d-flex justify-content-center mt-4">
-                <div class="w-50">
+                <div class="w-100">
                     <table class="table-container text-center border">
                         <thead>
                             <tr>
-                                <th>Elabora</th>
-                                <th>Revisa</th>
-                                <th>Autoriza</th>
+                                <th style="width: 20%;">Ovservaciones</th>
+                                <th>Ejemplo de calculo de resultado</th>
+                                <th>Ejemplo de canculo de resultado de superficies vivas e inertes</th>
+                                <th>Ejemplo de calculo diferencia entre duplicados</th>
+                                <th style="width: 8%;">Elabora</th>
+                                <th style="width: 8%;">Revisa</th>
+                                <th style="width: 8%;">Autoriza</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
+                                <td >
+                                    <div class="d-flex flex-column align-items-center">
+                                        <textarea name="observaciones_cbap" class="form-control" rows="3" style="width: 100%; resize: none;" placeholder="Escriba sus observaciones aquí..."></textarea>
+                                    </div>
+                                </td>
+                                
+                                <td>
+                                    <div class="d-flex flex-column align-items-center">
+                                        
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex flex-column align-items-center">
+                                        
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex flex-column align-items-center">
+                                       
+                                    </div>
+                                </td>
                                 <td>
                                     <div class="d-flex flex-column align-items-center">
                                         <span>{{ firma_elabora }}</span>
-                                        <hr class="w-75 mt-4">
+                                        <hr class="w-100 mt-4">
                                         <span>Firma</span>
                                     </div>
                                 </td>
                                 <td>
                                     <div class="d-flex flex-column align-items-center">
                                         <span>{{ firma_revisa }}</span>
-                                        <hr class="w-75 mt-4">
+                                        <hr class="w-100 mt-4">
                                         <span>Firma</span>
                                     </div>
                                 </td>
                                 <td>
                                     <div class="d-flex flex-column align-items-center">
                                         <span>{{ firma_autoriza }}</span>
-                                        <hr class="w-75 mt-4">
+                                        <hr class="w-100 mt-4">
                                         <span>Firma</span>
                                     </div>
                                 </td>
+                                
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </div>        
         </div>
-    </form>
+                <!-- Modal confirmación-->
+        <div class="modal fade" id="enviar" tabindex="-1" aria-labelledby="enviar" aria-hidden="true">
+            <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header justify-content-center">
+                <h5 class="modal-title" id="enviar" >Enviar</h5>
+                <button type="button" class="btn-close position-absolute end-0 me-3" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-muted text-center">
+                    Porfavor antes de enviar asegurese que todo este correcto.
+                </div>
+                <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-danger me-2" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="abrirModalFirma()">Aceptar</button>
+                </div>
+            </div>
+            </div>
+        </div>
+        <!-- Modal para firmar -->
+        <div class="modal fade" id="firmar" tabindex="-1" aria-labelledby="firmar" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header justify-content-center">
+                        <h5 class="modal-title text-danger" id="firmar">Firma del usuario</h5>
+                        <button type="button" class="btn-close position-absolute end-0 me-3" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert alert-danger" id="error-message" style="display: none;"></div>
+                        <div class="form-group">
+                            <label for="password" class="form-label">Ingrese su contraseña para firmar:</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer justify-content-center">
+                        <button type="button" class="btn btn-primary" onclick="enviarFormulario()">Firmar</button>
+                    </div>
+                </div>
+            </div>
+            </div>
+
+        <!-- Modal para mensajes de éxito -->
+        <div class="modal fade" id="mensajeExito" tabindex="-1" aria-labelledby="mensajeExitoLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header bg-success text-white">
+                        <h5 class="modal-title" id="mensajeExitoLabel">
+                            <i class="bi bi-check-circle me-2"></i>
+                            Éxito
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    {% if messages %}
+                            <div class="messages">
+                                {% for message in messages %}
+                                    {% if message.tags == 'error' %}
+                                        <div class="alert alert-danger">
+                                            {{ message }}
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    <div class="modal-body text-center">
+                        <p id="mensajeExitoTexto" class="mb-0"></p>
+                    </div>
+                    <div class="modal-footer justify-content-center">
+                        <button type="button" class="btn btn-success" data-bs-dismiss="modal">Aceptar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Modal para mensajes de exito guardado -->
+       <!-- Modal para mensajes de éxito guardado -->
+<div class="modal fade" id="guardarexito" tabindex="-1" aria-labelledby="mensajeExitoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="mensajeExitoLabel">
+                    <i class="bi bi-check-circle me-2"></i>
+                    Guardado
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <!-- Mensaje de éxito -->
+                <p id="mensajeExitoTextoGuardar" class="mb-0"></p>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Aceptar</button>
+            </div>
+        </div>
+    </div>
 </div>
+<!-- Modal de Error -->
+<div class="modal fade" id="modalError" tabindex="-1" aria-labelledby="mensajeExitoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="mensajeExitoLabel">
+                    <i class="bi bi-check-circle me-2"></i>
+                    Error al guardar bitacora
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <!-- Mensaje de éxito -->
+                <p id="mensajeErrorTexto" class="mb-0"></p>
+                <!-- Mensaje de error -->
+                <div class="alert alert-danger mt-3" id="error-guardar" style="display: none;"></div>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Aceptar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+    </form>
+
+</div>
+{% endblock %}
+{% block extra_js %}
+    <script src="{% static 'js/events-bita131.js' %}"></script>
 {% endblock %}

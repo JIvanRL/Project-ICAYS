@@ -1,0 +1,796 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<body>
+    <div class="container-fluid">
+        <form id="form-principal" method="post" enctype="multipart/form-data" >
+            {% csrf_token %}
+            <div class="d-flex flex-wrap justify-content-between align-items-center">
+                <!-- Botón "Regresar" alineado a la izquierda -->
+                <button class="icon-container button-style custom-button mb-2" type="button" data-url="{% url 'microalimentos:lista_bitacoras' %}">Regresar</button>
+        
+            
+                <!-- Botones alineados a la derecha -->
+                <div class="d-flex flex-wrap gap-2">
+                    <button class="enviar-custom custom-button"  type="button" data-bs-toggle="modal" data-bs-target="#enviar">Enviar</button>
+                    <button class="cancelar-custom custom-button" data-url="{% url 'microalimentos:inicioAnalistas' %}" type="button">Cancelar</button>
+                    <button class="guardar-custom custom-button" type="button" onclick="guardarFormulario()">Guardar</button>
+                </div>
+            </div>
+            
+            <div class="d-flex align-items-center p-3">
+                <!-- Contenedor de botones alineado a la izquierda -->
+                <div class="d-flex gap-3">
+                    <!-- Botón para ocultar/mostrar contenido -->
+                    <button class="btn btn-primary" id="toggleFormulario" type="button">
+                        <i class="bi bi-arrow-down-circle"></i>
+                    </button>                
+                    <!-- Botón para agregar filas -->
+                    <button id="add-row-btn" class="btn btn-success" type="button">
+                        <i class="bi bi-plus-circle"></i>
+                    </button>        
+                    <!-- Botón para eliminar filas -->
+                    <button id="remove-row-btn" class="btn btn-danger" type="button">
+                        <i class="bi bi-dash-circle"></i>
+                    </button>
+                </div>
+            
+                <!-- Título centrado -->
+                <h1 class="text-center flex-grow-1 m-0" >{{ bitacora.nombre_cbap }}</h1>
+                <input type="hidden" name="nombre_cbap" value="Cuenta de bacterias aerobias en placa" >
+                <div class="d-flex gap-3">
+                    <div class="col-12 col-md-5">
+                        <div class="form-floating">
+                            <input type="text" 
+                                class="form-control form-control-sm {% if form.pagina_cbap.errors %}is-invalid{% endif %}" 
+                                id="pagina_cbap" 
+                                value="{{ bitacora.pagina_cbap }}" 
+                                name="pagina_cbap" 
+                                placeholder="Página">
+                            <label for="pagina_cbap">Página</label>
+                            {% if form.pagina_cbap.errors %}
+                            <div class="invalid-feedback">
+                                {{ form.pagina_cbap.errors|join:", " }}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>              
+            </div>             
+            
+                   
+            <div id="contenidoOculto" class="oculto"> 
+            <div class="container-fluid">
+                <div class="container-fluid">
+                    <div class="card card-body">
+                        <div class="row justify-content-center"> <!-- Centrar las tarjetas horizontalmente -->
+                            <!-- Primera tarjeta -->
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100 shadow-sm"> <!-- Añadí sombra y altura fija -->
+                                    <div class="card-body">
+                                        <div class="row g-2"> <!-- Reducir el espacio entre filas -->
+                                            <!-- Fecha, Hora, Procedimiento y Equipo de incubación -->
+                                            <div class="col-12 col-md-6">
+                                                <div class="form-floating">
+                                                    <input type="date" 
+                                                            class="form-control form-control-sm" 
+                                                            id="fecha_siembra" 
+                                                            name="fecha_siembra" 
+                                                            value="{{ bitacora.id_dc_cbap.fecha_siembra_dc|date:'Y-m-d' }}" 
+                                                            placeholder="Fecha"
+                                                            min="2000-01-01"
+                                                            max="{% now 'Y-m-d' %}">
+                                                    <label for="fecha_siembra">Fecha de siembra</label>
+                                                </div>
+                                            </div>
+                                            <div class="col-12 col-md-6 center">
+                                                <div class="form-floating">
+                                                    <input type="time" class="form-control form-control-sm" id="hora_siembra" name="hora_siembra"
+                                                        value="{% if bitacora.id_dc_cbap.hora_siembra_dc %}{{ bitacora.id_dc_cbap.hora_siembra_dc|time:'H:i' }}{% endif %}"
+                                                        placeholder="Hora">
+                                                    <label for="hora_siembra">Hora de siembra</label>
+                                                </div>
+                                            </div>
+                                            <div class="col-12 col-md-6">
+                                                <div class="form-floating">
+                                                    <input type="time" class="form-control form-control-sm" id="hora_incubacion" value="{% if bitacora.id_dc_cbap.hora_siembra_dc %}{{ bitacora.id_dc_cbap.hora_incubacion_dc|time:'H:i' }}{% endif %}" name="hora_incubacion" placeholder="Hora" >
+                                                    <label for="hora_incubacion">Hora de incubación</label>
+                                                </div>
+                                            </div>
+                                            <div class="col-12 col-md-6">
+                                                <div class="form-floating">
+                                                    <input type="text" class="form-control form-control-sm" id="procedimiento" name="procedimiento" placeholder="LAI-04M2" value="{{ bitacora.id_dc_cbap.procedimiento_dc}}" name="hora_incubacion" readonly>
+                                                    <label for="procedimiento">Procedimiento</label>
+                                                </div>
+                                            </div>
+                                            <div class="col-12 col-md-6">
+                                                <div class="form-floating">
+                                                    <input type="text" class="form-control form-control-sm" id="equipo_incubacion" name="equipo_incubacion" placeholder="LAT-63 (35C°)" value="{{ bitacora.id_dc_cbap.equipo_incubacion_dc}}"  readonly>
+                                                    <label for="equipo_incubacion">Equipo de incubación</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                    
+                            <!-- Segunda tarjeta -->
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100 shadow-sm"> <!-- Añadí sombra y altura fija -->
+                                    <div class="card-body">
+                                        <!-- Título "Registro de muestras LAF-50" -->
+                                        <div class="row mb-3">
+                                            <div class="col-12 text-center">
+                                                <h5 class="card-title">Registro de muestras LAF-50</h5> <!-- Usé h5 para el título -->
+                                            </div>
+                                        </div>
+                    
+                                        <!-- Letra Analista, Tomo y Página -->
+                                        <div class="row g-2">
+                                            <div class="col-12 col-md-4">
+                                                <div class="form-floating">
+                                                    <input type="text" class="form-control form-control-sm" id="letra_analista_cbap" name="letra_analista_cbap" value="{{bitacora.letra_analista_cbap}}" placeholder="Letra Analista" >
+                                                    <label for="letra_analista_cbap">Letra Analista</label>
+                                                </div>
+                                            </div>
+                                            <div class="col-12 col-md-4">   
+                                                <div class="form-floating">
+                                                    <input type="date" 
+                                                                    class="form-control form-control-sm" 
+                                                                    id="mes_muestra_cbap" 
+                                                                    name="mes_muestra_cbap" 
+                                                                    value="{{ bitacora.mes_muestra_cbap|date:'Y-m-d' }}" 
+                                                                    min="2000-01-01" 
+                                                                    max="{% now 'Y-m-d' %}"  
+                                                                    placeholder="Tomo">
+                                                    <label for="mes_muestra_cbap">Mes</label>
+                                                </div>
+                                            </div>
+                                            <div class="col-12 col-md-4">
+                                                <div class="form-floating">
+                                                    <input type="text" class="form-control form-control-sm" id="pagina_muestra_cbap" name="pagina_muestra_cbap" value="{{bitacora.pagina_muestra_cbap}}" placeholder="Página" >
+                                                    <label for="pagina_muestra_cbap">Página</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100 shadow-sm"> <!-- Añadí sombra y altura fija -->
+                                    <div class="card-body">
+                                        <div class="row g-2"> <!-- Reducir el espacio entre filas -->
+                                            <h2 class="card-title">Fecha y hora de lecturas</h2>
+                                            <!-- Fecha, Hora, Procedimiento y Equipo de incubación -->
+                                            <div class="col-12 col-md-6">
+                                                <div class="form-floating">
+                                                    <input type="date" class="form-control form-control-sm" id="fecha_lectura_cbap" name="fecha_lectura_cbap" value="{{ bitacora.fecha_lectura_cbap|date:'Y-m-d' }}" 
+                                                    min="2000-01-01" 
+                                                    max="{% now 'Y-m-d' %}" placeholder="Fecha">
+                                                </div>
+                                            </div>
+                                            <div class="col-12 col-md-6 center">
+                                                <div class="form-floating">
+                                                    <input type="time" class="form-control form-control-sm" id="hora_lectura_cbap" name="hora_lectura_cbap" value="{% if bitacora.hora_lectura_cbap %}{{ bitacora.hora_lectura_cbap|time:'H:i' }}{% endif %}" placeholder="Hora">
+                                                </div>
+                                            </div>
+                                            <div class="col-12 col-md-6">
+                                                <div class="form-floating">
+                                                    <input type="date" class="form-control form-control-sm" id="floatingInput" placeholder="Fecha">
+                                                </div>
+                                            </div>
+                                            <div class="col-12 col-md-6 center">
+                                                <div class="form-floating">
+                                                    <input type="time" class="form-control form-control-sm" id="floatingSiembra" placeholder="Hora">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Tercera tarjeta -->
+                            <div class="col-md-8 mb-3">
+                                <div class="card h-100 shadow-sm"> <!-- Añadí sombra y altura fija -->
+                                    <div class="card-body">
+                                        <!-- Título "Reactivos y medios de cultivo LAF-02" -->
+                                        <div class="row mb-3">
+                                            <div class="col-12 text-center">
+                                                <h5 class="card-title">Reactivos y medios de cultivo LAF-02</h5> <!-- Usé h5 para el título -->
+                                            </div>
+                                        </div>
+                    
+                                        <!-- Solución reguladora de fosfato -->
+                                        <div class="row g-2 mb-3">
+                                            <div class="col-12 col-md-6">
+                                                <div class="text-center">
+                                                    <h6 class="mb-0">Solución reguladora de fosfato</h6> <!-- Usé h6 para subtítulos -->
+                                                </div>
+                                            </div>
+                                            <div class="col-12 col-md-3">
+                                                <div class="form-floating">
+                                                    <input type="text" name="pagina_fosfato_cbap" class="form-control form-control-sm" id="pagina_fosfato_cbap" value="{{bitacora.pagina_fosfato_cbap}}" placeholder="Página">
+                                                    <label for="pagina_fosfato_cbap">Página</label>
+                                                </div>
+                                            </div>
+                                            <div class="col-12 col-md-3">
+                                                <div class="form-floating">
+                                                    <input type="text" name="numero_fosfato_cbap" class="form-control form-control-sm" id="numero_fosfato_cbap" value="{{bitacora.numero_fosfato_cbap}}" placeholder="Número">
+                                                    <label for="numero_fosfato_cbap">Número</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                    
+                                        <!-- Agar para métodos estándar -->
+                                        <div class="row g-2">
+                                            <div class="col-12 col-md-6">
+                                                <div class="text-center">
+                                                    <h6 class="mb-0">Agar para métodos estándar</h6> <!-- Usé h6 para subtítulos -->
+                                                </div>
+                                            </div>
+                                            <div class="col-12 col-md-3">
+                                                <div class="form-floating">
+                                                    <input type="text" name="pagina_agar_cbap" class="form-control form-control-sm" id="pagina_agar_cbap" value="{{bitacora.pagina_agar_cbap}}" placeholder="Página">
+                                                    <label for="pagina_agar_cbap">Página</label>
+                                                </div>
+                                            </div>
+                                            <div class="col-12 col-md-3">
+                                                <div class="form-floating">
+                                                    <input type="text" name="numero_agar_cbap" class="form-control form-control-sm" id="numero_agar_cbap" value="{{bitacora.numero_agar_cbap}}" placeholder="Número">
+                                                    <label for="numero_agar_cbap">Número</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>                    
+                        </div>
+               
+                <!-- Tabla 2: Verificacion de balanza-->
+                        <!-- Tabla 2: Verificacion de balanza-->
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-12">
+            <div class="card shadow-sm"> <!-- Card con sombra -->
+                <div class="card-body">
+                    <!-- Título de la card -->
+                    <h5 style="caption-side: top; text-align: center; font-size: 1.5em; font-weight: bold; padding: 10px; background-color: #063970; color: white; border-radius: 10px;">
+                        Verificación de la balanza granataria LAM-12
+                    </h5>
+                
+                    <!-- Tabla con labels fuera de los campos -->
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Hora</th>
+                                    <th>Actividad</th>
+                                    <th>Ajuste de balanza</th>
+                                    <th>Valor nominal</th>
+                                    <th>Valor convencional</th>
+                                    <th>Valor obtenido de la masa</th>
+                                    <th>Diferencia absoluta</th>
+                                    <th>Incertidumbre aceptada</th>
+                                    <th>EMT</th>
+                                    <th>Criterio de aceptación</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Fila 1 -->
+                                <tr>
+                                    <td>
+                                        <input type="time" name="hora_vb_1" 
+                                            class="form-control form-control-sm"
+                                            value="{% if verificaciones_balanza %}{{ verificaciones_balanza.0.hora_vb|time:'H:i' }}{% endif %}">
+                                    </td>
+                                    <td>
+                                        <div class="form-floating">
+                                            <input type="text" name="actividad_vb_1" 
+                                                class="form-control form-control-sm" readonly
+                                                value="{% if verificaciones_balanza %}{{ verificaciones_balanza.0.actividad_vb|default:'---' }}{% endif %}">
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <input type="text" name="ajuste_vb_1" 
+                                            class="form-control form-control-sm"
+                                            value="{% if verificaciones_balanza %}{{ verificaciones_balanza.0.ajuste_vb|default:'---' }}{% endif %}">
+                                    </td>
+                                    <td>
+                                        <input type="text" name="valor_nominal_vb_1" 
+                                            class="form-control form-control-sm"
+                                            value="{% if verificaciones_balanza %}{{ verificaciones_balanza.0.valor_nominal_vb|default:'---' }}{% endif %}">
+                                    </td>
+                                    <td>
+                                        <input type="text" name="valor_convencional_vb_1" 
+                                            class="form-control form-control-sm"
+                                            value="{% if verificaciones_balanza %}{{ verificaciones_balanza.0.valor_convencional_vb|default:'---' }}{% endif %}">
+                                    </td>
+                                    <td>
+                                        <input type="text" name="valo_masa_vb_1" 
+                                            class="form-control form-control-sm"
+                                            value="{% if verificaciones_balanza %}{{ verificaciones_balanza.0.valo_masa_vb|default:'---' }}{% endif %}">
+                                    </td>
+                                    <td>
+                                        <input type="text" name="diferecnia_vb_1" 
+                                            class="form-control form-control-sm"
+                                            value="{% if verificaciones_balanza %}{{ verificaciones_balanza.0.diferecnia_vb|default:'---' }}{% endif %}">
+                                    </td>
+                                    <td>
+                                        <input type="text" name="incertidumbre_vb_1" 
+                                            class="form-control form-control-sm"
+                                            value="{% if verificaciones_balanza %}{{ verificaciones_balanza.0.incertidumbre_vb|default:'---' }}{% endif %}">
+                                    </td>
+                                    <td>
+                                        <input type="text" name="emt_vb_1" 
+                                            class="form-control form-control-sm"
+                                            value="{% if verificaciones_balanza %}{{ verificaciones_balanza.0.emt_vb|default:'---' }}{% endif %}">
+                                    </td>
+                                    <td>
+                                        <input type="text" name="aceptacion_vb_1" 
+                                            class="form-control form-control-sm"
+                                            value="{% if verificaciones_balanza %}{{ verificaciones_balanza.0.aceptacion_vb|default:'---' }}{% endif %}">
+                                    </td>
+                                </tr>
+                                <!-- Fila 2 -->
+                                <tr>
+                                    <td>
+                                        <input type="time" name="hora_vb_2" 
+                                            class="form-control form-control-sm"
+                                            value="{% if verificaciones_balanza %}{{ verificaciones_balanza.1.hora_vb|time:'H:i' }}{% endif %}">
+                                    </td>
+                                    <td>
+                                        <div class="input-group">
+                                            <textarea name="actividad_vb_2" 
+                                                class="form-control form-control-sm" 
+                                                readonly 
+                                                style="height: auto; text-align: center; font-size: 12px; resize: none; border: none; overflow: hidden; white-space: pre-wrap; word-wrap: break-word;">
+                                                Pesado de la(S) muestra(a)
+                                            </textarea>
+                                        </div>
+                                    </td>
+                                    <td colspan="8">
+                                        <input type="text" name="valor_pesado_muestra_vb_2" 
+                                            class="form-control form-control-sm"
+                                            value="{% if verificaciones_balanza %}{{ verificaciones_balanza.1.valor_pesado_muestra_vb|default:'---' }}{% endif %}">
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+                                        <!-- Tabla 2: Cumplimientos de calidad -->
+                        <div class="row mb-4">
+                            <div class="col-12 text-center">
+                                <div class="table-responsive"> <!-- Contenedor responsivo para la tabla -->
+    
+                                    <div class="container">
+                                        <div class="row justify-content-center">
+                                            <div class="col-md-12">
+                                                <div class="card shadow-sm"> <!-- Card con sombra -->
+                                                    <div class="card-body">
+                                                        <!-- Título de la card -->
+                                                        <h5 style="caption-side: top; text-align: center; font-size: 1.5em; font-weight: bold; padding: 10px; background-color: #063970; color: white; border-radius: 10px;" >
+                                                            Ver cumplimiento de controles de calidad en:
+                                                        </h5>
+                                    
+                                                        <!-- Primera fila de inputs -->
+                                                            <div class="row g-3 mb-3">
+                                                                {% for control in controles_calidad %}
+                                                                    {% if forloop.counter <= 2 %}
+                                                                        <!-- Bitácora/Tomo {{ forloop.counter }} -->
+                                                                        <div class="col-12 col-md-6 col-lg-3">
+                                                                            <div class="input-group input-group-sm">                                                               
+                                                                                <input type="text" 
+                                                                                    class="form-control" 
+                                                                                    name="nombre_laf_{{ forloop.counter }}" 
+                                                                                    value="{{ control.nombre_laf|default:'-' }}" 
+                                                                                    readonly>
+                                                                                <input type="date" 
+                                                                                    class="form-control" 
+                                                                                    name="fecha_1cc_{{ forloop.counter }}" 
+                                                                                    value="{% if control.fecha_1cc %}{{ control.fecha_1cc|date:'Y-m-d' }}{% endif %}"
+                                                                                    placeholder="Mes">
+                                                                            </div>
+                                                                        </div>
+                                                                        <!-- Página {{ forloop.counter }} -->
+                                                                        <div class="col-12 col-md-6 col-lg-3">
+                                                                            <input type="text" 
+                                                                                name="page_1cc_{{ forloop.counter }}" 
+                                                                                value="{{ control.page_1cc|default:'-' }}"
+                                                                                class="form-control form-control-sm" 
+                                                                                placeholder="Página">
+                                                                        </div>
+                                                                    {% endif %}
+                                                                {% endfor %}
+                                                            </div>
+
+                                                            <!-- Segunda fila de inputs -->
+                                                            <div class="row g-3 mb-3">
+                                                                {% for control in controles_calidad %}
+                                                                    {% if forloop.counter > 2 and forloop.counter <= 4 %}
+                                                                        <!-- Bitácora/Tomo {{ forloop.counter }} -->
+                                                                        <div class="col-12 col-md-6 col-lg-3">
+                                                                            <div class="input-group input-group-sm">                                                               
+                                                                                <input type="text" 
+                                                                                    class="form-control" 
+                                                                                    name="nombre_laf_{{ forloop.counter }}" 
+                                                                                    value="{{ control.nombre_laf|default:'-' }}" 
+                                                                                    readonly>
+                                                                                <input type="date" 
+                                                                                    class="form-control" 
+                                                                                    name="fecha_1cc_{{ forloop.counter }}" 
+                                                                                    value="{% if control.fecha_1cc %}{{ control.fecha_1cc|date:'Y-m-d' }}{% endif %}"
+                                                                                    placeholder="Mes">
+                                                                            </div>
+                                                                        </div>
+                                                                        <!-- Página {{ forloop.counter }} -->
+                                                                        <div class="col-12 col-md-6 col-lg-3">
+                                                                            <input type="text" 
+                                                                                name="page_1cc_{{ forloop.counter }}" 
+                                                                                value="{{ control.page_1cc|default:'-' }}"
+                                                                                class="form-control form-control-sm" 
+                                                                                placeholder="Página">
+                                                                        </div>
+                                                                    {% endif %}
+                                                                {% endfor %}
+                                                            </div>
+
+
+                                    
+                                                        <!-- Descripción de las bitácoras -->
+                                                        <div class="row mt-4">
+                                                            <div class="col-12 text-center">
+                                                                <p class="mb-0 small">
+                                                                    <strong>LAF-45:</strong> Bitácora de control de calidad de microbiología,
+                                                                    <strong>LAF-44:</strong> Bitácora de control de medio ambiente,
+                                                                    <strong>LAF-57:</strong> Bitácora de bacterias aerobias en placa,
+                                                                    <strong>LAF-52:</strong> Bitácora de mohos y levaduras
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>                 
+                </div>
+            </div>
+        </div>
+        </div>
+               
+            <div class="table-container">
+                <table class="micro-table">
+                    <caption style="caption-side: top; text-align: center; font-size: 1.5em; font-weight: bold; padding: 10px; background-color: #063970; color: white;">
+                        Tabla de Resultados
+                    </caption>
+                    <thead>
+                        <tr>
+                            <th rowspan="2">Clave Muestra</th>
+                            <th rowspan="2">Cantidad de muestra</th>
+                            <th colspan="4">Diluciones empleadas</th>
+                            <th colspan="2">Dilución o Directa</th>
+                            <th rowspan="2">Promedio</th> <!-- Columna 4: Promedio -->
+                            <th colspan="2">Dilución</th> <!-- Columnas 5 y 6 -->
+                            <th rowspan="2">Promedio</th> <!-- Columna 7: Promedio entre Diluciones -->
+                            <th colspan="2">Dilución</th> <!-- Columnas 8 y 9 -->
+                            <th rowspan="2">Promedio</th> <!-- Columna 10: Promedio después de la segunda Dilución -->
+                            <th colspan="2">Resultado</th> <!-- Columna 11: Subcolumnas sin título -->
+                            <th rowspan="2">Diferencia entre duplicados <5%</th>
+                        </tr>
+                        <tr>
+                            <!-- Subencabezados para diluciones empleadas -->
+                            <th>1</th>
+                            <th>0.1</th>
+                            <th>0.01</th>
+                            <th>0.001</th>
+                            <!-- Subencabezados para Dilución o Directa -->
+                            <th>Placa 1</th>
+                            <th>Placa 2</th>
+                            <!-- Subencabezados para Dilución (columnas 5 y 6) -->
+                            <th>Placa 1</th>
+                            <th>Placa 2</th>
+                            <!-- Subencabezados para Dilución (columnas 8 y 9) -->
+                            <th>Placa 1</th>
+                            <th>Placa 2</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-body">
+                        <!-- Fila adicional debajo de los títulos -->
+                        <tr>
+                            <td><input type="text" value="Blanco" readonly></td> <!-- No editable -->
+                            <td><input type="text" name="cantidad_blanco[]" readonly></td>
+                            <td><input type="text" name="dil1_blanco[]" readonly></td>
+                            <td><input type="text" name="dil2_blanco[]" readonly></td>
+                            <td><input type="text" name="dil3_blanco[]" readonly></td>
+                            <td><input type="text" name="dil4_blanco[]" readonly></td>
+                            <td><input type="text" name="dir_placa1_blanco[]" readonly></td>
+                            <td><input type="text" name="dir_placa2_blanco[]" readonly></td>
+                            <td><input type="text" name="promedio1_blanco[]" readonly></td>
+                            <td><input type="text" name="dil_placa1_blanco[]" readonly></td>
+                            <td><input type="text" name="dil_placa2_blanco[]" readonly></td>
+                            <td><input type="text" name="promedio2_blanco[]" readonly></td>
+                            <td><input type="text" name="dil_placa1_dup_blanco[]" readonly></td>
+                            <td><input type="text" name="dil_placa2_dup_blanco[]" readonly></td>
+                            <td><input type="text" name="promedio3_blanco[]"></td>
+                            <!-- Subcolumnas de "Resultado" -->
+                            <td><input type="text" name="resultado_blanco[]"></td> <!-- Editable -->
+                            <td><input type="text" value="UFC/placa" readonly></td> <!-- No editable en "Blanco" -->
+                            <td><input type="text" name="diferencia_blanco[]"></td>
+                        </tr>
+                        <!-- Fila principal de inputs -->
+                        
+                        <tr>
+                            {% for clave in bitacora.ClaveMuestra.all %}
+                            <!-- Datos de ClaveMuestra -->
+                            <td><input type="text" name="clave_c_m[]" id="clave_c_m_{{ forloop.counter }}" value="{{ clave.clave_c_m }}"></td>
+                            <td><input type="text" name="cantidad_c_m[]" id="cantidad_c_m_{{ forloop.counter }}" value="{{ clave.cantidad_c_m }}"></td>
+                            {% endfor %}
+                            {% for diluciones in bitacora.dilucion_empleadas.all %}
+                                <!-- Diluciones empleadas -->
+                                <td>
+                                    <input type="checkbox" 
+                                        name="dE_1[]" 
+                                        id="dE_1_{{ forloop.counter }}" 
+                                        value="1" 
+                                        {% if diluciones.dE_1|stringformat:".5f" == "1.00000" %}checked{% endif %}>
+                                </td>
+                                <td>
+                                    <input type="checkbox" 
+                                        name="dE_2[]" 
+                                        id="dE_2_{{ forloop.counter }}" 
+                                        value="0.1" 
+                                        {% if diluciones.dE_2|stringformat:".5f" == "0.10000" %}checked{% endif %}>
+                                </td>
+                                <td>
+                                    <input type="checkbox" 
+                                        name="dE_3[]" 
+                                        id="dE_3_{{ forloop.counter }}" 
+                                        value="0.01" 
+                                        {% if diluciones.dE_3|stringformat:".5f" == "0.01000" %}checked{% endif %}>
+                                </td>
+                                <td>
+                                    <input type="checkbox" 
+                                        name="dE_4[]" 
+                                        id="dE_4_{{ forloop.counter }}" 
+                                        value="0.001" 
+                                        {% if diluciones.dE_4|stringformat:".5f" == "0.00100" %}checked{% endif %}>
+                                </td>
+                            {% endfor %}
+
+                            {% for directa in bitacora.dilucion_directa.all %}
+                                <!-- Dilución directa -->
+                                <td><input type="number" name="placa_dD[]" class="placa1" id="placa_dD_{{ forloop.counter }}" 
+                                    value="{{ directa.placa_dD|floatformat:2|default:'---' }}"></td>
+                                <td><input type="number" name="placa_dD2[]" class="placa2" id="placa_dD2_{{ forloop.counter }}" 
+                                    value="{{ directa.placa_dD2|floatformat:2|default:'---' }}"></td>
+                                <td><input type="text" name="promedio_dD[]" class="promedio" id="promedio_dD_{{ forloop.counter }}" 
+                                    value="{{ directa.promedio_dD|floatformat:2|default:'---' }}"></td>
+                            {% endfor %}
+
+                            {% for dilucion in bitacora.dilucion.all %}
+                                <!-- Dilución -->
+                                <td><input type="text" name="placa_d[]" class="placa3" id="placa_d_{{ forloop.counter }}" 
+                                    value="{{ dilucion.placa_d|floatformat:2|default:'---' }}"></td>
+                                <td><input type="text" name="placa_d2[]" class="placa4" id="placa_d2_{{ forloop.counter }}" 
+                                    value="{{ dilucion.placa_d2|floatformat:2|default:'---' }}"></td>
+                                <td><input type="text" name="promedio_d[]" class="promedio2" id="promedio_d_{{ forloop.counter }}" 
+                                    value="{{ dilucion.promedio_d|floatformat:2|default:'---' }}"></td>
+                                <td><input type="text" name="placa_d_2[]" class="placa5" id="placa_d_2_{{ forloop.counter }}" 
+                                    value="{{ dilucion.placa_d_2|floatformat:2|default:'---' }}"></td>
+                                <td><input type="text" name="placa_d2_2[]" class="placa6" id="placa_d2_2_{{ forloop.counter }}" 
+                                    value="{{ dilucion.placa_d2_2|floatformat:2|default:'---' }}"></td>
+                                <td><input type="text" name="promedio_d_2[]" class="promedio3" id="promedio_d_2_{{ forloop.counter }}" 
+                                    value="{{ dilucion.promedio_d_2|floatformat:2|default:'---' }}"></td>
+                            {% endfor %}
+
+                            {% for resultado in bitacora.resultado.all %}
+                            <!-- Resultado -->
+                                <td><input type="text" name="resultado_r[]" id="resultado_r_{{ forloop.counter }}" 
+                                    value="{{ resultado.resultado_r|floatformat:2|default:'---' }}"></td>
+                                <td><input type="text" name="ufC_placa_r[]" id="ufC_placa_r_{{ forloop.counter }}" 
+                                    value="{{ resultado.ufC_placa_r|default:'---' }}"></td>
+                                <td><input type="text" name="diferencia_r[]" id="diferencia_r_{{ forloop.counter }}" 
+                                    value="{{ resultado.diferencia_r|default:'---' }}"></td>
+                            {% endfor %}
+                        </tr>
+                        <!-- Se pueden agregar más filas de inputs si es necesario -->
+                    </tbody>
+                </table>
+                
+            
+                <div class="d-flex justify-content-center mt-4">
+                    <div class="w-100">
+                        <table class="table-container text-center border">
+                            <thead>
+                                <tr>
+                                    <th style="width: 20%;">Ovservaciones</th>
+                                    <th>Ejemplo de calculo de resultado</th>
+                                    <th>Ejemplo de canculo de resultado de superficies vivas e inertes</th>
+                                    <th>Ejemplo de calculo diferencia entre duplicados</th>
+                                    <th style="width: 8%;">Elabora</th>
+                                    <th style="width: 8%;">Revisa</th>
+                                    <th style="width: 8%;">Autoriza</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td >
+                                        <div class="d-flex flex-column align-items-center">
+                                            <textarea name="observaciones_cbap" class="form-control" rows="3" style="width: 100%; resize: none;" placeholder="Escriba sus observaciones aquí..." >{{ bitacora.observaciones_cbap|default:'---' }}</textarea>
+                                        </div>
+                                    </td>
+                                    
+                                    <td>
+                                        <div class="d-flex flex-column align-items-center">
+                                            
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex flex-column align-items-center">
+                                            
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex flex-column align-items-center">
+                                           
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex flex-column align-items-center">
+                                            <span>{{ firma_elabora }}</span>
+                                            <hr class="w-100 mt-4">
+                                            <span>Firma</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex flex-column align-items-center">
+                                            <span>{{ firma_revisa }}</span>
+                                            <hr class="w-100 mt-4">
+                                            <span>Firma</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex flex-column align-items-center">
+                                            <span>{{ firma_autoriza }}</span>
+                                            <hr class="w-100 mt-4">
+                                            <span>Firma</span>
+                                        </div>
+                                    </td>
+                                    
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>        
+            </div>
+                    <!-- Modal confirmación-->
+            <div class="modal fade" id="enviar" tabindex="-1" aria-labelledby="enviar" aria-hidden="true">
+                <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header justify-content-center">
+                    <h5 class="modal-title" id="enviar" >Enviar</h5>
+                    <button type="button" class="btn-close position-absolute end-0 me-3" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body text-muted text-center">
+                        Porfavor antes de enviar asegurese que todo este correcto.
+                    </div>
+                    <div class="modal-footer justify-content-center">
+                    <button type="button" class="btn btn-danger me-2" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="abrirModalFirma()">Aceptar</button>
+                    </div>
+                </div>
+                </div>
+            </div>
+            <!-- Modal para firmar -->
+            <div class="modal fade" id="firmar" tabindex="-1" aria-labelledby="firmar" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header justify-content-center">
+                            <h5 class="modal-title text-danger" id="firmar">Firma del usuario</h5>
+                            <button type="button" class="btn-close position-absolute end-0 me-3" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="alert alert-danger" id="error-message" style="display: none;"></div>
+                            <div class="form-group">
+                                <label for="password" class="form-label">Ingrese su contraseña para firmar:</label>
+                                <input type="password" class="form-control" id="password" name="password" required>
+                            </div>
+                        </div>
+                        <div class="modal-footer justify-content-center">
+                            <button type="button" class="btn btn-primary" onclick="enviarFormulario()">Firmar</button>
+                        </div>
+                    </div>
+                </div>
+                </div>
+    
+            <!-- Modal para mensajes de éxito -->
+            <div class="modal fade" id="mensajeExito" tabindex="-1" aria-labelledby="mensajeExitoLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header bg-success text-white">
+                            <h5 class="modal-title" id="mensajeExitoLabel">
+                                <i class="bi bi-check-circle me-2"></i>
+                                Éxito
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        {% if messages %}
+                                <div class="messages">
+                                    {% for message in messages %}
+                                        {% if message.tags == 'error' %}
+                                            <div class="alert alert-danger">
+                                                {{ message }}
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        <div class="modal-body text-center">
+                            <p id="mensajeExitoTexto" class="mb-0"></p>
+                        </div>
+                        <div class="modal-footer justify-content-center">
+                            <button type="button" class="btn btn-success" data-bs-dismiss="modal">Aceptar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+           <!-- Modal para mensajes de éxito guardado -->
+    <div class="modal fade" id="guardarexito" tabindex="-1" aria-labelledby="mensajeExitoLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="mensajeExitoLabel">
+                        <i class="bi bi-check-circle me-2"></i>
+                        Guardado
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <!-- Mensaje de éxito -->
+                    <p id="mensajeExitoTextoGuardar" class="mb-0"></p>
+                </div>
+                <div class="modal-footer justify-content-center">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Aceptar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal de Error -->
+    <div class="modal fade" id="modalError" tabindex="-1" aria-labelledby="mensajeExitoLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="mensajeExitoLabel">
+                        <i class="bi bi-check-circle me-2"></i>
+                        Error al guardar bitacora
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <!-- Mensaje de éxito -->
+                    <p id="mensajeErrorTexto" class="mb-0"></p>
+                    <!-- Mensaje de error -->
+                    <div class="alert alert-danger mt-3" id="error-guardar" style="display: none;"></div>
+                </div>
+                <div class="modal-footer justify-content-center">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Aceptar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+        </form>
+    
+    </div>
+</body>
+{% endblock %}
+{% block extra_js %}
+    <script src="{% static 'js/events-bita131.js' %}"></script>
+{% endblock %}

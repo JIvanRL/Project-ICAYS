@@ -78,10 +78,12 @@ WSGI_APPLICATION = 'ICAYS_SGC.wsgi.application'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 # Configuración del modelo de usuario personalizado
 AUTH_USER_MODEL = 'ICAYS_BIT.CustomUser'
+AUTH_BITA_MODEL = 'ICAYS_BIT.bita_cbap'
 
 # URLs de autenticación
 LOGIN_URL = 'login'  # Nombre de la URL de la vista de login
 LOGIN_REDIRECT_URL = 'micriobiologyll'  # URL a la que redirigir después del login
+LOGOUT_REDIRECT_URL = 'login'
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:8000/',  # Agrega la URL de tu entorno de desarrollo
 ]
@@ -132,7 +134,8 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+# settings.py
+TIME_ZONE = 'America/Mexico_City'
 
 USE_I18N = True
 

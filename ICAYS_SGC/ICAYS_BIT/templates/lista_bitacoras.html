@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<body>
+    <div class="container-fluid">
+        <button class="icon-container button-style custom-button mb-2" type="button" data-url="{% url 'microalimentos:inicioAnalistas' %}">Regresar</button>
+    </div>
+        <div class="container">
+            <h1>Lista de Bitácoras</h1>
+            {% if bitacoras %}
+                {% for bitacora in bitacoras %}
+                        <button id="detalle" onclick="DetallesBita('{{ bitacora.nombre_bita_cbap.id_cbap }}')" class="icon-container button-style w-100 shadow-lg mb-3 rounded">
+                            <div class="row h-100">
+                                <div class="col-md-3 col-xl-3 p-2">
+                                    <div class="icon-text text-break" style="font-size: 20px; color: black;">
+                                        {{ bitacora.nombre_bita_cbap }}
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-xl-3 p-2">
+                                    <div class="icon-text text-break" style="font-size: 14px; color: black;">
+                                        {{ bitacora.name_user_cbap.signature_user }}
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-xl-3 p-2">
+                                    <div class="icon-text text-break" style="font-size: 14px; color: black;">
+                                        {{ bitacora.fecha_bita_cbap|date:"d/m/Y h:i A" }}
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-xl-3 p-2">
+                                    <div class="icon-text text-break" style="font-size: 14px; color: black;">
+                                        {{ bitacora.nombre_bita_cbap.pagina_cbap }}
+                                    </div>
+                                </div>
+                            </div>
+                        </button>
+
+        {% endfor %}
+    {% else %}
+        <div class="alert alert-info">
+            <p>No hay bitácoras guardadas</p>
+        </div>
+    {% endif %}
+</div>
+</body>
+{% endblock %}
