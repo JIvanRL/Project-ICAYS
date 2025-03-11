@@ -503,103 +503,108 @@
                     </thead>
                     <tbody id="tabla-body">
                         <!-- Fila adicional debajo de los títulos -->
-                        <tr>
-                            <td><input type="text" value="Blanco" readonly></td> <!-- No editable -->
-                            <td><input type="text" name="cantidad_blanco[]" readonly></td>
-                            <td><input type="text" name="dil1_blanco[]" readonly></td>
-                            <td><input type="text" name="dil2_blanco[]" readonly></td>
-                            <td><input type="text" name="dil3_blanco[]" readonly></td>
-                            <td><input type="text" name="dil4_blanco[]" readonly></td>
-                            <td><input type="text" name="dir_placa1_blanco[]" readonly></td>
-                            <td><input type="text" name="dir_placa2_blanco[]" readonly></td>
-                            <td><input type="text" name="promedio1_blanco[]" readonly></td>
-                            <td><input type="text" name="dil_placa1_blanco[]" readonly></td>
-                            <td><input type="text" name="dil_placa2_blanco[]" readonly></td>
-                            <td><input type="text" name="promedio2_blanco[]" readonly></td>
-                            <td><input type="text" name="dil_placa1_dup_blanco[]" readonly></td>
-                            <td><input type="text" name="dil_placa2_dup_blanco[]" readonly></td>
-                            <td><input type="text" name="promedio3_blanco[]"></td>
-                            <!-- Subcolumnas de "Resultado" -->
-                            <td><input type="text" name="resultado_blanco[]"></td> <!-- Editable -->
-                            <td><input type="text" value="UFC/placa" readonly></td> <!-- No editable en "Blanco" -->
-                            <td><input type="text" name="diferencia_blanco[]"></td>
-                        </tr>
+                            <tr>
+                                <td><input type="text" value="Blanco" readonly></td> <!-- No editable -->
+                                <td><input type="text" name="cantidad_blanco[]" readonly></td>
+                                <td><input type="text" name="dil1_blanco[]" readonly></td>
+                                <td><input type="text" name="dil2_blanco[]" readonly></td>
+                                <td><input type="text" name="dil3_blanco[]" readonly></td>
+                                <td><input type="text" name="dil4_blanco[]" readonly></td>
+                                <td><input type="text" name="dir_placa1_blanco[]" readonly></td>
+                                <td><input type="text" name="dir_placa2_blanco[]" readonly></td>
+                                <td><input type="text" name="promedio1_blanco[]" readonly></td>
+                                <td><input type="text" name="dil_placa1_blanco[]" readonly></td>
+                                <td><input type="text" name="dil_placa2_blanco[]" readonly></td>
+                                <td><input type="text" name="promedio2_blanco[]" readonly></td>
+                                <td><input type="text" name="dil_placa1_dup_blanco[]" readonly></td>
+                                <td><input type="text" name="dil_placa2_dup_blanco[]" readonly></td>
+                                <td><input type="text" name="promedio3_blanco[]"></td>
+                                <!-- Subcolumnas de "Resultado" -->
+                                <td><input type="text" name="resultado_blanco[]"></td> <!-- Editable -->
+                                <td><input type="text" value="UFC/placa" readonly></td> <!-- No editable en "Blanco" -->
+                                <td><input type="text" name="diferencia_blanco[]"></td>
+                            </tr>
                         <!-- Fila principal de inputs -->
                         
-                        <tr>
-                            {% for clave in bitacora.ClaveMuestra.all %}
-                            <!-- Datos de ClaveMuestra -->
-                            <td><input type="text" name="clave_c_m[]" id="clave_c_m_{{ forloop.counter }}" value="{{ clave.clave_c_m }}"></td>
-                            <td><input type="text" name="cantidad_c_m[]" id="cantidad_c_m_{{ forloop.counter }}" value="{{ clave.cantidad_c_m }}"></td>
-                            {% endfor %}
-                            {% for diluciones in bitacora.dilucion_empleadas.all %}
+                        
+                        {% for fila in filas_datos %}
+                            <tr>
+                                <!-- Datos de ClaveMuestra -->
+                                <td><input type="text" name="clave_c_m_{{ fila.index  }}" id="clave_c_m_{{ forloop.counter }}" value="{{ fila.clave_muestra.clave_c_m }}"></td>
+                                <td><input type="text" name="cantidad_c_m_{{ fila.index  }}" id="cantidad_c_m_{{ forloop.counter }}" value="{{ fila.clave_muestra.cantidad_c_m }}"></td>
+                               
+                        
                                 <!-- Diluciones empleadas -->
                                 <td>
                                     <input type="checkbox" 
-                                        name="dE_1[]" 
+                                        name="dE_1_{{ fila.index  }}" 
                                         id="dE_1_{{ forloop.counter }}" 
                                         value="1" 
-                                        {% if diluciones.dE_1|stringformat:".5f" == "1.00000" %}checked{% endif %}>
+                                        {% if fila.diluciones.dE_1|stringformat:".5f" == "1.00000" %}checked{% endif %}>
                                 </td>
                                 <td>
                                     <input type="checkbox" 
-                                        name="dE_2[]" 
+                                        name="dE_2_{{ fila.index  }}" 
                                         id="dE_2_{{ forloop.counter }}" 
                                         value="0.1" 
-                                        {% if diluciones.dE_2|stringformat:".5f" == "0.10000" %}checked{% endif %}>
+                                        {% if fila.diluciones.dE_2|stringformat:".5f" == "0.10000" %}checked{% endif %}>
                                 </td>
                                 <td>
                                     <input type="checkbox" 
-                                        name="dE_3[]" 
+                                        name="dE_3_{{ fila.index  }}" 
                                         id="dE_3_{{ forloop.counter }}" 
                                         value="0.01" 
-                                        {% if diluciones.dE_3|stringformat:".5f" == "0.01000" %}checked{% endif %}>
+                                        {% if fila.diluciones.dE_3|stringformat:".5f" == "0.01000" %}checked{% endif %}>
                                 </td>
                                 <td>
                                     <input type="checkbox" 
-                                        name="dE_4[]" 
+                                        name="dE_4_{{ fila.index  }}" 
                                         id="dE_4_{{ forloop.counter }}" 
                                         value="0.001" 
-                                        {% if diluciones.dE_4|stringformat:".5f" == "0.00100" %}checked{% endif %}>
+                                        {% if fila.diluciones.dE_4|stringformat:".5f" == "0.00100" %}checked{% endif %}>
                                 </td>
-                            {% endfor %}
-
-                            {% for directa in bitacora.dilucion_directa.all %}
+                               
+                        
                                 <!-- Dilución directa -->
-                                <td><input type="number" name="placa_dD[]" class="placa1" id="placa_dD_{{ forloop.counter }}" 
-                                    value="{{ directa.placa_dD|floatformat:2|default:'---' }}"></td>
-                                <td><input type="number" name="placa_dD2[]" class="placa2" id="placa_dD2_{{ forloop.counter }}" 
-                                    value="{{ directa.placa_dD2|floatformat:2|default:'---' }}"></td>
-                                <td><input type="text" name="promedio_dD[]" class="promedio" id="promedio_dD_{{ forloop.counter }}" 
-                                    value="{{ directa.promedio_dD|floatformat:2|default:'---' }}"></td>
-                            {% endfor %}
-
-                            {% for dilucion in bitacora.dilucion.all %}
+                                <td><input type="number" name="placa_dD_{{ fila.index  }}" class="placa1" id="placa_dD_{{ forloop.counter }}" 
+                                    value="{{ fila.directa.placa_dD|floatformat:2|default:'---' }}"></td>
+                                <td><input type="number" name="placa_dD2_{{ fila.index  }}" class="placa2" id="placa_dD2_{{ forloop.counter }}" 
+                                    value="{{ fila.directa.placa_dD2|floatformat:2|default:'---' }}"></td>
+                                <td><input type="text" name="promedio_dD_{{ fila.index  }}" class="promedio" id="promedio_dD_{{ forloop.counter }}" 
+                                    value="{{ fila.directa.promedio_dD|floatformat:2|default:'---' }}"></td>
+                               
+                        
+                             
                                 <!-- Dilución -->
-                                <td><input type="text" name="placa_d[]" class="placa3" id="placa_d_{{ forloop.counter }}" 
-                                    value="{{ dilucion.placa_d|floatformat:2|default:'---' }}"></td>
-                                <td><input type="text" name="placa_d2[]" class="placa4" id="placa_d2_{{ forloop.counter }}" 
-                                    value="{{ dilucion.placa_d2|floatformat:2|default:'---' }}"></td>
-                                <td><input type="text" name="promedio_d[]" class="promedio2" id="promedio_d_{{ forloop.counter }}" 
-                                    value="{{ dilucion.promedio_d|floatformat:2|default:'---' }}"></td>
-                                <td><input type="text" name="placa_d_2[]" class="placa5" id="placa_d_2_{{ forloop.counter }}" 
-                                    value="{{ dilucion.placa_d_2|floatformat:2|default:'---' }}"></td>
-                                <td><input type="text" name="placa_d2_2[]" class="placa6" id="placa_d2_2_{{ forloop.counter }}" 
-                                    value="{{ dilucion.placa_d2_2|floatformat:2|default:'---' }}"></td>
-                                <td><input type="text" name="promedio_d_2[]" class="promedio3" id="promedio_d_2_{{ forloop.counter }}" 
-                                    value="{{ dilucion.promedio_d_2|floatformat:2|default:'---' }}"></td>
-                            {% endfor %}
-
-                            {% for resultado in bitacora.resultado.all %}
-                            <!-- Resultado -->
-                                <td><input type="text" name="resultado_r[]" id="resultado_r_{{ forloop.counter }}" 
-                                    value="{{ resultado.resultado_r|floatformat:2|default:'---' }}"></td>
-                                <td><input type="text" name="ufC_placa_r[]" id="ufC_placa_r_{{ forloop.counter }}" 
-                                    value="{{ resultado.ufC_placa_r|default:'---' }}"></td>
-                                <td><input type="text" name="diferencia_r[]" id="diferencia_r_{{ forloop.counter }}" 
-                                    value="{{ resultado.diferencia_r|default:'---' }}"></td>
-                            {% endfor %}
-                        </tr>
+                                <td><input type="text" name="placa_d_{{ fila.index  }}" class="placa3" id="placa_d_{{ forloop.counter }}" 
+                                    value="{{ fila.dilucion.placa_d|floatformat:2|default:'---' }}"></td>
+                                <td><input type="text" name="placa_d2_{{ fila.index  }}" class="placa4" id="placa_d2_{{ forloop.counter }}" 
+                                    value="{{ fila.dilucion.placa_d2|floatformat:2|default:'---' }}"></td>
+                                <td><input type="text" name="promedio_d_{{ fila.index  }}" class="promedio2" id="promedio_d_{{ forloop.counter }}" 
+                                    value="{{ fila.dilucion.promedio_d|floatformat:2|default:'---' }}"></td>
+                                <td><input type="text" name="placa_d_2_{{ fila.index  }}" class="placa5" id="placa_d_2_{{ forloop.counter }}" 
+                                    value="{{ fila.dilucion.placa_d_2|floatformat:2|default:'---' }}"></td>
+                                <td><input type="text" name="placa_d2_2_{{ fila.index }}" class="placa6" id="placa_d2_2_{{ forloop.counter }}" 
+                                    value="{{ fila.dilucion.placa_d2_2|floatformat:2|default:'---' }}"></td>
+                                <td><input type="text" name="promedio_d_2_{{ fila.index  }}" class="promedio3" id="promedio_d_2_{{ forloop.counter }}" 
+                                    value="{{ fila.dilucion.promedio_d_2|floatformat:2|default:'---' }}"></td>
+                               
+                        
+                            
+                                <!-- Resultado -->
+                                <td><input type="text" name="resultado_r_{{ fila.index }}" id="resultado_r_{{ forloop.counter }}" 
+                                    value="{{ fila.resultado.resultado_r|floatformat:2|default:'---' }}"></td>
+                                <td><input type="text" name="ufC_placa_r_{{ fila.index }}" id="ufC_placa_r_{{ forloop.counter }}" 
+                                    value="{{ fila.resultado.ufC_placa_r|default:'---' }}"></td>
+                                <td><input type="text" name="diferencia_r_{{ fila.index  }}" id="diferencia_r_{{ forloop.counter }}" 
+                                    value="{{ fila.resultado.diferencia_r|default:'---' }}"></td>
+                            
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="18">No hay datos disponibles</td>
+                            </tr>
+                        {% endfor %}
                         <!-- Se pueden agregar más filas de inputs si es necesario -->
                     </tbody>
                 </table>
@@ -790,7 +795,7 @@
     
     </div>
 </body>
-{% endblock %}
+{% endblock content %}
 {% block extra_js %}
     <script src="{% static 'js/events-bita131.js' %}"></script>
 {% endblock %}

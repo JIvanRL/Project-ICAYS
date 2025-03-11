@@ -1,3 +1,4 @@
+// Load the full build.
 // Función para abrir la modal de firma
 function abrirModalFirma() {
     // Ocultar el modal de enviar
@@ -141,10 +142,19 @@ function getModalGuardarExito() {
     return modalGuardarExitoInstance;
 }
 
-// Función para guardar el formulario
+import { recolectarDatosTabla } from './events-bita131.js';
+
+// Función modificada para guardar el formulario
 function guardarFormulario() {
     const formData = new FormData($('#form-principal')[0]);
+     // Agregar los datos de la tabla
+     const datosTabla = recolectarDatosTabla();
     formData.append('accion', 'guardar');
+
+    Object.keys(datosTabla).forEach(key => {
+        formData.append(key, JSON.stringify(datosTabla[key]));
+        formData.append('num_filas', datosTabla.num_filas);
+    });
 
     $.ajax({
         url: '/microbiologia/registrar_bitacora/',
@@ -161,16 +171,13 @@ function guardarFormulario() {
             console.log('Respuesta recibida:', data);
             
             if (data && data.success === true) {
-                // Mostrar mensaje de éxito
                 $('#mensajeExitoTextoGuardar').text(data.message);
                 getModalGuardarExito().modal('show');
                 
-                // Redirigir automáticamente después de 2 segundos
                 setTimeout(function() {
                     window.location.href = data.redirect_url;
                 }, 2000);
             } else {
-                // Mostrar mensaje de error
                 const errorMsg = data.error || 'Error al guardar la bitácora.';
                 $('#error-guardar').text(errorMsg).show();
                 getModalError().modal('show');
@@ -184,6 +191,8 @@ function guardarFormulario() {
                 const errorData = JSON.parse(xhr.responseText);
                 if (errorData.error) {
                     errorMsg = errorData.error;
+                } else if (errorData.placa_d || errorData.placa_d2 || errorData.promedio_d) {
+                    errorMsg = 'Error en formulario Dilución 3: ' + JSON.stringify(errorData);
                 }
             } catch (e) {
                 console.error('Error al parsear la respuesta:', e);
@@ -194,6 +203,9 @@ function guardarFormulario() {
         }
     });
 }
+
+// Asegúrate de que la función esté disponible en el ámbito global
+window.guardarFormulario = guardarFormulario;
 
 // Función revisada para enviar formulario con jQuery
 function enviarFormulario() {

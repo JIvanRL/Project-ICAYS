@@ -402,6 +402,7 @@
     </div>
            
         <div class="table-container">
+            <!-- Agregar este input hidden justo antes o después de la tabla -->
             <table class="micro-table">
                 <caption style="caption-side: top; text-align: center; font-size: 1.5em; font-weight: bold; padding: 10px; background-color: #063970; color: white;">
                     Tabla de Resultados
@@ -462,30 +463,8 @@
                     </tr>
                     <!-- Fila principal de inputs -->
                     <tr>
-                        <td><input type="text" name="clave_c_m[]" id="clave_c_m[]"></td>
-                        <td><input type="text" name="cantidad_c_m[]" id="cantidad_c_m[]"></td>
-                        <!-- Columna empleadas -->
-                        <td><input  type="checkbox" name="dE_1[]" id="dE_1[]" value="1"><input type="hidden" name="dE_1[]" value="0"></td>
-                        <td><input  type="checkbox" name="dE_2[]" id="dE_2[]" value="0.1"><input type="hidden" name="dE_2[]" value="0"></td>
-                        <td><input  type="checkbox" name="dE_3[]" id="dE_3[]" value="0.01"><input type="hidden" name="dE_3[]" value="0"></td>
-                        <td><input  type="checkbox" name="dE_4[]" id="dE_4[]" value="0.001"><input type="hidden" name="dE_4[]" value="0"></td>
-                        <!--  -->
-                        <!-- Columna directo o dilusción -->
-                        <td><input type="number" name="placa_dD[]" class="placa1" id="placa_dD[]"></td>
-                        <td><input type="number" name="placa_dD2[]" class="placa2" id="placa_dD2[]"></td>
-                        <td><input type="text" name="promedio_dD[]" class="promedio" id="promedio_dD[]"></td>
-                        <!--  -->
-                        <td><input type="text" name="placa_d[]" class="placa3" id="placa_d[]"></td>
-                        <td><input type="text" name="placa_d2[]" class="placa4" id="placa_d2[]"></td>
-                        <td><input type="text" name="promedio_d[]" class="promedio2" id="promedio_d[]"></td>
-                        <td><input type="text" name="placa_d_2[]" class="placa5" id="placa_d_2[]"></td>
-                        <td><input type="text" name="placa_d2_2[]" class="placa6" id="placa_d2_2[]"></td>
-                        <td><input type="text" name="promedio_d_2[]" class="promedio3" id="promedio_d_2[]"></td>
-                        <!-- Subcolumnas de "Resultado" -->
-                        <td><input type="text" name="resultado_r[]" id="resultado_r[]"></td> <!-- Editable -->
-                        <td><input type="text" name="ufC_placa_r[]" id="ufC_placa_r[]"></td> <!-- Editable -->
-                        <td><input type="text" name="diferencia_r[]" id="diferencia_r[]"></td>
-                    </tr>
+                        
+
                     <!-- Se pueden agregar más filas de inputs si es necesario -->
                 </tbody>
             </table>
@@ -678,5 +657,5 @@
 </div>
 {% endblock %}
 {% block extra_js %}
-    <script src="{% static 'js/events-bita131.js' %}"></script>
+    <script type="module" src="{% static 'js/events-bita131.js' %}"></script>
 {% endblock %}
