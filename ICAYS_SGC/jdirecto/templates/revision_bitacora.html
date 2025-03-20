@@ -5,17 +5,32 @@
     <div class="container-fluid">
         <form id="form-principal" method="post" enctype="multipart/form-data" >
             {% csrf_token %}
+            <input type="hidden" id="usuario_id_actual" value="{{ request.user.id_user }}"> <!-- ID del usuario actual -->
             <input type="hidden" id="bitacora_id" value="{{ bitacora.id_cbap }}"> <!-- ID de la bitácora actual -->
             <div class="d-flex flex-wrap justify-content-between align-items-center">
+                
                 <!-- Botón "Regresar" alineado a la izquierda -->
                 <button class="icon-container button-style custom-button mb-2" type="button" data-url="{% url 'jdirecto:lista_bitacoras_pendientes' %}">Regresar</button>
-        
-            
-                <!-- Botones alineados a la derecha -->
-                <div class="d-flex flex-wrap gap-2">
-                    <button class="enviar-custom custom-button"  type="button" data-bs-toggle="modal" data-bs-target="#enviar">Autorizar</button>
-                    
+        <div class="row mb-3 align-items-center">
+            <!-- Selector de envío -->
+            <!-- En registerBita.html -->
+            <div class="col-auto">
+                <div class="input-group">
+                    <label class="input-group-text" for="usuario_destino">Enviar a:</label>
+                    <select class="form-select" id="usuario_destino" name="usuario_destino" required>
+                        <option value="" selected>Seleccione un usuario...</option>
+                    </select>
                 </div>
+            </div>
+            <!-- Botones alineados horizontalmente -->
+            <div class="col-auto">
+                <button class="enviar-custom custom-button" type="button" data-bs-toggle="modal" data-bs-target="#enviar">Enviar</button>
+            </div>
+            <div class="col-auto">
+                <button class="cancelar-custom custom-button" data-url="{% url 'microalimentos:inicioAnalistas' %}" type="button">Rechazar</button>
+            </div>
+        </div>
+        </div>
             </div>
             
             <div class="d-flex align-items-center p-3">
@@ -33,7 +48,9 @@
                     <button id="remove-row-btn" class="btn btn-danger" type="button" disabled>
                         <i class="bi bi-dash-circle"></i>
                     </button>
+                    
                 </div>
+                
             
                 <!-- Título centrado -->
                 <h1 class="text-center flex-grow-1 m-0" >{{ bitacora.nombre_cbap }}</h1>
@@ -656,14 +673,14 @@
                                         </td>
                                         <td>
                                             <div class="d-flex flex-column align-items-center">
-                                                <span>{{ firma_revisa }}</span>
+                                                <span class="text-muted">Pendiente de revisión</span>
                                                 <hr class="w-100 mt-4">
                                                 <span>Firma</span>
                                             </div>
                                         </td>
                                         <td>
                                             <div class="d-flex flex-column align-items-center">
-                                                <span>{{ firma_autoriza }}</span>
+                                                <span class="text-muted">Pendiente de autorización</span>
                                                 <hr class="w-100 mt-4">
                                                 <span>Firma</span>
                                             </div>
@@ -711,7 +728,7 @@
                             </div>
                         </div>
                         <div class="modal-footer justify-content-center">
-                            <button type="button" class="btn btn-primary" onclick="enviarFormulario()">Firmar</button>
+                            <button type="button" class="btn btn-primary" onclick="enviarFormularioAutorizar()">Firmar</button>
                         </div>
                     </div>
                 </div>

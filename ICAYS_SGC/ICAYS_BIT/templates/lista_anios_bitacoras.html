@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<body>
+    <input type="hidden" id="usuario_id_actual" value="{{ request.user.id_user }}">
+    <div class="container-fluid">
+        <button class="icon-container button-style custom-button mb-2" type="button" data-url="{% url 'microalimentos:inicioAnalistas' %}">Regresar</button>
+    </div>
+    <div class="container">
+        <h1>{{ titulo }}</h1>
+        <p class="lead">{{ subtitulo }}</p>
+        
+        {% if anios %}
+            <div class="row">
+                {% for anio in anios %}
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100 shadow-lg p-3 mb-3 bg-body-tertiary rounded" data-url="{% url 'microalimentos:historial_bitacoras_por_mes' anio %}" style="cursor: pointer;">
+                            <div class="card-body text-center">
+                                <h2 class="card-title">{{ anio }}</h2>
+                                <p class="card-text text-muted">Ver bitácoras autorizadas de este año</p>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-info">
+                <p>No hay años con bitácoras autorizadas</p>
+            </div>
+        {% endif %}
+    </div>
+</body>
+{% endblock %}
+{% block extra_js %}
+    <script type="module" src="{% static 'js/events-bita131.js' %}"></script>
+    <script src="{% static 'js/functions.js' %}"></script>
+    <script src="{% static 'js/redirect.js' %}"></script>
+{% endblock %}

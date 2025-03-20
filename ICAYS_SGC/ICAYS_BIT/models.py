@@ -201,15 +201,15 @@ class VerificacionBalanza(models.Model):
         db_column='id_cbap_vb',
         related_name='verificaciones_balanza'
     )
-    hora_vb = models.TimeField(null=True, blank=True)
+    hora_vb = models.CharField(null=True, max_length=50, blank=True, db_column='hora_vb')
     actividad_vb = models.CharField(null=True, max_length=50, default='-', blank=True, db_column='actividad_vb')
-    ajuste_vb = models.DecimalField(null=True, max_digits=10, decimal_places=5, default=None, blank=True, db_column='ajuste_vb')
-    valor_nominal_vb = models.DecimalField(null=True, max_digits=10, decimal_places=5, default=None, blank=True, db_column='valor_nominal_vb')
-    valor_convencional_vb = models.DecimalField(null=True, max_digits=10, decimal_places=5, default=None, blank=True, db_column='valor_convencional_vb')
-    valo_masa_vb = models.DecimalField(null=True, max_digits=10, decimal_places=5, default=None, blank=True, db_column='valo_masa_vb')
-    diferecnia_vb = models.DecimalField(null=True, max_digits=10, decimal_places=5, default=None, blank=True, db_column='diferecnia_vb')
-    incertidumbre_vb = models.DecimalField(null=True, max_digits=10, decimal_places=5, default=None, blank=True, db_column='incertidumbre_vb')
-    emt_vb = models.DecimalField(null=True, max_digits=10, decimal_places=5, default='-', blank=True, db_column='emt_vb')
+    ajuste_vb = models.CharField(null=True, max_length=50, default='-', blank=True, db_column='ajuste_vb')
+    valor_nominal_vb = models.CharField(null=True, max_length=50, default='-', blank=True, db_column='valor_nominal_vb')
+    valor_convencional_vb = models.CharField(null=True, max_length=50, default='-', blank=True, db_column='valor_convencional_vb')
+    valo_masa_vb = models.CharField(null=True, max_length=50, default='-', blank=True, db_column='valo_masa_vb')
+    diferecnia_vb = models.CharField(null=True, max_length=50, default='-', blank=True, db_column='diferecnia_vb')
+    incertidumbre_vb = models.CharField(null=True, max_length=50, default='-', blank=True, db_column='incertidumbre_vb')
+    emt_vb = models.CharField(null=True, max_length=50, default='-', blank=True, db_column='emt_vb')
     aceptacion_vb = models.CharField(null=True, max_length=50, default='-', blank=True, db_column='aceptacion_vb')
     valor_pesado_muestra_vb = models.CharField(null=True, max_length=50, default='-', blank=True, db_column='valor_pesado_muestra_vb')
     fecha_vb = models.DateField(auto_now_add=True)   
@@ -269,13 +269,9 @@ class Resultado(models.Model):
 #Tabla bitacora microbiologia 2#
 ################################
 class bita_cbap(models.Model):
-    ESTADO_CHOICES = [
-        ('guardada', 'Guardada'),
-        ('enviada', 'Enviada'),
-    ]
     id_cbap = models.AutoField(primary_key=True, db_column='id_cbap')
     nombre_cbap = models.CharField(null=True, max_length=250, default='-', blank=True, db_column='nombre_cbap')
-    pagina_cbap = models.CharField(null=True, max_length=250, default='-', blank=True, db_column='pagina_cbap')
+    pagina_cbap = models.IntegerField(null=True, default=0, db_column='pagina_cbap')
     fecha_register_cbap = models.DateField(auto_now_add=True)
     hora_register_cbap = models.TimeField(auto_now_add=True)
     id_dc_cbap = models.ForeignKey(
@@ -302,7 +298,6 @@ class bita_cbap(models.Model):
         db_column='signature_user',
         related_name='bita_cbap'
     )
-    estado = models.CharField(max_length=10, choices=ESTADO_CHOICES, default='guardada')
     class Meta:
         db_table = 'bita_cbap'
         ordering = ['-fecha_register_cbap', '-hora_register_cbap']
@@ -310,13 +305,20 @@ class bita_cbap(models.Model):
     def __str__(self):
         return f"{self.nombre_cbap} - {self.fecha_register_cbap}"
 
-#################
-#Tabla de firmas#
-#################
+###############
+#Tabla general#
+###############
 class Bitcoras_Cbap(models.Model):
+    ESTADOS = (
+        ('guardada', 'Guardada'),
+        ('enviada', 'Enviada'),
+        ('revisada', 'Revisada'),
+        ('autorizada', 'Autorizada'),
+        ('rechazada', 'Rechazada'),
+    )
     id_bita_cbap = models.AutoField(primary_key=True, db_column='id_bita_cbap')
     
-    # Relación con nombre usuario de users
+    # Relación con nombre usuario de users (destinatario)
     name_user_cbap = models.ForeignKey(
         CustomUser,
         on_delete=models.CASCADE,
@@ -324,6 +326,7 @@ class Bitcoras_Cbap(models.Model):
         db_column='name_user_cbap',
         related_name='bitcoras_cbap'
     )
+    
     # Relación con nombre usuario de users
     nombre_bita_cbap = models.ForeignKey(
         bita_cbap,
@@ -333,8 +336,36 @@ class Bitcoras_Cbap(models.Model):
         related_name='bitcoras_cbap'
     )
     fecha_bita_cbap = models.DateTimeField(auto_now=True, db_column='fecha_bita_cbap')
-
+    fecha_envio = models.DateTimeField(null=True, blank=True)
+    estado = models.CharField(max_length=20, choices=ESTADOS, default='guardada')
+    nombre_user_destino = models.CharField(max_length=250, default='-', blank=True, db_column='nombre_user_destino')
+    observaciones_cbap_estado = models.TextField(null=True, default='-', blank=True, db_column='observaciones')
+    
+    # Nuevo campo para la firma del revisor
+    firma_revisor = models.ForeignKey(
+        CustomUser,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        db_column='firma_revisor',
+        related_name='bitcoras_cbap_revisadas'
+    )
+    
+    # Fecha de revisión
+    fecha_revision = models.DateTimeField(null=True, blank=True)
+    
+    # Nuevo campo para la firma del autorizador
+    firma_autorizador = models.ForeignKey(
+        CustomUser,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        db_column='firma_autorizador',
+        related_name='bitcoras_cbap_autorizadas'
+    )
+    
+    # Fecha de autorización
+    fecha_autorizacion = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         db_table = 'bitcoras_cbap'
-

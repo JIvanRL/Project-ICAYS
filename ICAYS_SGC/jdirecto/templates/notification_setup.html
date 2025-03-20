@@ -1,0 +1,27 @@
+<!-- 
+Instrucciones para agregar un sonido de notificación:
+
+1. Crea una carpeta 'sounds' dentro de tu directorio static:
+   ICAYS_SGC\static\sounds\
+
+2. Descarga un archivo de sonido de notificación (formato MP3) y guárdalo como:
+   ICAYS_SGC\static\sounds\notification.mp3
+
+3. Asegúrate de que la ruta en la función playNotificationSound() 
+   coincida con la ubicación real del archivo:
+   
+   function playNotificationSound() {
+       try {
+           const audio = new Audio('/static/sounds/notification.mp3');
+           audio.play();
+       } catch (e) {
+           console.error('Error al reproducir sonido de notificación:', e);
+       }
+   }
+
+4. Si tu estructura de carpetas es diferente, ajusta la ruta en consecuencia.
+
+Nota: Puedes encontrar sonidos de notificación gratuitos en sitios como:
+- https://mixkit.co/free-sound-effects/notification/
+- https://notificationsounds.com/
+-->

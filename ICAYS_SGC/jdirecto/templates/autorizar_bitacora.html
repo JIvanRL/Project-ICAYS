@@ -7,15 +7,20 @@
             {% csrf_token %}
             <input type="hidden" id="bitacora_id" value="{{ bitacora.id_cbap }}"> <!-- ID de la bitácora actual -->
             <div class="d-flex flex-wrap justify-content-between align-items-center">
+                
                 <!-- Botón "Regresar" alineado a la izquierda -->
-                <button class="icon-container button-style custom-button mb-2" type="button" data-url="{% url 'jdirecto:lista_bitacoras_pendientes' %}">Regresar</button>
-        
+                <button class="icon-container button-style custom-button mb-2" type="button" data-url="{% url 'jdirecto:lista_bitacoras_revisadas' %}">Regresar</button>
+        <div class="row mb-3 align-items-center">
+           
+            <!-- Botones alineados horizontalmente -->
+            <div class="col-auto">
+                <button class="enviar-custom custom-button" type="button" data-bs-toggle="modal" data-bs-target="#enviar">Autorizar</button>
+            </div>
+            <div class="col-auto">
+                <button class="cancelar-custom custom-button" data-url="{% url 'microalimentos:inicioAnalistas' %}" type="button">Rechazar</button>
+            </div>
             
-                <!-- Botones alineados a la derecha -->
-                <div class="d-flex flex-wrap gap-2">
-                    <button class="enviar-custom custom-button"  type="button" data-bs-toggle="modal" data-bs-target="#enviar">Autorizar</button>
-                    
-                </div>
+        </div>
             </div>
             
             <div class="d-flex align-items-center p-3">
@@ -33,7 +38,9 @@
                     <button id="remove-row-btn" class="btn btn-danger" type="button" disabled>
                         <i class="bi bi-dash-circle"></i>
                     </button>
+                    
                 </div>
+                
             
                 <!-- Título centrado -->
                 <h1 class="text-center flex-grow-1 m-0" >{{ bitacora.nombre_cbap }}</h1>
@@ -646,9 +653,27 @@
                                             </div>
                                         </td>
                                         <td>
+                                            <!-- Firma de quien realizo-->
                                             <div class="d-flex flex-column align-items-center">
                                                 {% if bitacora.firma_user.signature_user %}
                                                 <span>{{ bitacora.firma_user.signature_user }}</span>
+                                                {% endif %}
+                                                {% if bitacora and  bitacora.firma_user.signature_user %}
+                                                {% else %}
+                                                <span class="text-muted small">Pendiente de revisión</span>
+                                                
+                                                {% endif %}
+                                                <hr class="w-100 mt-3">
+                                                <span>Firma</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <!-- Firma de quien reviso-->
+                                            <div class="d-flex flex-column align-items-center">
+                                                {% if bitacora_cbap and bitacora_cbap.firma_revisor %}
+                                                <span class="font-weight-bold">{{ bitacora_cbap.firma_revisor.first_name }} {{ bitacora_cbap.firma_revisor.last_name }}</span>
+                                                {% else %}
+                                                <span class="text-muted small">Pendiente de revisión</span>
                                                 {% endif %}
                                                 <hr class="w-100 mt-3">
                                                 <span>Firma</span>
@@ -656,15 +681,13 @@
                                         </td>
                                         <td>
                                             <div class="d-flex flex-column align-items-center">
-                                                <span>{{ firma_revisa }}</span>
-                                                <hr class="w-100 mt-4">
-                                                <span>Firma</span>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div class="d-flex flex-column align-items-center">
-                                                <span>{{ firma_autoriza }}</span>
-                                                <hr class="w-100 mt-4">
+                                                
+                                                {% if bitacora_cbap and bitacora_cbap.firma_autorizo %}
+                                                <span class="font-weight-bold">{{ bitacora_cbap.firma_autorizo.first_name }} {{ bitacora_cbap.firma_autorizo.last_name }}</span>
+                                                {% else %}
+                                                <span class="text-muted small">Pendiente de autorización</span>
+                                                {% endif %}
+                                                <hr class="w-100 mt-3">
                                                 <span>Firma</span>
                                             </div>
                                         </td>
@@ -711,7 +734,7 @@
                             </div>
                         </div>
                         <div class="modal-footer justify-content-center">
-                            <button type="button" class="btn btn-primary" onclick="enviarFormulario()">Firmar</button>
+                            <button type="button" class="btn btn-primary" onclick="enviarFormularioAutorizado()">Firmar</button>
                         </div>
                     </div>
                 </div>

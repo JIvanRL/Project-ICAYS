@@ -6,12 +6,12 @@ from django.db.models import Q
 from django.contrib import messages
 
 @login_required
-@role_required('Calidad')
+@role_required('Asistente de Calidad')
 def calidad(request):
   return render(request, 'inicioCalidad.html')
 
 @login_required
-@role_required('Calidad')
+@role_required('Asistente de Calidad')
 def AdminUsers(request):
   if request.method == 'POST':
         accion = request.POST.get('accion')
@@ -65,7 +65,7 @@ def AdminUsers(request):
 #     return render(request, 'adminUsers.html', {'usuarios': usuarios})
 
 @login_required
-@role_required('Calidad')
+@role_required('Asistente de Calidad')
 def CrearUser(request):
   if request.method == 'POST':
   # Obtén los datos del formulario
@@ -119,7 +119,7 @@ def CrearUser(request):
     return render(request, 'crear.html', {'roles': roles, 'areas': areas})
 
 @login_required
-@role_required('Calidad')
+@role_required('Asistente de Calidad')
 def EditarUsers(request, usuarioId):
 
   usuario = get_object_or_404(CustomUser, id_user=usuarioId)

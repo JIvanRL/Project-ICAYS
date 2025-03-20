@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block content %}
+<input type="hidden" id="usuario_id_actual" value="{{ request.user.id_user }}">
 <div class="main-container">
     <!-- Fila superior con 3 botones -->
     <div class="top-row">
@@ -10,20 +11,22 @@
         </button>
 
         <div class="icon-container button-style position-relative" data-url="{% url 'microalimentos:lista_bitacoras' %}">
-            <!-- Badge con diferentes estilos de Bootstrap -->
-                    <span class="position-absolute top-0 start-100 translate-middle badge rounded bg-danger shadow-sm fs-4 p-2">
-                    {{ cantidad_bitacoras }}
-                    <span class="visually-hidden">bitácoras guardadas</span>
-                    </span>
-                    <img src="{% static 'iconos/salvado.png' %}" class="img-fluid" alt="Bitácoras guardadas">
-                    <div class="icon-text" style="font-size: 18px; color: black;">Bitácoras guardadas</div>
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded bg-danger shadow-sm fs-4 p-2">
+                <span id="contador-guardadas">0</span>
+                <span class="visually-hidden">bitácoras guardadas</span>
+            </span>
+            <img src="{% static 'iconos/salvado.png' %}" class="img-fluid" alt="Bitácoras guardadas">
+            <div class="icon-text" style="font-size: 18px; color: black;">Bitácoras guardadas</div>
         </div>
-
-        <div class="icon-container button-style" data-bs-toggle="modal" data-bs-target="#modalBitacorasRevision">
+        <div class="icon-container button-style position-relative" data-url="{% url 'microalimentos:lista_bitacoras_revision' %}">
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded bg-danger shadow-sm fs-4 p-2">
+                <span id="contador_combinado">0</span>
+                <span class="visually-hidden">Bitácoras en revisión</span>
+            </span>
             <img src="{% static 'iconos/barra-de-carga.png' %}" class="img-fluid" alt="Bitácoras en revisión">
             <div class="icon-text" style="font-size: 18px; color: black;">Bitácoras en revisión</div>
         </div>
-    </div>
+    </div>  
 
     <div class="bottom-row">
         <div class="icon-container button-style" data-bs-toggle="modal" data-bs-target="#modalBitacorasRechazadas">
@@ -31,7 +34,7 @@
             <div class="icon-text" style="font-size: 18px; color: black;">Bitácoras rechazadas</div>
         </div>
 
-        <div class="icon-container button-style" data-bs-toggle="modal" data-bs-target="#modalBitacorasAutorizadas">
+        <div class="icon-container button-style" data-url="{% url 'microalimentos:historial_bitacoras_por_anio' %}">
             <img src="{% static 'iconos/aceptadas.png' %}" class="img-fluid" alt="Bitácoras autorizadas">
             <div class="icon-text" style="font-size: 18px; color: black;">Bitácoras autorizadas</div>
         </div>
@@ -41,4 +44,6 @@
 
 {% block extra_js %}
     <script src="{% static 'js/redirect.js' %}"></script>
+    <script src="{% static 'js/functions.js' %}"></script>
+    <script src="{% static 'js/periodo-fechas.js' %}"></script>
 {% endblock %}

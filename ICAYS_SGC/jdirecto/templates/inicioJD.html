@@ -2,27 +2,29 @@
 {% load static %}
 
 {% block content %}
+<!-- Agregar campo oculto para el ID del usuario actual -->
+<input type="hidden" id="usuario_id_actual" value="{{ request.user.id_user }}">
 <div class="main-container">
 
     <div  class="top-row">
 
         <button class="icon-container button-style" id="nuevo-registro-btn">
-            <img src="{% static 'JD/iconos/agregar.png' %}" class="img-fluid" alt="Nuevo registro">
+            <img src="{% static 'iconos/agregar.png' %}" class="img-fluid" alt="Nuevo registro">
             <div class="icon-text" style="font-size: 18px; color: black;">Nuevo registro</div>
         </button>
 
         <button class="icon-container button-style" id="nuevo-registro-btn">
-            <img src="{% static 'JD/iconos/salvado.png' %}" class="img-fluid" alt="Bitácoras guardadas">
+            <img src="{% static 'iconos/salvado.png' %}" class="img-fluid" alt="Bitácoras guardadas">
             <div class="icon-text" style="font-size: 18px; color: black;">Bitácoras guardadas</div>
         </button>
     
         <button class="icon-container button-style" id="nuevo-registro-btn">
-            <img src="{% static 'JD/iconos/barra-de-carga.png' %}" class="img-fluid" alt="Bitácoras en revisión">
+            <img src="{% static 'iconos/barra-de-carga.png' %}" class="img-fluid" alt="Bitácoras en revisión">
             <div class="icon-text" style="font-size: 18px; color: black;">Bitácoras en revisión</div>
         </button>
 
         <button class="icon-container button-style" id="nuevo-registro-btn">
-            <img src="{% static 'JD/iconos/rechazado.png' %}" class="img-fluid" alt="Bitácoras rechazadas">
+            <img src="{% static 'iconos/rechazado.png' %}" class="img-fluid" alt="Bitácoras rechazadas">
             <div class="icon-text" style="font-size: 18px; color: black;">Bitácoras rechazadas</div>
         </button>
        
@@ -31,23 +33,31 @@
     <!-- Fila inferior con 2 botones -->
     <div class="bottom-row">
         <!-- Botón 5: Bitácoras autorizadas -->
-        <button class="icon-container button-style" id="">
-            <img src="{% static 'JD/iconos/aceptadas.png' %}" class="img-fluid" alt="Bitácoras autorizadas">
+        <button class="icon-container button-style" id="nuevo-registro-btn">
+            <img src="{% static 'iconos/aceptadas.png' %}" class="img-fluid" alt="Bitácoras autorizadas">
             <div class="icon-text" style="font-size: 18px; color: black;">Bitácoras autorizadas</div>
         </button>
 
-        <button class="icon-container button-style" id="nuevo-registro-btn">
-            <img src="{% static 'JD/iconos/imagen6.png' %}" class="img-fluid" alt="Bitácoras rechazadas">
+        <button class="icon-container button-style" id="nuevo-registro-btn" >
+            <img src="{% static 'iconos/imagen6.png' %}" class="img-fluid" alt="Bitácoras rechazadas">
             <div class="icon-text" style="font-size: 18px; color: black;">Solicitudes</div>
         </button>
 
-        <button class="icon-container button-style" id="nuevo-registro-btn">
-            <img src="{% static 'JD/iconos/imagen2.png' %}" class="img-fluid" alt="Bitácoras rechazadas">
+        <button class="icon-container button-style position-relative" id="nuevo-registro-btn" data-url="{% url 'jdirecto:lista_bitacoras_pendientes' %}">
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded bg-danger shadow-sm fs-4 p-2">
+                <span id="contador-pendientes">0</span>
+                <span class="visually-hidden">Bitácoras en revisión</span>
+            </span>
+            <img src="{% static 'iconos/imagen2.png' %}" class="img-fluid" alt="Bitácoras rechazadas">
             <div class="icon-text" style="font-size: 18px; color: black;">Revisar</div>
         </button>
 
-        <button class="icon-container button-style" id="nuevo-registro-btn">
-            <img src="{% static 'JD/iconos/imagen4.png' %}" class="img-fluid" alt="Bitácoras rechazadas">
+        <button class="icon-container button-style position-relative" id="nuevo-registro-btn" data-url="{% url 'jdirecto:lista_bitacoras_revisadas' %}">
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded bg-danger shadow-sm fs-4 p-2">
+                <span id="contador-revisadas">0</span>
+                <span class="visually-hidden">Bitácoras en revisión</span>
+            </span>
+            <img src="{% static 'iconos/imagen4.png' %}" class="img-fluid" alt="Bitácoras rechazadas">
             <div class="icon-text" style="font-size: 18px; color: black;">Autorizar</div>
         </button>
 
@@ -55,4 +65,7 @@
 </div>
 
 <!-- Repite la estructura para los otros modals -->
+{% endblock %}
+{% block extra_js %}
+    <script src="{% static 'js/functions-jefe.js' %}"></script>
 {% endblock %}

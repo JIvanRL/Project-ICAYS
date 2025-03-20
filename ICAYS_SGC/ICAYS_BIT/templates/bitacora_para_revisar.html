@@ -5,24 +5,17 @@
     <div class="container-fluid">
         <form id="form-principal" method="post" enctype="multipart/form-data" >
             {% csrf_token %}
-            <input type="hidden" id="bitacora_id" value="{{ bitacora.id_cbap }}"> <!-- ID de la bitácora actual -->
+            <input type="hidden" id="usuario_id_actual" value="{{ request.user.id_user }}"> 
             <div class="d-flex flex-wrap justify-content-between align-items-center">
                 <!-- Botón "Regresar" alineado a la izquierda -->
-                <button class="icon-container button-style custom-button mb-2" type="button" data-url="{% url 'jdirecto:lista_bitacoras_pendientes' %}">Regresar</button>
-        
-            
-                <!-- Botones alineados a la derecha -->
-                <div class="d-flex flex-wrap gap-2">
-                    <button class="enviar-custom custom-button"  type="button" data-bs-toggle="modal" data-bs-target="#enviar">Autorizar</button>
-                    
-                </div>
+                <button class="icon-container button-style custom-button mb-2" type="button" data-url="{% url 'microalimentos:lista_bitacoras_revision' %}">Regresar</button>
             </div>
             
             <div class="d-flex align-items-center p-3">
                 <!-- Contenedor de botones alineado a la izquierda -->
                 <div class="d-flex gap-3">
                     <!-- Botón para ocultar/mostrar contenido -->
-                    <button class="btn btn-primary" id="toggleFormulario" type="button">
+                    <button class="btn btn-primary" id="toggleFormulario" type="button" >
                         <i class="bi bi-arrow-down-circle"></i>
                     </button>                
                     <!-- Botón para agregar filas -->
@@ -656,26 +649,37 @@
                                         </td>
                                         <td>
                                             <div class="d-flex flex-column align-items-center">
-                                                <span>{{ firma_revisa }}</span>
-                                                <hr class="w-100 mt-4">
+                                                {% if registro and registro.estado == 'revisada' %}
+                                                    {% if registro.firma_revisor and registro.firma_revisor.signature_user %}
+                                                    <span>{{ registro.firma_revisor.signature_user }}</span>
+                                                    {% endif %}                                                   
+                                                {% else %}                                                    
+                                                    <span class="text-muted small">Pendiente de revisión</span>
+                                                {% endif %}
+                                                <hr class="w-100 mt-3">
                                                 <span>Firma</span>
                                             </div>
                                         </td>
                                         <td>
-                                            <div class="d-flex flex-column align-items-center">
-                                                <span>{{ firma_autoriza }}</span>
-                                                <hr class="w-100 mt-4">
-                                                <span>Firma</span>
-                                            </div>
-                                        </td>
+                                            <!-- Firma de quien autorizó la bitácora -->
+                                        <div class="d-flex flex-column align-items-center">
+                                            {% if registro and registro.estado == 'autorizada' %}
+                                                {% if registro.firma_autorizador and registro.firma_autorizador.signature_user %}
+                                                <span>{{ registro.firma_autorizador.signature_user }}</span>
+                                                {% endif %}                                                
+                                            {% else %}                                                
+                                                <span class="text-muted small">Pendiente de autorización</span>
+                                            {% endif %}
+                                            <hr class="w-100 mt-3">
+                                                <span>Firma</span>  
+                                        </div>
+                                                                            </td>
                                         
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
                     </div>   
-                   
-                
             </div>
                     <!-- Modal confirmación-->
             <div class="modal fade" id="enviar" tabindex="-1" aria-labelledby="enviar" aria-hidden="true">
@@ -710,8 +714,9 @@
                                 <input type="password" class="form-control" id="password" name="password" required>
                             </div>
                         </div>
+                        <input type="hidden" id="bitacora_id" value="{{ bitacora.id_cbap }}"> <!-- ID de la bitácora -->
                         <div class="modal-footer justify-content-center">
-                            <button type="button" class="btn btn-primary" onclick="enviarFormulario()">Firmar</button>
+                            <button type="button" class="btn btn-primary" onclick="enviarFormularioGuardadaARevision()">Firmar</button>
                         </div>
                     </div>
                 </div>
@@ -799,5 +804,8 @@
 </body>
 {% endblock content %}
 {% block extra_js %}
-    <script src="{% static 'js/functions-jefe.js' %}"></script>
+    <script src="{% static 'js/events-bita131.js' %}"></script>
+    
+    <script src="{% static 'js/functions.js' %}"></script>
+
 {% endblock %}

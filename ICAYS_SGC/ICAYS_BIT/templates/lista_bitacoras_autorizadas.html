@@ -3,13 +3,13 @@
 {% block content %}
 <body>
     <div class="container-fluid">
-        <button class="icon-container button-style custom-button mb-2" type="button" data-url="{% url 'microalimentos:inicioAnalistas' %}">Regresar</button>
+        <button class="icon-container button-style custom-button mb-2" type="button" data-url="{% url 'microalimentos:historial_bitacoras_por_mes' anio=anio %}">Regresar</button>
     </div>
         <div class="container">
-            <h1>Lista de Bitácoras</h1>
+            <h1>Lista de Bitácoras autorizadas</h1>
             {% if bitacoras %}
                 {% for bitacora in bitacoras %}
-                        <button id="detalle" onclick="DetallesBita('{{ bitacora.nombre_bita_cbap.id_cbap }}')" class="icon-container button-style w-100 shadow-lg mb-3 rounded">
+                        <button id="detalle" onclick="DetallesBitaAutorizadas('{{ bitacora.nombre_bita_cbap.id_cbap }}')" class="icon-container button-style w-100 shadow-lg mb-3 rounded">
                             <div class="row h-100">
                                 <div class="col-md-3 col-xl-3 p-2">
                                     <div class="icon-text text-break" style="font-size: 20px; color: black;">
@@ -46,4 +46,5 @@
 {% block extra_js %}
     <script type="module" src="{% static 'js/events-bita131.js' %}"></script>
     <script src="{% static 'js/functions.js' %}"></script>
+    <script src="{% static 'js/redirect.js' %}"></script>
 {% endblock %}

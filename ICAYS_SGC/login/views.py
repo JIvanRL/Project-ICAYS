@@ -20,11 +20,11 @@ def login_view(request):
 def redirect_user_based_on_role(user):
     # Primero, verifica si el usuario tiene un rol asignado
     if hasattr(user, 'rol_user') and user.rol_user is not None:
-        if user.rol_user.name_rol == 'Analista':
+        if user.rol_user.name_rol == 'Analista de Laboratorio':
             return redirect('microalimentos:inicioAnalistas')
-        elif user.rol_user.name_rol == 'Jefe Directo':
+        elif user.rol_user.name_rol == 'Jefe de Laboratorio':
             return redirect('jdirecto:inicioJefeD')
-        elif user.rol_user.name_rol == 'Calidad':
+        elif user.rol_user.name_rol == 'Asistente de Calidad':
             return redirect('calidadApp:inicioCalidad')
         else:
             # Si tiene un rol no reconocido, redirígelo a login

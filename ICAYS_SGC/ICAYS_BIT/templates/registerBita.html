@@ -4,16 +4,31 @@
 <div class="container-fluid">
     <form id="form-principal" method="post" enctype="multipart/form-data" >
         {% csrf_token %}
+        <input type="hidden" id="usuario_id_actual" value="{{ request.user.id_user }}">
         <div class="d-flex flex-wrap justify-content-between align-items-center">
             <!-- Botón "Regresar" alineado a la izquierda -->
-            <button class="icon-container button-style custom-button mb-2" type="button" data-url="{% url 'microalimentos:inicioAnalistas' %}">Regresar</button>
-    
-        
-            <!-- Botones alineados a la derecha -->
-            <div class="d-flex flex-wrap gap-2">
-                <button class="enviar-custom custom-button"  type="button" data-bs-toggle="modal" data-bs-target="#enviar">Enviar</button>
-                <button class="cancelar-custom custom-button" data-url="{% url 'microalimentos:inicioAnalistas' %}" type="button">Cancelar</button>
-                <button class="guardar-custom custom-button" type="button" onclick="guardarFormulario()">Guardar</button>
+            <button class="icon-container button-style custom-button mb-2" type="button" data-url="{% url 'microalimentos:BitacorasAnaliticas' %}">Regresar</button>
+            <div class="row mb-3 align-items-center">
+                <!-- Selector de envío -->
+                 <!-- En registerBita.html -->
+                <div class="col-auto">
+                    <div class="input-group">
+                        <label class="input-group-text" for="usuario_destino">Enviar a:</label>
+                        <select class="form-select" id="usuario_destino" name="usuario_destino" required>
+                            <option value="" selected>Seleccione un usuario...</option>
+                        </select>
+                    </div>
+                </div>
+                <!-- Botones alineados horizontalmente -->
+                <div class="col-auto">
+                    <button class="enviar-custom custom-button" type="button" data-bs-toggle="modal" data-bs-target="#enviar">Enviar</button>
+                </div>
+                <div class="col-auto">
+                    <button class="cancelar-custom custom-button" data-url="{% url 'microalimentos:inicioAnalistas' %}" type="button">Cancelar</button>
+                </div>
+                <div class="col-auto">
+                    <button class="guardar-custom custom-button" type="button" onclick="guardarFormulario()">Guardar</button>
+                </div>
             </div>
         </div>
         
@@ -40,9 +55,11 @@
             <div class="d-flex gap-3">
                 <div class="col-12 col-md-5">
                     <div class="form-floating">
-                        <input type="text" class="form-control form-control-sm" id="pagina_cbap" name="pagina_cbap" placeholder="Página" >
+                        <input type="text" class="form-control form-control-sm" id="pagina_cbap" name="pagina_cbap" value="" placeholder="Página" readonly>
                         <label for="pagina_cbap">Página</label>
-                    </div>
+                        <!-- Campo oculto para asegurar que el valor se envíe al formulario -->
+                        <input type="hidden" id="pagina_cbap_hidden" name="pagina_cbap">
+                    </div></qodoArtifact>
                 </div>
             </div>
             
@@ -509,21 +526,24 @@
                                 </td>
                                 <td>
                                     <div class="d-flex flex-column align-items-center">
-                                        <span>{{ firma_elabora }}</span>
+                                        
+                                        <span class="text-muted">Pendiente de elaboración</span>
                                         <hr class="w-100 mt-4">
                                         <span>Firma</span>
                                     </div>
                                 </td>
                                 <td>
                                     <div class="d-flex flex-column align-items-center">
-                                        <span>{{ firma_revisa }}</span>
+                                        
+                                        <span class="text-muted">Pendiente de revisión</span>
                                         <hr class="w-100 mt-4">
                                         <span>Firma</span>
                                     </div>
                                 </td>
                                 <td>
                                     <div class="d-flex flex-column align-items-center">
-                                        <span>{{ firma_autoriza }}</span>
+                                        
+                                        <span class="text-muted">Pendiente de autorización</span>
                                         <hr class="w-100 mt-4">
                                         <span>Firma</span>
                                     </div>
@@ -658,4 +678,5 @@
 {% endblock %}
 {% block extra_js %}
     <script type="module" src="{% static 'js/events-bita131.js' %}"></script>
+    <script src="{% static 'js/functions.js' %}"></script>
 {% endblock %}
