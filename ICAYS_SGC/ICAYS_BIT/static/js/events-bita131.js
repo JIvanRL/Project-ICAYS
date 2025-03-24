@@ -21,11 +21,23 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // Función para hacer que los campos de promedio sean no editables
+    function setPromedioFieldsReadOnly() {
+        // Seleccionar todos los campos de promedio existentes y hacerlos readonly
+        const promedioFields = document.querySelectorAll('.promedio, .promedio2, .promedio3');
+        promedioFields.forEach(field => {
+            field.setAttribute('readonly', true);
+        });
+    }
+
     // Configurar los checkboxes en las filas existentes al cargar la página
     const rows = document.querySelectorAll('#tabla-body tr');
     rows.forEach(row => {
         setupCheckboxes(row);
     });
+
+    // Hacer que los campos de promedio sean no editables al cargar la página
+    setPromedioFieldsReadOnly();
 
     // Agregar una nueva fila
     addRowBtn.addEventListener('click', function() {
@@ -88,12 +100,15 @@ document.addEventListener('DOMContentLoaded', function () {
                         break;
                     case 'promedio_dD':
                         textInput.classList.add('promedio');
+                        textInput.setAttribute('readonly', true); // Hacer el campo no editable
                         break;
                     case 'promedio_d':
                         textInput.classList.add('promedio2');
+                        textInput.setAttribute('readonly', true); // Hacer el campo no editable
                         break;
                     case 'promedio_d_2':
                         textInput.classList.add('promedio3');
+                        textInput.setAttribute('readonly', true); // Hacer el campo no editable
                         break;
                 }
     
@@ -215,28 +230,39 @@ export function recolectarDatosTabla() {
 
     $('#tabla-body tr').each(function(index) {
         const $fila = $(this);
+        
+        // Función auxiliar para convertir valores a números o 0
+        const toNumber = (value) => {
+            if (value === '' || value === null || value === undefined) {
+                return 0;
+            }
+            const num = parseFloat(value);
+            return isNaN(num) ? 0 : num;
+        };
+        
         // Crear objeto con los datos de la fila actual
         const datosFila = {
             clave_c_m: $fila.find(`[name^="clave_c_m_"]`).val() || '',
             cantidad_c_m: $fila.find(`[name^="cantidad_c_m_"]`).val() || '',
             // Para los checkboxes, verificar si están marcados y convertir a números
-            dE_1: $fila.find(`[name^="dE_1_"]:checked`).val() ? parseFloat($fila.find(`[name^="dE_1_"]:checked`).val()) : 0,
-            dE_2: $fila.find(`[name^="dE_2_"]:checked`).val() ? parseFloat($fila.find(`[name^="dE_2_"]:checked`).val()) : 0,
-            dE_3: $fila.find(`[name^="dE_3_"]:checked`).val() ? parseFloat($fila.find(`[name^="dE_3_"]:checked`).val()) : 0,
-            dE_4: $fila.find(`[name^="dE_4_"]:checked`).val() ? parseFloat($fila.find(`[name^="dE_4_"]:checked`).val()) : 0,
+            dE_1: $fila.find(`[name^="dE_1_"]:checked`).val() ? toNumber($fila.find(`[name^="dE_1_"]:checked`).val()) : 0,
+            dE_2: $fila.find(`[name^="dE_2_"]:checked`).val() ? toNumber($fila.find(`[name^="dE_2_"]:checked`).val()) : 0,
+            dE_3: $fila.find(`[name^="dE_3_"]:checked`).val() ? toNumber($fila.find(`[name^="dE_3_"]:checked`).val()) : 0,
+            dE_4: $fila.find(`[name^="dE_4_"]:checked`).val() ? toNumber($fila.find(`[name^="dE_4_"]:checked`).val()) : 0,
             // Para los campos numéricos
-            placa_dD: parseFloat($fila.find(`[name^="placa_dD_"]`).val()) || 0,
-            placa_dD2: parseFloat($fila.find(`[name^="placa_dD2_"]`).val()) || 0,
-            promedio_dD: parseFloat($fila.find(`[name^="promedio_dD_"]`).val()) || 0,
-            placa_d: parseFloat($fila.find(`[name^="placa_d_"]`).val()) || 0,
-            placa_d2: parseFloat($fila.find(`[name^="placa_d2_"]`).val()) || 0,
-            promedio_d: parseFloat($fila.find(`[name^="promedio_d_"]`).val()) || 0,
-            placa_d_2: parseFloat($fila.find(`[name^="placa_d_2_"]`).val()) || 0,
-            placa_d2_2: parseFloat($fila.find(`[name^="placa_d2_2_"]`).val()) || 0,
-            promedio_d_2: parseFloat($fila.find(`[name^="promedio_d_2_"]`).val()) || 0,
-            resultado_r: parseFloat($fila.find(`[name^="resultado_r_"]`).val()) || 0,
-            ufC_placa_r: parseFloat($fila.find(`[name^="ufC_placa_r_"]`).val()) || 0,
-            diferencia_r: parseFloat($fila.find(`[name^="diferencia_r_"]`).val()) || 0
+            placa_dD: toNumber($fila.find(`[name^="placa_dD_"]`).val()),
+            placa_dD2: toNumber($fila.find(`[name^="placa_dD2_"]`).val()),
+            promedio_dD: toNumber($fila.find(`[name^="promedio_dD_"]`).val()),
+            placa_d: toNumber($fila.find(`[name^="placa_d_"]`).val()),
+            placa_d2: toNumber($fila.find(`[name^="placa_d2_"]`).val()),
+            promedio_d: toNumber($fila.find(`[name^="promedio_d_"]`).val()),
+            placa_d_2: toNumber($fila.find(`[name^="placa_d_2_"]`).val()),
+            placa_d2_2: toNumber($fila.find(`[name^="placa_d2_2_"]`).val()),
+            promedio_d_2: toNumber($fila.find(`[name^="promedio_d_2_"]`).val()),
+            // Estos campos pueden ser texto o número según tu necesidad
+            resultado_r: $fila.find(`[name^="resultado_r_"]`).val() || '0',
+            ufC_placa_r: $fila.find(`[name^="ufC_placa_r_"]`).val() || '0',
+            diferencia_r: $fila.find(`[name^="diferencia_r_"]`).val() || '0'
         };
 
         filas.push(datosFila);

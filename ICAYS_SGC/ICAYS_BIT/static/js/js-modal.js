@@ -279,7 +279,72 @@ function enviarFormulario() {
 
     return false;
 }
+function guardarFormularioEditadoParaMas() {
+    const formData = new FormData($('#form-principal')[0]);
+    console.log('Iniciando envío de formulario guardado...');
+    const bitacoraEstado = document.getElementById('bitacora_id');
+    const bitacoraId = bitacoraEstado ? bitacoraEstado.value : null;
+    if (!bitacoraId) {
+        console.error('No se pudo obtener el ID de la bitacora actual');
+        return;
+    }
 
+     // Agregar los datos de la tabla
+     const datosTabla = recolectarDatosTabla();
+    formData.append('accion', 'guardar');
+
+    Object.keys(datosTabla).forEach(key => {
+        formData.append(key, JSON.stringify(datosTabla[key]));
+        formData.append('num_filas', datosTabla.num_filas);
+    });
+
+    $.ajax({
+         url: `/microbiologia/modificar_bitacora/${bitacoraId}/`,
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        dataType: 'json',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val()
+        },
+        success: function(data) {
+            console.log('Respuesta recibida:', data);
+            // Verificar si la respuesta es exitosa
+            if (data && data.success === true) {
+                $('#mensajeExitoTextoGuardar').text(data.message);
+                getModalGuardarExito().modal('show');
+                
+                setTimeout(function() {
+                    window.location.href = data.redirect_url;
+                }, 2000);
+            } else {
+                const errorMsg = data.error || 'Error al guardar la bitácora.';
+                $('#error-guardar').text(errorMsg).show();
+                getModalError().modal('show');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error en la solicitud:', status, error);
+            let errorMsg = 'Error al guardar la bitácora.';
+            
+            try { // Intentar analizar la respuesta como JSON
+                const errorData = JSON.parse(xhr.responseText); // Parsear la respuesta
+                if (errorData.error) {
+                    errorMsg = errorData.error;
+                } else if (errorData.placa_d || errorData.placa_d2 || errorData.promedio_d) {
+                    errorMsg = 'Error en formulario Dilución 3: ' + JSON.stringify(errorData);
+                }
+            } catch (e) {
+                console.error('Error al parsear la respuesta:', e);
+            }
+            
+            $('#error-guardar').text(errorMsg).show();
+            getModalError().modal('show');
+        }
+    });
+}
 function enviarFormularioGuardadaARevision() {
     console.log('Iniciando envío de formulario guardado...');
     const bitacoraEstado = document.getElementById('bitacora_id');
@@ -491,6 +556,7 @@ window.enviarFormulario = enviarFormulario;
 window.abrirModalFirma = abrirModalFirma;
 window.enviarFormularioGuardadaARevision = enviarFormularioGuardadaARevision;
 window.guardarFormularioEditado = guardarFormularioEditado;
+window.guardarFormularioEditadoParaMas = guardarFormularioEditadoParaMas;
 
 // Inicialización con jQuery
 $(document).ready(function() {

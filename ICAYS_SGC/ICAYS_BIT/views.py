@@ -24,6 +24,15 @@ def registrar_bitacora(request):
         accion = request.POST.get('accion')  # Obtén la acción desde el formulario
         
         try:
+            # Función auxiliar para convertir valores a float o None
+            def safe_float(value):
+                if value is None or value == '':
+                    return None
+                try:
+                    return float(value)
+                except (ValueError, TypeError):
+                    return None
+            
             with transaction.atomic():
                 # === 1. CREAR DATOS CAMPO Y VERIFICACIÓN DE BALANZA ===
                 datos_campo_data = {
@@ -65,24 +74,29 @@ def registrar_bitacora(request):
                     # Verificar si la fila tiene datos antes de procesarla
                     if request.POST.get(f'clave_c_m_{i}') or request.POST.get(f'cantidad_c_m_{i}') or request.POST.get(f'dE_1_{i}') or request.POST.get(f'dE_2_{i}') or request.POST.get(f'dE_3_{i}') or request.POST.get(f'dE_4_{i}') or request.POST.get(f'placa_dD_{i}') or request.POST.get(f'placa_dD2_{i}') or request.POST.get(f'promedio_dD_{i}') or request.POST.get(f'placa_d_{i}') or request.POST.get(f'placa_d2_{i}') or request.POST.get(f'promedio_d_{i}') or request.POST.get(f'placa_d_2_{i}') or request.POST.get(f'placa_d2_2_{i}') or request.POST.get(f'promedio_d_2_{i}') or request.POST.get(f'resultado_r_{i}') or request.POST.get(f'ufC_placa_r_{i}') or request.POST.get(f'diferencia_r_{i}'):
                         # Procesar cada fila
-                        clave_c_m = (request.POST.get(f'clave_c_m_{i}', '0'))
-                        cantidad_c_m = (request.POST.get(f'cantidad_c_m_{i}', '0'))
-                        dE_1 = float(request.POST.get(f'dE_1_{i}', '0'))  # Convertir a float
-                        dE_2 = float(request.POST.get(f'dE_2_{i}', '0'))
-                        dE_3 = float(request.POST.get(f'dE_3_{i}', '0'))
-                        dE_4 = float(request.POST.get(f'dE_4_{i}', '0'))
-                        placa_dD = float(request.POST.get(f'placa_dD_{i}', '0'))
-                        placa_dD2 = float(request.POST.get(f'placa_dD2_{i}', '0'))
-                        promedio_dD = float(request.POST.get(f'promedio_dD_{i}', '0'))
-                        placa_d = float(request.POST.get(f'placa_d_{i}', '0'))
-                        placa_d2 = float(request.POST.get(f'placa_d2_{i}', '0'))
-                        promedio_d = float(request.POST.get(f'promedio_d_{i}', '0'))
-                        placa_d_2 = float(request.POST.get(f'placa_d_2_{i}', '0'))
-                        placa_d2_2 = float(request.POST.get(f'placa_d2_2_{i}', '0'))
-                        promedio_d_2 = float(request.POST.get(f'promedio_d_2_{i}', '0'))
-                        resultado_r = float(request.POST.get(f'resultado_r_{i}', '0'))
-                        ufC_placa_r = (request.POST.get(f'ufC_placa_r_{i}', '0'))
-                        diferencia_r = (request.POST.get(f'diferencia_r_{i}', '0'))
+                        clave_c_m = request.POST.get(f'clave_c_m_{i}', '')
+                        cantidad_c_m = request.POST.get(f'cantidad_c_m_{i}', '')
+                        
+                        # Usar safe_float para todas las conversiones de string a float
+                        # Esto permitirá valores NULL en la base de datos
+                        dE_1 = safe_float(request.POST.get(f'dE_1_{i}'))
+                        dE_2 = safe_float(request.POST.get(f'dE_2_{i}'))
+                        dE_3 = safe_float(request.POST.get(f'dE_3_{i}'))
+                        dE_4 = safe_float(request.POST.get(f'dE_4_{i}'))
+                        placa_dD = safe_float(request.POST.get(f'placa_dD_{i}'))
+                        placa_dD2 = safe_float(request.POST.get(f'placa_dD2_{i}'))
+                        promedio_dD = safe_float(request.POST.get(f'promedio_dD_{i}'))
+                        placa_d = safe_float(request.POST.get(f'placa_d_{i}'))
+                        placa_d2 = safe_float(request.POST.get(f'placa_d2_{i}'))
+                        promedio_d = safe_float(request.POST.get(f'promedio_d_{i}'))
+                        placa_d_2 = safe_float(request.POST.get(f'placa_d_2_{i}'))
+                        placa_d2_2 = safe_float(request.POST.get(f'placa_d2_2_{i}'))
+                        promedio_d_2 = safe_float(request.POST.get(f'promedio_d_2_{i}'))
+                        
+                        # Para estos campos, mantener como string
+                        resultado_r = request.POST.get(f'resultado_r_{i}', '')
+                        ufC_placa_r = request.POST.get(f'ufC_placa_r_{i}', '')
+                        diferencia_r = request.POST.get(f'diferencia_r_{i}', '')
 
                         # === 4.1. CREAR CLAVE MUESTRA ===
                         clave_muestra_data = {
@@ -177,7 +191,7 @@ def registrar_bitacora(request):
                     control_calidad_data = {
                         'nombre_laf': request.POST.get(f'nombre_laf_{i}'),
                         'fecha_1cc': request.POST.get(f'fecha_1cc_{i}'),
-                        'page_1cc': request.POST.get(f'page_1cc_{i}'),
+                        'page_1cc': request.POST.get(f'page_1cc_{i}', ''),  # Valor vacío por defecto
                         'id_cbap_cc': bita_cbap_instance,
                     }
                     control_calidad_form = ControlCalidadForm(control_calidad_data)
@@ -324,19 +338,38 @@ def lista_bitacoras_revision(request):
 from .models import CustomUser
 
 @login_required
-@role_required('Analista de Laboratorio')
 def obtener_usuarios_json(request):#Obtener todos los usuarios
-    usuarios = CustomUser.objects.select_related('area_user', 'rol_user').all()#Obtener todos los usuarios
-    data = []
-    for usuario in usuarios:#Iterar sobre los usuarios y agregarlos a data
-        data.append({ #Agregar los datos del usuario a data
-            'id': usuario.id_user,
-            'nombre': usuario.first_name,
-            'apellido': usuario.last_name,
-            'area': usuario.area_user.name_area if usuario.area_user else '',
-            'rol': usuario.rol_user.name_rol if usuario.rol_user else ''
-        })
-    return JsonResponse(data, safe=False)#Devolver la lista de usuarios en formato JSON
+    try:
+        if not request.user.rol_user:
+            logger.warning(f"Usuario {request.user} sin rol asignado")
+            return JsonResponse({'error': 'Usuario sin rol asignado'}, status=403)
+        elif request.user.rol_user.name_rol == 'Analista de Laboratorio' and request.user.id_user:
+            # Para Analistas de Laboratorio, mostrar tanto Analistas como Jefes
+            usuarios = CustomUser.objects.filter(
+                rol_user__name_rol__in=['Analista de Laboratorio', 'Jefe de Laboratorio']
+            )
+        else:
+            # Para otros roles, mostrar solo Analistas
+            usuarios = CustomUser.objects.filter(rol_user__name_rol='Analista de Laboratorio')
+        
+        # Filtrar usuarios sin rol asignado y excluir al usuario actual
+        usuarios = usuarios.exclude(rol_user__isnull=True).exclude(id_user=request.user.id_user)
+        
+        usuarios_data = []
+        for usuario in usuarios:
+            usuarios_data.append({
+                'id': usuario.id_user,
+                'nombre': usuario.first_name,
+                'apellido': usuario.last_name,
+                'area': usuario.area_user.name_area if usuario.area_user else '',
+                'rol': usuario.rol_user.name_rol if usuario.rol_user else ''
+            })
+        
+        logger.debug(f"API usuarios: {len(usuarios_data)} usuarios devueltos para {request.user}")
+        return JsonResponse(usuarios_data, safe=False)
+    except Exception as e:
+        logger.error(f"Error en api_usuarios: {str(e)}")
+        return JsonResponse({'error': str(e)}, status=500)
 #############################################
 #Vista para ver los detalles de una bitácora#
 #############################################
@@ -779,6 +812,15 @@ def modificar_bitacora(request, bitacora_id):
         accion = request.POST.get('accion')  # Obtén la acción desde el formulario
         
         try:
+            # Función auxiliar para convertir valores a float o None
+            def safe_float(value):
+                if value is None or value == '':
+                    return None
+                try:
+                    return float(value)
+                except (ValueError, TypeError):
+                    return None
+            
             with transaction.atomic():
                 # === 1. ACTUALIZAR DATOS CAMPO ===
                 datos_campo = bitacora.id_dc_cbap
@@ -829,24 +871,28 @@ def modificar_bitacora(request, bitacora_id):
                     # Verificar si la fila tiene datos antes de procesarla
                     if request.POST.get(f'clave_c_m_{i}') or request.POST.get(f'cantidad_c_m_{i}') or request.POST.get(f'dE_1_{i}') or request.POST.get(f'dE_2_{i}') or request.POST.get(f'dE_3_{i}') or request.POST.get(f'dE_4_{i}') or request.POST.get(f'placa_dD_{i}') or request.POST.get(f'placa_dD2_{i}') or request.POST.get(f'promedio_dD_{i}') or request.POST.get(f'placa_d_{i}') or request.POST.get(f'placa_d2_{i}') or request.POST.get(f'promedio_d_{i}') or request.POST.get(f'placa_d_2_{i}') or request.POST.get(f'placa_d2_2_{i}') or request.POST.get(f'promedio_d_2_{i}') or request.POST.get(f'resultado_r_{i}') or request.POST.get(f'ufC_placa_r_{i}') or request.POST.get(f'diferencia_r_{i}'):
                         # Obtener los datos de la fila
-                        clave_c_m = request.POST.get(f'clave_c_m_{i}', '0')
-                        cantidad_c_m = request.POST.get(f'cantidad_c_m_{i}', '0')
-                        dE_1 = float(request.POST.get(f'dE_1_{i}', '0'))
-                        dE_2 = float(request.POST.get(f'dE_2_{i}', '0'))
-                        dE_3 = float(request.POST.get(f'dE_3_{i}', '0'))
-                        dE_4 = float(request.POST.get(f'dE_4_{i}', '0'))
-                        placa_dD = float(request.POST.get(f'placa_dD_{i}', '0'))
-                        placa_dD2 = float(request.POST.get(f'placa_dD2_{i}', '0'))
-                        promedio_dD = float(request.POST.get(f'promedio_dD_{i}', '0'))
-                        placa_d = float(request.POST.get(f'placa_d_{i}', '0'))
-                        placa_d2 = float(request.POST.get(f'placa_d2_{i}', '0'))
-                        promedio_d = float(request.POST.get(f'promedio_d_{i}', '0'))
-                        placa_d_2 = float(request.POST.get(f'placa_d_2_{i}', '0'))
-                        placa_d2_2 = float(request.POST.get(f'placa_d2_2_{i}', '0'))
-                        promedio_d_2 = float(request.POST.get(f'promedio_d_2_{i}', '0'))
-                        resultado_r = float(request.POST.get(f'resultado_r_{i}', '0'))
-                        ufC_placa_r = request.POST.get(f'ufC_placa_r_{i}', '0')
-                        diferencia_r = request.POST.get(f'diferencia_r_{i}', '0')
+                        clave_c_m = request.POST.get(f'clave_c_m_{i}', '')
+                        cantidad_c_m = request.POST.get(f'cantidad_c_m_{i}', '')
+                        
+                        # Usar safe_float para todas las conversiones de string a float
+                        dE_1 = safe_float(request.POST.get(f'dE_1_{i}'))
+                        dE_2 = safe_float(request.POST.get(f'dE_2_{i}'))
+                        dE_3 = safe_float(request.POST.get(f'dE_3_{i}'))
+                        dE_4 = safe_float(request.POST.get(f'dE_4_{i}'))
+                        placa_dD = safe_float(request.POST.get(f'placa_dD_{i}'))
+                        placa_dD2 = safe_float(request.POST.get(f'placa_dD2_{i}'))
+                        promedio_dD = safe_float(request.POST.get(f'promedio_dD_{i}'))
+                        placa_d = safe_float(request.POST.get(f'placa_d_{i}'))
+                        placa_d2 = safe_float(request.POST.get(f'placa_d2_{i}'))
+                        promedio_d = safe_float(request.POST.get(f'promedio_d_{i}'))
+                        placa_d_2 = safe_float(request.POST.get(f'placa_d_2_{i}'))
+                        placa_d2_2 = safe_float(request.POST.get(f'placa_d2_2_{i}'))
+                        promedio_d_2 = safe_float(request.POST.get(f'promedio_d_2_{i}'))
+                        
+                        # Para estos campos, mantener como string
+                        resultado_r = request.POST.get(f'resultado_r_{i}', '')
+                        ufC_placa_r = request.POST.get(f'ufC_placa_r_{i}', '')
+                        diferencia_r = request.POST.get(f'diferencia_r_{i}', '')
                         
                         # === 3.1. ACTUALIZAR O CREAR CLAVE MUESTRA ===
                         if filas_procesadas < len(claves_muestra_existentes):
@@ -939,20 +985,22 @@ def modificar_bitacora(request, bitacora_id):
                                 diferencia_r=diferencia_r
                             )
                         
+                        filas_procesadas += 1
+                        
                 # === 4. ACTUALIZAR CONTROL DE CALIDAD ===
                 controles_calidad_existentes = list(ControlCalidad.objects.filter(id_cbap_cc=bitacora))
                 for i in range(1, 5):
                     control_calidad_data = {
-                        'nombre_laf': request.POST.get(f'nombre_laf_{i}'),
-                        'fecha_1cc': request.POST.get(f'fecha_1cc_{i}'),
-                        'page_1cc': request.POST.get(f'page_1cc_{i}'),
+                        'nombre_laf': request.POST.get(f'nombre_laf_{i}', ''),
+                        'fecha_1cc': request.POST.get(f'fecha_1cc_{i}', ''),
+                        'page_1cc': request.POST.get(f'page_1cc_{i}', ''),
                     }
                     
                     if i-1 < len(controles_calidad_existentes):
                         # Actualizar registro existente
                         control_calidad = controles_calidad_existentes[i-1]
                         control_calidad.nombre_laf = control_calidad_data['nombre_laf']
-                        control_calidad.fecha_1cc = control_calidad_data['fecha_1cc']
+                        control_calidad.fecha_1cc = control_calidad_data['fecha_1cc'] or None
                         control_calidad.page_1cc = control_calidad_data['page_1cc']
                         control_calidad.save()
                     else:
@@ -960,50 +1008,56 @@ def modificar_bitacora(request, bitacora_id):
                         ControlCalidad.objects.create(
                             id_cbap_cc=bitacora,
                             nombre_laf=control_calidad_data['nombre_laf'],
-                            fecha_1cc=control_calidad_data['fecha_1cc'],
+                            fecha_1cc=control_calidad_data['fecha_1cc'] or None,
                             page_1cc=control_calidad_data['page_1cc']
                         )
 
                 # === 5. ACTUALIZAR VERIFICACIÓN DE BALANZA ===
-                                # === 5. ACTUALIZAR VERIFICACIÓN DE BALANZA ===
                 verificaciones_balanza_existentes = list(VerificacionBalanza.objects.filter(id_cbap_vb=bitacora))
                 for i in range(1, 3):
                     if i-1 < len(verificaciones_balanza_existentes):
                         # Actualizar registro existente
                         veri_balanza = verificaciones_balanza_existentes[i-1]
                         
-                        # Obtener los valores actuales para usarlos como valores por defecto
-                        hora_vb_actual = veri_balanza.hora_vb
-                        actividad_vb_actual = veri_balanza.actividad_vb
-                        ajuste_vb_actual = veri_balanza.ajuste_vb
-                        valor_nominal_vb_actual = veri_balanza.valor_nominal_vb
-                        valor_convencional_vb_actual = veri_balanza.valor_convencional_vb
-                        valo_masa_vb_actual = veri_balanza.valo_masa_vb
-                        diferecnia_vb_actual = veri_balanza.diferecnia_vb
-                        incertidumbre_vb_actual = veri_balanza.incertidumbre_vb
-                        emt_vb_actual = veri_balanza.emt_vb
-                        aceptacion_vb_actual = veri_balanza.aceptacion_vb
-                        valor_pesado_muestra_vb_actual = veri_balanza.valor_pesado_muestra_vb
+                        # Actualizar campos con valores del formulario o mantener los existentes si están vacíos
+                        veri_balanza.hora_vb = request.POST.get(f'hora_vb_{i}', '') or veri_balanza.hora_vb
                         
-                        # Actualizar solo si se proporciona un nuevo valor, de lo contrario mantener el valor actual
-                        veri_balanza.hora_vb = request.POST.get(f'hora_vb_{i}') or hora_vb_actual
-                        
-                        # Para actividad_vb, limitar a 50 caracteres para evitar el error de "Data too long"
-                        actividad_vb_nuevo = request.POST.get(f'actividad_vb_{i}')
+                        # Para actividad_vb, limitar a 50 caracteres
+                        actividad_vb_nuevo = request.POST.get(f'actividad_vb_{i}', '')
                         if actividad_vb_nuevo:
-                            veri_balanza.actividad_vb = actividad_vb_nuevo[:50]  # Limitar a 50 caracteres
-                        else:
-                            veri_balanza.actividad_vb = actividad_vb_actual
+                            veri_balanza.actividad_vb = actividad_vb_nuevo[:50]
                         
-                        veri_balanza.ajuste_vb = request.POST.get(f'ajuste_vb_{i}') or ajuste_vb_actual
-                        veri_balanza.valor_nominal_vb = request.POST.get(f'valor_nominal_vb_{i}') or valor_nominal_vb_actual
-                        veri_balanza.valor_convencional_vb = request.POST.get(f'valor_convencional_vb_{i}') or valor_convencional_vb_actual
-                        veri_balanza.valo_masa_vb = request.POST.get(f'valo_masa_vb_{i}') or valo_masa_vb_actual
-                        veri_balanza.diferecnia_vb = request.POST.get(f'diferecnia_vb_{i}') or diferecnia_vb_actual
-                        veri_balanza.incertidumbre_vb = request.POST.get(f'incertidumbre_vb_{i}') or incertidumbre_vb_actual
-                        veri_balanza.emt_vb = request.POST.get(f'emt_vb_{i}') or emt_vb_actual
-                        veri_balanza.aceptacion_vb = request.POST.get(f'aceptacion_vb_{i}') or aceptacion_vb_actual
-                        veri_balanza.valor_pesado_muestra_vb = request.POST.get(f'valor_pesado_muestra_vb_{i}') or valor_pesado_muestra_vb_actual
+                        # Usar safe_float para campos numéricos
+                        ajuste_vb = safe_float(request.POST.get(f'ajuste_vb_{i}'))
+                        if ajuste_vb is not None:
+                            veri_balanza.ajuste_vb = ajuste_vb
+                            
+                        valor_nominal_vb = safe_float(request.POST.get(f'valor_nominal_vb_{i}'))
+                        if valor_nominal_vb is not None:
+                            veri_balanza.valor_nominal_vb = valor_nominal_vb
+                            
+                        valor_convencional_vb = safe_float(request.POST.get(f'valor_convencional_vb_{i}'))
+                        if valor_convencional_vb is not None:
+                            veri_balanza.valor_convencional_vb = valor_convencional_vb
+                            
+                        valo_masa_vb = safe_float(request.POST.get(f'valo_masa_vb_{i}'))
+                        if valo_masa_vb is not None:
+                            veri_balanza.valo_masa_vb = valo_masa_vb
+                            
+                        diferecnia_vb = safe_float(request.POST.get(f'diferecnia_vb_{i}'))
+                        if diferecnia_vb is not None:
+                            veri_balanza.diferecnia_vb = diferecnia_vb
+                            
+                        incertidumbre_vb = safe_float(request.POST.get(f'incertidumbre_vb_{i}'))
+                        if incertidumbre_vb is not None:
+                            veri_balanza.incertidumbre_vb = incertidumbre_vb
+                            
+                        emt_vb = safe_float(request.POST.get(f'emt_vb_{i}'))
+                        if emt_vb is not None:
+                            veri_balanza.emt_vb = emt_vb
+                        
+                        veri_balanza.aceptacion_vb = request.POST.get(f'aceptacion_vb_{i}', '') or veri_balanza.aceptacion_vb
+                        veri_balanza.valor_pesado_muestra_vb = request.POST.get(f'valor_pesado_muestra_vb_{i}', '') or veri_balanza.valor_pesado_muestra_vb
                         
                         veri_balanza.save()
                     else:
@@ -1015,22 +1069,23 @@ def modificar_bitacora(request, bitacora_id):
                             request.POST.get(f'emt_vb_{i}') or request.POST.get(f'aceptacion_vb_{i}') or 
                             request.POST.get(f'valor_pesado_muestra_vb_{i}')):
                             
-                            # Para actividad_vb, limitar a 50 caracteres para evitar el error de "Data too long"
+                            # Para actividad_vb, limitar a 50 caracteres
                             actividad_vb_nuevo = request.POST.get(f'actividad_vb_{i}', '')
                             if len(actividad_vb_nuevo) > 50:
                                 actividad_vb_nuevo = actividad_vb_nuevo[:50]
                             
+                            # Usar safe_float para campos numéricos
                             VerificacionBalanza.objects.create(
                                 id_cbap_vb=bitacora,
                                 hora_vb=request.POST.get(f'hora_vb_{i}', ''),
                                 actividad_vb=actividad_vb_nuevo,
-                                ajuste_vb=request.POST.get(f'ajuste_vb_{i}', '0'),
-                                valor_nominal_vb=request.POST.get(f'valor_nominal_vb_{i}', '0'),
-                                valor_convencional_vb=request.POST.get(f'valor_convencional_vb_{i}', '0'),
-                                valo_masa_vb=request.POST.get(f'valo_masa_vb_{i}', '0'),
-                                diferecnia_vb=request.POST.get(f'diferecnia_vb_{i}', '0'),
-                                incertidumbre_vb=request.POST.get(f'incertidumbre_vb_{i}', '0'),
-                                emt_vb=request.POST.get(f'emt_vb_{i}', '0'),
+                                ajuste_vb=safe_float(request.POST.get(f'ajuste_vb_{i}')),
+                                valor_nominal_vb=safe_float(request.POST.get(f'valor_nominal_vb_{i}')),
+                                valor_convencional_vb=safe_float(request.POST.get(f'valor_convencional_vb_{i}')),
+                                valo_masa_vb=safe_float(request.POST.get(f'valo_masa_vb_{i}')),
+                                diferecnia_vb=safe_float(request.POST.get(f'diferecnia_vb_{i}')),
+                                incertidumbre_vb=safe_float(request.POST.get(f'incertidumbre_vb_{i}')),
+                                emt_vb=safe_float(request.POST.get(f'emt_vb_{i}')),
                                 aceptacion_vb=request.POST.get(f'aceptacion_vb_{i}', ''),
                                 valor_pesado_muestra_vb=request.POST.get(f'valor_pesado_muestra_vb_{i}', '')
                             )
@@ -1059,7 +1114,7 @@ def modificar_bitacora(request, bitacora_id):
                         'success': True,
                         'message': "Bitácora actualizada correctamente",
                         'bitacora_id': bitacora.id_cbap,
-                        'redirect_url': reverse('microalimentos:lista_bitacoras_guardadas')
+                        'redirect_url': reverse('microalimentos:detalles_bitacoras', args=[bitacora.id_cbap])
                     })
                 
                 elif accion == 'enviar':
@@ -1070,6 +1125,7 @@ def modificar_bitacora(request, bitacora_id):
                     # Validar contraseña
                     user = authenticate(request, username=request.user.username, password=password)
                     if user is None or not user.is_active:
+                        # Si la contraseña es incorrecta, devolver error y NO continuar con el proceso
                         return JsonResponse({
                             'success': False,
                             'message': "Contraseña incorrecta"
@@ -1084,46 +1140,38 @@ def modificar_bitacora(request, bitacora_id):
                             'error': 'Usuario destino no encontrado'
                         }, status=404)
                     
+                    # Actualizar el registro existente con estado 'guardada' a 'enviada'
                     try:
-                        # Actualizar el registro existente con estado 'guardada' a 'enviada'
-                        try:
-                            bitcora_cbap = Bitcoras_Cbap.objects.get(
-                                nombre_bita_cbap=bitacora,
-                                estado='guardada'
-                            )
-                            # Actualizar a estado 'enviada'
-                            bitcora_cbap.estado = 'enviada'
-                            bitcora_cbap.fecha_envio = timezone.now()
-                            bitcora_cbap.nombre_user_destino = f"{usuario_destino.first_name} {usuario_destino.last_name}"
-                            bitcora_cbap.save()
-                            
-                            logger.debug(f"Registro actualizado: {bitcora_cbap.id_bita_cbap}, estado: {bitcora_cbap.estado}")
-                        except Bitcoras_Cbap.DoesNotExist:
-                            # Si no existe, crear un nuevo registro con estado 'enviada'
-                            bitcora_cbap = Bitcoras_Cbap.objects.create(
-                                name_user_cbap=request.user,
-                                nombre_bita_cbap=bitacora,
-                                estado='enviada',
-                                fecha_envio=timezone.now(),
-                                nombre_user_destino=f"{usuario_destino.first_name} {usuario_destino.last_name}"
-                            )
-                            
-                            logger.debug(f"Nuevo registro creado: {bitcora_cbap.id_bita_cbap}, estado: {bitcora_cbap.estado}")
+                        bitcora_cbap = Bitcoras_Cbap.objects.get(
+                            nombre_bita_cbap=bitacora,
+                            estado='guardada'
+                        )
+                        # Actualizar a estado 'enviada'
+                        bitcora_cbap.estado = 'enviada'
+                        bitcora_cbap.fecha_envio = timezone.now()
+                        bitcora_cbap.nombre_user_destino = f"{usuario_destino.first_name} {usuario_destino.last_name}"
+                        bitcora_cbap.save()
                         
-                        logger.info(f"Bitácora {bitacora.id_cbap} actualizada y enviada exitosamente a {usuario_destino}")
-                        return JsonResponse({
-                            'success': True,
-                            'message': f'Bitácora actualizada y enviada correctamente a {usuario_destino.first_name} {usuario_destino.last_name}',
-                            'redirect_url': reverse('microalimentos:lista_bitacoras_revision')
-                        })
-                    except Exception as e:
-                        logger.error(f"Error al enviar bitácora: {str(e)}")
-                        import traceback
-                        logger.error(traceback.format_exc())
-                        return JsonResponse({
-                            'success': False,
-                            'error': f"Error al enviar bitácora: {str(e)}"
-                        }, status=500)
+                        logger.debug(f"Registro actualizado: {bitcora_cbap.id_bita_cbap}, estado: {bitcora_cbap.estado}")
+                    except Bitcoras_Cbap.DoesNotExist:
+                        # Si no existe, crear un nuevo registro con estado 'enviada'
+                        bitcora_cbap = Bitcoras_Cbap.objects.create(
+                            name_user_cbap=request.user,
+                            nombre_bita_cbap=bitacora,
+                            estado='enviada',
+                            fecha_envio=timezone.now(),
+                            nombre_user_destino=f"{usuario_destino.first_name} {usuario_destino.last_name}"
+                        )
+                        
+                        logger.debug(f"Nuevo registro creado: {bitcora_cbap.id_bita_cbap}, estado: {bitcora_cbap.estado}")
+                    
+                    logger.info(f"Bitácora {bitacora.id_cbap} actualizada y enviada exitosamente a {usuario_destino}")
+                    return JsonResponse({
+                        'success': True,
+                        'message': f'Bitácora actualizada y enviada correctamente a {usuario_destino.first_name} {usuario_destino.last_name}',
+                        'redirect_url': reverse('microalimentos:lista_bitacoras_revision')
+                    })
+
         except Exception as e:
             logger.error(f"Error al modificar la bitácora: {str(e)}")
             import traceback
@@ -1172,6 +1220,7 @@ def modificar_bitacora(request, bitacora_id):
             logger.error(f"Error al cargar datos para modificar bitácora: {str(e)}")
             messages.error(request, f"Error al cargar datos para modificar bitácora: {str(e)}")
             return redirect('microalimentos:lista_bitacoras_guardadas')
+
 ######################################
 #Vista para los años de las bitácoras#
 ######################################

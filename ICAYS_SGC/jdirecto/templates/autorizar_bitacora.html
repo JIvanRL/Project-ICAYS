@@ -620,7 +620,7 @@
                             <table class="table-container text-center border">
                                 <thead>
                                     <tr>
-                                        <th style="width: 20%;">Ovservaciones</th>
+                                        <th style="width: 20%;">Observaciones</th>
                                         <th>Ejemplo de calculo de resultado</th>
                                         <th>Ejemplo de canculo de resultado de superficies vivas e inertes</th>
                                         <th>Ejemplo de calculo diferencia entre duplicados</th>
@@ -637,19 +637,71 @@
                                             </div>
                                         </td>
                                         
-                                        <td>
-                                            <div class="d-flex flex-column align-items-center">
-                                                
+                                        <td class="align-middle">
+                                            <!-- Content for calculo de resultado -->
+                                            <div class="d-flex flex-column gap-1">
+                                                <p class="fs-9 mb-0">Promedio de lectura ÷ Dilución empleada = Resultado</p>
+                                                <div class="d-flex gap-1">
+                                                    <input type="number" id="num1" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;">
+                                                    <span class="fs-9">÷</span>
+                                                    <input type="number" id="num2" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;">
+                                                    <span class="fs-9">=</span>
+                                                    <label class="fs-9" id="result" style="font-size: 12px;">R</label>
+                                                </div>
+                                                <div class="d-flex gap-1 p-1">
+                                                    <p class="fs-9 mb-0">Clave muestra:</p>
+                                                    <input type="text" class="form-control form-control-sm" style="width: 80px; height: 25px; font-size: 0.75rem;">
+                                                </div>
                                             </div>
                                         </td>
-                                        <td>
-                                            <div class="d-flex flex-column align-items-center">
-                                                
+                                                                            
+                                                                            <td class="align-middle">
+                                            <!-- Content for calculo de resultado -->
+                                            <div class="d-flex flex-column gap-1">
+                                                <p class="fs-9 mb-0">Ejemplo de cálculo de resultado de superficies vivas e inertes:</p>
+                                                <p class="fs-9 mb-0">(promedio de la lectura ÷ Dilución empleadas) x Volumen de medio de transporte = resultado</p>
+                                                <div class="d-flex gap-1">
+                                                    (<input type="text" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;">
+                                                    <span class="fs-9">÷</span>
+                                                    <input type="text" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;">) x
+                                                    <input type="text" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;">
+                                                    <span class="fs-9">=</span>
+                                                    <label class="fs-9" style="font-size: 12px;">R</label>
+                                                </div>
+                                                <div class="d-flex gap-1 p-1">
+                                                    <p class="fs-9 mb-0">Clave muestra:</p>
+                                                    <input type="text" class="form-control form-control-sm" style="width: 80px; height: 25px; font-size: 0.75rem;">
+                                                </div>
                                             </div>
                                         </td>
-                                        <td>
-                                            <div class="d-flex flex-column align-items-center">
-                                            
+                                                                            
+                                                                                              <td class="align-middle">
+                                            <!-- Content for calculo de resultado -->
+                                            <div class="d-flex flex-column gap-1">
+                                                <p class="fs-9 mb-0">Ejemplo de cálculo diferencia entre duplicados</p>
+                                                <div class="formula-container">
+                                                    <p class="formula-text flex-column mb-0">
+                                                       
+                                                            <span class="formula-part">(placa1 - placa2) ÷ Promedio × 100 = ≤5%</span>
+                                                        
+                                                                  
+                                                    </p>
+                                                  </div>
+                                                
+                                                <div class="d-flex gap-1">
+                                                    <input type="text" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;">
+                                                    <span class="fs-9">-</span>
+                                                    <input type="text" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;">
+                                                    <span class="fs-9">÷</span>
+                                                    <input type="text" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;">
+                                                    
+                                                    <span class="fs-9">x 100 =</span>
+                                                    <label class="fs-9" style="font-size: 12px;">R</label>
+                                                </div>
+                                                <div class="d-flex gap-1 p-1">
+                                                    <p class="fs-9 mb-0">Clave muestra:</p>
+                                                    <input type="text" class="form-control form-control-sm" style="width: 80px; height: 25px; font-size: 0.75rem;">
+                                                </div>
                                             </div>
                                         </td>
                                         <td>
@@ -823,4 +875,5 @@
 {% endblock content %}
 {% block extra_js %}
     <script src="{% static 'js/functions-jefe.js' %}"></script>
+    <script src="{% static 'js/events-bita131.js' %}"></script>
 {% endblock %}

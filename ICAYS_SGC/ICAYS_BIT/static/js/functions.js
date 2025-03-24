@@ -477,3 +477,27 @@ function asignarNumeroPagina() {
         console.error('No se encontró el campo de página (pagina_cbap)');
     }
 }
+//Fuction para los ejemplos de las formulas de las bitacoras
+function actualizarResultado() {
+    const num1 = parseFloat(document.getElementById('num1').value);
+    const num2 = parseFloat(document.getElementById('num2').value);
+    const resultElement = document.getElementById('result');
+
+    if (isNaN(num1) || isNaN(num2)) {
+        resultElement.textContent = "Ingrese números válidos.";
+        return;
+    }
+
+    if (num2 === 0) {
+        resultElement.textContent = "No se puede dividir por cero.";
+        return;
+    }
+
+    const resultado = num1 / num2;
+    resultElement.textContent = "Resultado: " + parseFloat(resultado.toFixed(3)); // Máximo 6 decimales sin ceros innecesarios
+}
+
+// Detecta cambios en los campos de entrada
+document.getElementById('num1').addEventListener('input', actualizarResultado);
+document.getElementById('num2').addEventListener('input', actualizarResultado);
+
