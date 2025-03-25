@@ -248,7 +248,17 @@
                     <h5 style="caption-side: top; text-align: center; font-size: 1.5em; font-weight: bold; padding: 10px; background-color: #063970; color: white; border-radius: 10px;">
                         Verificación de la balanza granataria LAM-12
                     </h5>
-                
+                    <div class="d-flex justify-content-center align-items-center w-100">
+                        <div class="d-flex align-items-center flex-wrap justify-content-center">
+                            <span class="mx-2">Ver verificación mensual de la balanza en: <a href="">LAF-42</a></span>
+                            <div class="d-flex align-items-center mx-2">
+                                <span class="mx-2">Tomo</span>
+                                <input type="text" class="form-control form-control-sm mx-2" style="width: 80px;" name="tomo_verficacion_vb" value="{% if verificaciones_balanza %}{{ verificaciones_balanza.0.tomo_verficacion_vb|default:'---' }}{% endif %}">
+                                <span class="mx-2">página</span>
+                                <input type="text" class="form-control form-control-sm mx-2" style="width: 80px;" name="pagina_verficacion_vb" value="{% if verificaciones_balanza %}{{ verificaciones_balanza.0.pagina_verficacion_vb|default:'---' }}{% endif %}">
+                            </div>
+                        </div>
+                    </div>
                     <!-- Tabla con labels fuera de los campos -->
                     <div class="table-responsive">
                         <table class="table table-bordered">

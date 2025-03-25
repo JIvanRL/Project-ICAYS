@@ -501,3 +501,104 @@ function actualizarResultado() {
 document.getElementById('num1').addEventListener('input', actualizarResultado);
 document.getElementById('num2').addEventListener('input', actualizarResultado);
 
+function ejemplSuperficies() {
+    const num3 = parseFloat(document.getElementById('num3').value);
+    const num4 = parseFloat(document.getElementById('num4').value);
+    const num5 = parseFloat(document.getElementById('num5').value);
+    const resultElement2 = document.getElementById('result2');
+    if (isNaN(num3) || isNaN(num4) || isNaN(num5)) {
+        resultElement.textContent = "Ingrese números válidos.";
+        return;
+    }
+
+    if (num4 === 0) {
+        resultElement.textContent = "No se puede dividir por cero.";
+        return;
+    }
+    if(num5 === 0){
+        resultElement.textContent = "No se puede multiplicar por cero.";
+        return;
+    }
+
+    const resultado2 = (num3 / num4) * num5 ;
+    resultElement2.textContent = "Resultado: " + parseFloat(resultado2.toFixed(3)); // Máximo 6 decimales sin ceros innecesarios
+}
+
+// Detecta cambios en los campos de entrada
+document.getElementById('num3').addEventListener('input', ejemplSuperficies);
+document.getElementById('num4').addEventListener('input', ejemplSuperficies);
+document.getElementById('num5').addEventListener('input', ejemplSuperficies);
+//Ejemplo de calculo de diferencia entre duplicados
+function ejemplDiferencia() {
+    const num6 = parseFloat(document.getElementById('num6').value);
+    const num7 = parseFloat(document.getElementById('num7').value);
+    const num8 = parseFloat(document.getElementById('num8').value);
+    const resultElement3 = document.getElementById('result3');
+    
+    // Corregir la variable resultElement a resultElement3
+    if (isNaN(num6) || isNaN(num7) || isNaN(num8)) {
+        resultElement3.textContent = "Ingrese números válidos.";
+        resultElement3.style.color = "black";
+        return;
+    }
+
+    // Verificar división por cero (es num8 el divisor, no num7)
+    if (num8 === 0) {
+        resultElement3.textContent = "No se puede dividir por cero.";
+        resultElement3.style.color = "black";
+        return;
+    }
+
+    const resultado3 = Math.abs((num6 - num7) / num8 * 100);
+    const resultadoFormateado = parseFloat(resultado3.toFixed(3));
+    
+    // Verificar si el resultado es mayor al 5%
+    if (resultado3 > 5) {
+        resultElement3.textContent = "Resultado: " + resultadoFormateado + "% (Excede el 5%)";
+        resultElement3.style.color = "red";
+        
+        // También puedes cambiar el color del input si lo deseas
+        document.getElementById('num6').style.borderColor = "red";
+        document.getElementById('num7').style.borderColor = "red";
+        document.getElementById('num8').style.borderColor = "red";
+    } else {
+        resultElement3.textContent = "Resultado: " + resultadoFormateado + "% (Aceptable)";
+        resultElement3.style.color = "green";
+        
+        // Restaurar el color de los inputs
+        document.getElementById('num6').style.borderColor = "";
+        document.getElementById('num7').style.borderColor = "";
+        document.getElementById('num8').style.borderColor = "";
+    }
+}
+
+// Detecta cambios en los campos de entrada
+document.getElementById('num6').addEventListener('input', ejemplDiferencia);
+document.getElementById('num7').addEventListener('input', ejemplDiferencia);
+document.getElementById('num8').addEventListener('input', ejemplDiferencia);
+
+document.addEventListener("DOMContentLoaded", function () {
+        const inputNumero1 = document.getElementById("valorObtenido");
+        const inputNumero2 = document.getElementById("valorConvencional");
+        const resultado = document.getElementById("diferenciaAbsoluta");
+    
+        function calcularResta() {
+            const valor1 = parseFloat(inputNumero1.value) || 0;
+            const valor2 = parseFloat(inputNumero2.value) || 0;
+    
+            const resta = valor1 - valor2;
+            const resultadoRedondeado = Math.round(resta * 10) / 10; // Redondea a un decimal
+    
+            if (isNaN(resultadoRedondeado)) {
+                resultado.value = "0";
+            } else if (!isFinite(resultadoRedondeado)) {
+                resultado.value = "0";
+            } else {
+                resultado.value = resultadoRedondeado.toFixed(1);
+            }
+    
+        }
+    
+        inputNumero1.addEventListener("input", calcularResta);
+        inputNumero2.addEventListener("input", calcularResta);
+    });

@@ -7,6 +7,23 @@
     </div>
         <div class="container">
             <h1>Lista de Bitácoras autorizadas</h1>
+             <!-- Contenedor con el mismo ancho que los botones -->
+        <div class="w-100 shadow-lg mb-3 rounded header-container">
+            <div class="row h-100 m-0">
+                <div class="col-md-3 col-xl-3 p-2 d-flex align-items-center">
+                    <strong class="text-white">Nombre de Bitácora</strong>
+                </div>
+                <div class="col-md-3 col-xl-3 p-2 d-flex align-items-center">
+                    <strong class="text-white header-analista">Analista</strong>
+                </div>
+                <div class="col-md-3 col-xl-3 p-2 d-flex align-items-center">
+                    <strong class="text-white header-fecha">Fecha de elaboración</strong>
+                </div>
+                <div class="col-md-3 col-xl-3 p-2 d-flex align-items-center">
+                    <strong class="text-white header-pagina">Página</strong>
+                </div>
+            </div>
+        </div>
             {% if bitacoras %}
                 {% for bitacora in bitacoras %}
                         <button id="detalle" onclick="DetallesBitaAutorizadas('{{ bitacora.nombre_bita_cbap.id_cbap }}')" class="icon-container button-style w-100 shadow-lg mb-3 rounded">
@@ -42,6 +59,45 @@
     {% endif %}
 </div>
 </body>
+<style>
+    /* Estilo para el contenedor de encabezados */
+    .header-container {
+        background-color: #0056b3;
+        padding: 0;
+        border: none;
+    }
+    
+    /* Eliminar márgenes de las filas para que se alineen perfectamente */
+    .row.m-0 {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+    
+    
+    /* Centrar verticalmente el texto en los encabezados */
+    .header-container .col-md-3 {
+        display: flex;
+        align-items: center;
+    }
+    
+    /* Asegurar que el texto de los encabezados tenga el mismo padding que el contenido */
+    .header-container strong {
+        padding-left: 0.5rem;
+    }
+    
+    /* Mover los encabezados específicos más a la derecha */
+    .header-analista {
+        padding-left: 8rem !important;
+    }
+    
+    .header-fecha {
+        padding-left: 5rem !important;
+    }
+    
+    .header-pagina {
+        padding-left: 8rem !important;
+    }
+</style>
 {% endblock %}
 {% block extra_js %}
     <script type="module" src="{% static 'js/events-bita131.js' %}"></script>

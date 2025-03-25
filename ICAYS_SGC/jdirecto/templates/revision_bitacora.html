@@ -212,7 +212,7 @@
                                         <!-- Título "Reactivos y medios de cultivo LAF-02" -->
                                         <div class="row mb-3">
                                             <div class="col-12 text-center">
-                                                <h5 class="card-title">Reactivos y medios de cultivo LAF-02</h5> <!-- Usé h5 para el título -->
+                                                <h5 class="card-title">Reactivos y medios de cultivo LAF-62</h5> <!-- Usé h5 para el título -->
                                             </div>
                                         </div>
                     
@@ -273,7 +273,17 @@
                     <h5 style="caption-side: top; text-align: center; font-size: 1.5em; font-weight: bold; padding: 10px; background-color: #063970; color: white; border-radius: 10px;">
                         Verificación de la balanza granataria LAM-12
                     </h5>
-                
+                    <div class="d-flex justify-content-center align-items-center w-100">
+                        <div class="d-flex align-items-center flex-wrap justify-content-center">
+                            <span class="mx-2">Ver verificación mensual de la balanza en: <a href="">LAF-42</a></span>
+                            <div class="d-flex align-items-center mx-2">
+                                <span class="mx-2">Tomo</span>
+                                <input type="text" class="form-control form-control-sm mx-2" style="width: 80px;" name="tomo_verficacion_vb" value="{% if verificaciones_balanza %}{{ verificaciones_balanza.0.tomo_verficacion_vb|default:'---' }}{% endif %}">
+                                <span class="mx-2">página</span>
+                                <input type="text" class="form-control form-control-sm mx-2" style="width: 80px;" name="pagina_verficacion_vb" value="{% if verificaciones_balanza %}{{ verificaciones_balanza.0.pagina_verficacion_vb|default:'---' }}{% endif %}">
+                            </div>
+                        </div>
+                    </div>
                     <!-- Tabla con labels fuera de los campos -->
                     <div class="table-responsive">
                         <table class="table table-bordered">
@@ -667,22 +677,23 @@
                                                                             
                                                                             <td class="align-middle">
                                             <!-- Content for calculo de resultado -->
-                                            <div class="d-flex flex-column gap-1">
-                                                <p class="fs-9 mb-0">Ejemplo de cálculo de resultado de superficies vivas e inertes:</p>
-                                                <p class="fs-9 mb-0">(promedio de la lectura ÷ Dilución empleadas) x Volumen de medio de transporte = resultado</p>
-                                                <div class="d-flex gap-1">
-                                                    (<input type="text" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;">
-                                                    <span class="fs-9">÷</span>
-                                                    <input type="text" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;">) x
-                                                    <input type="text" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;">
-                                                    <span class="fs-9">=</span>
-                                                    <label class="fs-9" style="font-size: 12px;">R</label>
-                                                </div>
-                                                <div class="d-flex gap-1 p-1">
-                                                    <p class="fs-9 mb-0">Clave muestra:</p>
-                                                    <input type="text" class="form-control form-control-sm" style="width: 80px; height: 25px; font-size: 0.75rem;">
-                                                </div>
+                                           <!-- Content for calculo de resultado -->
+                                           <div class="d-flex flex-column gap-1">
+                                            <p class="fs-9 mb-0">Ejemplo de cálculo de resultado de superficies vivas e inertes:</p>
+                                            <p class="fs-9 mb-0">(promedio de la lectura ÷ Dilución empleadas) x Volumen de medio de transporte = resultado</p>
+                                            <div class="d-flex gap-1">
+                                                (<input type="text" id="num3" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;">
+                                                <span class="fs-9">÷</span>
+                                                <input type="text" id="num4" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;">) x
+                                                <input type="text" id="num5" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;">
+                                                <span class="fs-9">=</span>
+                                                <label class="fs-9" id="result2" style="font-size: 12px;">R</label>
                                             </div>
+                                            <div class="d-flex gap-1 p-1">
+                                                <p class="fs-9 mb-0">Clave muestra:</p>
+                                                <input type="text" class="form-control form-control-sm" style="width: 80px; height: 25px; font-size: 0.75rem;">
+                                            </div>
+                                        </div>
                                         </td>
                                                                             
                                                                                               <td class="align-middle">
@@ -699,14 +710,14 @@
                                                   </div>
                                                 
                                                 <div class="d-flex gap-1">
-                                                    <input type="text" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;">
+                                                    <input type="text" id="num6" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;">
                                                     <span class="fs-9">-</span>
-                                                    <input type="text" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;">
+                                                    <input type="text"id="num7" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;">
                                                     <span class="fs-9">÷</span>
-                                                    <input type="text" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;">
+                                                    <input type="text" id="num8" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;">
                                                     
                                                     <span class="fs-9">x 100 =</span>
-                                                    <label class="fs-9" style="font-size: 12px;">R</label>
+                                                    <label class="fs-9" id="result3" style="font-size: 12px;">R</label>
                                                 </div>
                                                 <div class="d-flex gap-1 p-1">
                                                     <p class="fs-9 mb-0">Clave muestra:</p>

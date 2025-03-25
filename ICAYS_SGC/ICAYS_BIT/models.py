@@ -144,7 +144,7 @@ class Direct_o_Dilucion(models.Model):
     )
     placa_dD = models.DecimalField(null=True, max_digits=10, decimal_places=5, default=None,blank=True, db_column='placa_dD')
     placa_dD2 = models.DecimalField(null=True, max_digits=10, decimal_places=5, default=None,blank=True, db_column='placa_dD2')
-    promedio_dD = models.DecimalField(null=True, max_digits=10, decimal_places=5, default=None,blank=True, db_column='promedio_dD')
+    promedio_dD = models.CharField(null=True, max_length=250, default='---',blank=True, db_column='promedio_dD')
 
     class Meta:
         db_table = 'direct_o_dilucion'
@@ -162,10 +162,10 @@ class Dilucion(models.Model):
     ) 
     placa_d = models.DecimalField(null=True, max_digits=10, decimal_places=5, default=None,blank=True, db_column='placa_d')
     placa_d2 = models.DecimalField(null=True, max_digits=10, decimal_places=5, default=None,blank=True, db_column='placa_d2')
-    promedio_d = models.DecimalField(null=True, max_digits=10, decimal_places=5, default=None,blank=True, db_column='promedio_d')
+    promedio_d = models.CharField(null=True, max_length=250, default='---',blank=True, db_column='promedio_d')
     placa_d_2 = models.DecimalField(null=True, max_digits=10, decimal_places=5, default=None,blank=True, db_column='placa_d_2')
     placa_d2_2 = models.DecimalField(null=True, max_digits=10, decimal_places=5, default=None,blank=True, db_column='placa_d2_2')
-    promedio_d_2 = models.DecimalField(null=True, max_digits=10, decimal_places=5, default=None,blank=True, db_column='promedio_d_2')
+    promedio_d_2 = models.CharField(null=True, max_length=250, default='---',blank=True, db_column='promedio_d_2')
 
     class Meta:
         db_table = 'dilucion'
@@ -176,7 +176,7 @@ class Dilucion(models.Model):
 class ControlCalidad(models.Model):
     id_cc = models.AutoField(primary_key=True, db_column='id_cc')
     nombre_laf = models.CharField(null=True, max_length=250, default='---',blank=True, db_column='nombre_laf')
-    fecha_1cc = models.CharField(null=True, max_length=250, default='---', blank=True, db_column='fecha_1cc')
+    fecha_1cc = models.DateField(null=True, max_length=250, default='---', blank=True, db_column='fecha_1cc')
     page_1cc = models.CharField(null=True, max_length=50, default='---', blank=True, db_column='page_1cc')
     id_cbap_cc = models.ForeignKey(
         'bita_cbap',
@@ -201,7 +201,7 @@ class VerificacionBalanza(models.Model):
         db_column='id_cbap_vb',
         related_name='verificaciones_balanza'
     )
-    hora_vb = models.CharField(null=True, max_length=50, blank=True, db_column='hora_vb')
+    hora_vb = models.TimeField(null=True, blank=True, db_column='hora_vb')
     actividad_vb = models.CharField(null=True, max_length=50, default='---', blank=True, db_column='actividad_vb')
     ajuste_vb = models.CharField(null=True, max_length=50, default='---', blank=True, db_column='ajuste_vb')
     valor_nominal_vb = models.CharField(null=True, max_length=50, default='---', blank=True, db_column='valor_nominal_vb')
@@ -212,7 +212,9 @@ class VerificacionBalanza(models.Model):
     emt_vb = models.CharField(null=True, max_length=50, default='---', blank=True, db_column='emt_vb')
     aceptacion_vb = models.CharField(null=True, max_length=50, default='---', blank=True, db_column='aceptacion_vb')
     valor_pesado_muestra_vb = models.CharField(null=True, max_length=50, default='---', blank=True, db_column='valor_pesado_muestra_vb')
-    fecha_vb = models.DateField(auto_now_add=True)   
+    fecha_vb = models.DateField(auto_now_add=True)
+    tomo_verficacion_vb  = models.CharField(null=True, max_length=50, default='---', blank=True, db_column='tomo_verficacion_vb')
+    pagina_verficacion_vb  = models.CharField(null=True, max_length=50, default='---', blank=True, db_column='pagina_verficacion_vb')
 
     class Meta:
         db_table = 'verificacion_balanza'
@@ -240,9 +242,10 @@ class ClaveMuestraCbap(models.Model):
 #############
 class DatosCampoCbap(models.Model):
     id_dc = models.AutoField(primary_key=True, db_column='id_dc')
-    fecha_siembra_dc = models.CharField(null=True, max_length=250, default='---', blank=True, db_column='fecha_siembra_dc')
-    hora_siembra_dc = models.CharField(null=True, max_length=250, default='---', blank=True, db_column='hora_siembra_dc')
-    hora_incubacion_dc = models.CharField(null=True, max_length=250, default='---', blank=True, db_column='hora_incubacion_dc')
+   # Corrección en models.py
+    fecha_siembra_dc = models.DateField(null=True, blank=True, db_column='fecha_siembra_dc')
+    hora_siembra_dc = models.TimeField(null=True, blank=True, db_column='hora_siembra_dc')
+    hora_incubacion_dc = models.TimeField(null=True, blank=True, db_column='hora_incubacion_dc')
     procedimiento_dc = models.CharField(null=True, max_length=50, default='-', blank=True, db_column='procedimiento_dc')
     equipo_incubacion_dc = models.CharField(null=True, max_length=50, default='-', blank=True, db_column='equipo_incubacion_dc')
 
@@ -288,8 +291,8 @@ class bita_cbap(models.Model):
     numero_fosfato_cbap = models.CharField(null=True, max_length=250, default='---', blank=True, db_column='numero_fosfato_cbap')
     pagina_agar_cbap = models.CharField(null=True, max_length=250, default='---', blank=True, db_column='pagina_agar_cbap')
     numero_agar_cbap = models.CharField(null=True, max_length=250, default='---', blank=True, db_column='numero_agar_cbap')
-    fecha_lectura_cbap = models.CharField(null=True, max_length=250, default='---', blank=True, db_column='fecha_lectura_cbap')
-    hora_lectura_cbap = models.CharField(null=True, max_length=250, default='---', blank=True, db_column='hora_lectura_cbap')
+    fecha_lectura_cbap = models.DateField(null=True, blank=True, db_column='fecha_lectura_cbap')
+    hora_lectura_cbap = models.TimeField(null=True, blank=True, db_column='hora_lectura_cbap')
     observaciones_cbap = models.TextField(null=True, default='-', blank=True, db_column='observaciones_cbap')
     firma_user = models.ForeignKey(
         CustomUser,

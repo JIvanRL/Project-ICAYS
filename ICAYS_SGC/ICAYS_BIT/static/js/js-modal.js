@@ -124,6 +124,12 @@ import { recolectarDatosTabla } from './events-bita131.js';
 
 // Función modificada para guardar el formulario
 function guardarFormulario() {
+    // Verificar si la bitácora está vacía
+    if (esBitacoraVacia()) {
+        mostrarError('Esta bitácora está vacía. No se puede guardar una bitácora sin datos.');
+        return false;
+    }
+
     const formData = new FormData($('#form-principal')[0]);
      // Agregar los datos de la tabla
      const datosTabla = recolectarDatosTabla();
@@ -187,6 +193,12 @@ window.guardarFormulario = guardarFormulario;
 // Función revisada para enviar formulario con jQuery
 function enviarFormulario() {
     console.log('Iniciando envío de formulario...');
+    
+    // Verificar si la bitácora está vacía
+    if (esBitacoraVacia()) {
+        mostrarError('Esta bitácora está vacía. No se puede enviar una bitácora sin datos.');
+        return false;
+    }
     
     // Validar que se haya seleccionado un usuario destino y proporcionado una contraseña
     const usuarioDestino = $('#usuario_destino').val();
@@ -280,6 +292,12 @@ function enviarFormulario() {
     return false;
 }
 function guardarFormularioEditadoParaMas() {
+    // Verificar si la bitácora está vacía
+    if (esBitacoraVacia()) {
+        mostrarError('Esta bitácora está vacía. No se puede guardar una bitácora sin datos.');
+        return false;
+    }
+
     const formData = new FormData($('#form-principal')[0]);
     console.log('Iniciando envío de formulario guardado...');
     const bitacoraEstado = document.getElementById('bitacora_id');
@@ -347,6 +365,13 @@ function guardarFormularioEditadoParaMas() {
 }
 function enviarFormularioGuardadaARevision() {
     console.log('Iniciando envío de formulario guardado...');
+    
+    // Verificar si la bitácora está vacía
+    if (esBitacoraVacia()) {
+        mostrarError('Esta bitácora está vacía. No se puede enviar una bitácora sin datos.');
+        return false;
+    }
+    
     const bitacoraEstado = document.getElementById('bitacora_id');
     const bitacoraId = bitacoraEstado ? bitacoraEstado.value : null;
     if (!bitacoraId) {
@@ -446,6 +471,13 @@ function enviarFormularioGuardadaARevision() {
 }
 function guardarFormularioEditado() {
     console.log('Iniciando envío de formulario guardado...');
+    
+    // Verificar si la bitácora está vacía
+    if (esBitacoraVacia()) {
+        mostrarError('Esta bitácora está vacía. No se puede enviar una bitácora sin datos.');
+        return false;
+    }
+    
     const bitacoraEstado = document.getElementById('bitacora_id');
     const bitacoraId = bitacoraEstado ? bitacoraEstado.value : null;
     if (!bitacoraId) {
@@ -551,12 +583,56 @@ function abrirModalFirma() {
     $('#error-message').hide(); // Ocultar mensajes de error previos
     $('#firmar').modal('show');
 }
+// Función para verificar si la bitácora está completamente vacía
+function esBitacoraVacia() {
+    // Verificar campos principales del formulario
+    const nombreBitacora = $('#nombre_cbap').val() || '';
+    const fechaSiembra = $('#fecha_siembra').val() || '';
+    const horaSiembra = $('#hora_siembra').val() || '';
+    
+    // Verificar si hay filas en la tabla con datos
+    let hayDatosEnTabla = false;
+    
+    $('#tabla-body tr').each(function() {
+        const $fila = $(this);
+        
+        // Verificar si al menos un campo en esta fila tiene datos
+        if (
+            ($fila.find('[name^="clave_c_m_"]').val() || '').trim() !== '' ||
+            ($fila.find('[name^="cantidad_c_m_"]').val() || '').trim() !== '' ||
+            $fila.find('[name^="dE_1_"]:checked').length > 0 ||
+            $fila.find('[name^="dE_2_"]:checked').length > 0 ||
+            $fila.find('[name^="dE_3_"]:checked').length > 0 ||
+            $fila.find('[name^="dE_4_"]:checked').length > 0 ||
+            ($fila.find('[name^="placa_dD_"]').val() || '').trim() !== '' ||
+            ($fila.find('[name^="placa_dD2_"]').val() || '').trim() !== '' ||
+            ($fila.find('[name^="promedio_dD_"]').val() || '').trim() !== '' ||
+            ($fila.find('[name^="placa_d_"]').val() || '').trim() !== '' ||
+            ($fila.find('[name^="placa_d2_"]').val() || '').trim() !== '' ||
+            ($fila.find('[name^="promedio_d_"]').val() || '').trim() !== '' ||
+            ($fila.find('[name^="placa_d_2_"]').val() || '').trim() !== '' ||
+            ($fila.find('[name^="placa_d2_2_"]').val() || '').trim() !== '' ||
+            ($fila.find('[name^="promedio_d_2_"]').val() || '').trim() !== '' ||
+            ($fila.find('[name^="resultado_r_"]').val() || '').trim() !== '' ||
+            ($fila.find('[name^="ufC_placa_r_"]').val() || '').trim() !== '' ||
+            ($fila.find('[name^="diferencia_r_"]').val() || '').trim() !== ''
+        ) {
+            hayDatosEnTabla = true;
+            return false; // Salir del bucle each
+        }
+    });
+    
+    // La bitácora está vacía si no hay campos principales y no hay datos en la tabla
+    return (nombreBitacora.trim() === '' && fechaSiembra.trim() === '' && horaSiembra.trim() === '' && !hayDatosEnTabla);
+}
+
 // Exportar la función para uso global
 window.enviarFormulario = enviarFormulario;
 window.abrirModalFirma = abrirModalFirma;
 window.enviarFormularioGuardadaARevision = enviarFormularioGuardadaARevision;
 window.guardarFormularioEditado = guardarFormularioEditado;
 window.guardarFormularioEditadoParaMas = guardarFormularioEditadoParaMas;
+window.esBitacoraVacia = esBitacoraVacia;
 
 // Inicialización con jQuery
 $(document).ready(function() {
@@ -586,7 +662,5 @@ $(document).ready(function() {
 });
 
 document.addEventListener('DOMContentLoaded', function() {
-console.log('DOM Prepaparar formularios');
-enviarFormularioGuardadaARevision();
-guardarFormularioEditado();
+    console.log('DOM listo - Formularios preparados para su uso');
 });

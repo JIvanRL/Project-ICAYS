@@ -5,43 +5,101 @@
     <div class="container-fluid">
         <button class="icon-container button-style custom-button mb-2" type="button" data-url="{% url 'microalimentos:inicioAnalistas' %}">Regresar</button>
     </div>
-        <div class="container">
-            <h1>Lista de Bitácoras</h1>
-            {% if bitacoras %}
-                {% for bitacora in bitacoras %}
-                        <button id="detalle" onclick="DetallesBita('{{ bitacora.nombre_bita_cbap.id_cbap }}')" class="icon-container button-style w-100 shadow-lg mb-3 rounded">
-                            <div class="row h-100">
-                                <div class="col-md-3 col-xl-3 p-2">
-                                    <div class="icon-text text-break" style="font-size: 20px; color: black;">
-                                        {{ bitacora.nombre_bita_cbap }}
-                                    </div>
-                                </div>
-                                <div class="col-md-3 col-xl-3 p-2">
-                                    <div class="icon-text text-break" style="font-size: 14px; color: black;">
-                                        {{ bitacora.name_user_cbap.first_name }} {{ bitacora.name_user_cbap.last_name }}
-                                    </div>
-                                </div>
-                                <div class="col-md-3 col-xl-3 p-2">
-                                    <div class="icon-text text-break" style="font-size: 14px; color: black;">
-                                        {{ bitacora.fecha_bita_cbap|date:"d/m/Y h:i A" }}
-                                    </div>
-                                </div>
-                                <div class="col-md-3 col-xl-3 p-2">
-                                    <div class="icon-text text-break" style="font-size: 14px; color: black;">
-                                        {{ bitacora.nombre_bita_cbap.pagina_cbap }}
-                                    </div>
-                                </div>
-                            </div>
-                        </button>
-
-        {% endfor %}
-    {% else %}
-        <div class="alert alert-info">
-            <p>No hay bitácoras guardadas</p>
+    <div class="container">
+        <h1>Lista de Bitácoras guardadas</h1>
+        
+        <!-- Contenedor con el mismo ancho que los botones -->
+        <div class="w-100 shadow-lg mb-3 rounded header-container">
+            <div class="row h-100 m-0">
+                <div class="col-md-3 col-xl-3 p-2 d-flex align-items-center">
+                    <strong class="text-white">Nombre de Bitácora</strong>
+                </div>
+                <div class="col-md-3 col-xl-3 p-2 d-flex align-items-center">
+                    <strong class="text-white header-analista">Analista</strong>
+                </div>
+                <div class="col-md-3 col-xl-3 p-2 d-flex align-items-center">
+                    <strong class="text-white header-fecha">Fecha de elaboración</strong>
+                </div>
+                <div class="col-md-3 col-xl-3 p-2 d-flex align-items-center">
+                    <strong class="text-white header-pagina">Página</strong>
+                </div>
+            </div>
         </div>
-    {% endif %}
-</div>
+        
+        {% if bitacoras %}
+            {% for bitacora in bitacoras %}
+                <button id="detalle" onclick="DetallesBita('{{ bitacora.nombre_bita_cbap.id_cbap }}')" class="icon-container button-style w-100 shadow-lg mb-3 rounded">
+                    <div class="row h-100 m-0">
+                        <div class="col-md-3 col-xl-3 p-2">
+                            <div class="icon-text text-break" style="font-size: 20px; color: black;">
+                                {{ bitacora.nombre_bita_cbap }}
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-xl-3 p-2">
+                            <div class="icon-text text-break" style="font-size: 14px; color: black;">
+                                {{ bitacora.name_user_cbap.first_name }} {{ bitacora.name_user_cbap.last_name }}
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-xl-3 p-2">
+                            <div class="icon-text text-break" style="font-size: 14px; color: black;">
+                                {{ bitacora.fecha_bita_cbap|date:"d/m/Y h:i A" }}
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-xl-3 p-2">
+                            <div class="icon-text text-break" style="font-size: 14px; color: black;">
+                                {{ bitacora.nombre_bita_cbap.pagina_cbap }}
+                            </div>
+                        </div>
+                    </div>
+                </button>
+            {% endfor %}
+        {% else %}
+            <div class="alert alert-info">
+                <p>No hay bitácoras guardadas</p>
+            </div>
+        {% endif %}
+    </div>
 </body>
+
+<style>
+    /* Estilo para el contenedor de encabezados */
+    .header-container {
+        background-color: #0056b3;
+        padding: 0;
+        border: none;
+    }
+    
+    /* Eliminar márgenes de las filas para que se alineen perfectamente */
+    .row.m-0 {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+    
+    
+    /* Centrar verticalmente el texto en los encabezados */
+    .header-container .col-md-3 {
+        display: flex;
+        align-items: center;
+    }
+    
+    /* Asegurar que el texto de los encabezados tenga el mismo padding que el contenido */
+    .header-container strong {
+        padding-left: 0.5rem;
+    }
+    
+    /* Mover los encabezados específicos más a la derecha */
+    .header-analista {
+        padding-left: 8rem !important;
+    }
+    
+    .header-fecha {
+        padding-left: 5rem !important;
+    }
+    
+    .header-pagina {
+        padding-left: 8rem !important;
+    }
+</style>
 {% endblock %}
 {% block extra_js %}
     <script type="module" src="{% static 'js/events-bita131.js' %}"></script>
