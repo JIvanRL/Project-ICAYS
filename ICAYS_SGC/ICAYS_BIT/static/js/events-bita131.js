@@ -40,7 +40,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Función para actualizar el campo UFC/placa basado en la selección de medición
-    // Función para actualizar el campo UFC/placa basado en la selección de medición
     function actualizarUFCPlaca(fila, medicionValue) {
         const ufcPlacaInput = fila.querySelector('[name^="ufC_placa_r_"]');
         if (!ufcPlacaInput) return;
@@ -57,8 +56,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 
                 // Agregar evento para actualizar el input original cuando cambie el select
                 ufcSelect.addEventListener('change', function() {
-                    // Actualizar con el formato "UFC/placa valor"
-                    ufcPlacaInput.value = "UFC/ " + this.value;
+                    // Aquí ya no añadimos el prefijo porque las opciones ya lo incluyen
+                    ufcPlacaInput.value = this.value;
                 });
                 
                 // Reemplazar el input con el select
@@ -78,20 +77,28 @@ document.addEventListener('DOMContentLoaded', function () {
             defaultOption.textContent = 'Seleccione...';
             ufcSelect.appendChild(defaultOption);
             
-            // Agregar las opciones específicas
+            // Agregar las opciones específicas con el prefijo "UFC/ " incluido
             opciones.forEach(opcion => {
                 const option = document.createElement('option');
-                option.value = opcion;
-                option.textContent = opcion;
+                option.value = "UFC/ " + opcion; // Incluir el prefijo en el valor
+                option.textContent = "UFC/ " + opcion; // Incluir el prefijo en el texto mostrado
                 ufcSelect.appendChild(option);
             });
             
-            // Extraer el valor actual sin el prefijo "UFC/placa "
-            const valorActual = ufcPlacaInput.value.replace("UFC/ ", "");
+            // Extraer el valor actual (que puede o no tener el prefijo)
+            const valorActual = ufcPlacaInput.value;
             
             // Seleccionar la opción actual si existe
-            if (valorActual && opciones.includes(valorActual)) {
-                ufcSelect.value = valorActual;
+            if (valorActual) {
+                // Buscar la opción que coincida con el valor actual
+                const opciones = Array.from(ufcSelect.options);
+                const opcionCoincidente = opciones.find(opt => opt.value === valorActual);
+                
+                if (opcionCoincidente) {
+                    ufcSelect.value = valorActual;
+                } else {
+                    ufcSelect.selectedIndex = 0;
+                }
             } else {
                 ufcSelect.selectedIndex = 0;
             }
@@ -104,7 +111,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 ufcPlacaInput.style.display = '';
             }
             
-            // Asignar el valor correspondiente con el formato "UFC/placa valor"
+            // Asignar el valor correspondiente con el formato "UFC/ valor"
             const valorMedicion = medicionToUFC[medicionValue] || '';
             if (valorMedicion) {
                 ufcPlacaInput.value = "UFC/ " + valorMedicion;
