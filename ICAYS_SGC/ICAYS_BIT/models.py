@@ -123,10 +123,10 @@ class DilucionesEmpleadas(models.Model):
         db_column='id_cbap_dE',
         related_name='dilucion_empleadas'
     )
-    dE_1 = models.FloatField(null=True, default=0.0, db_column='dE_1')
-    dE_2 = models.FloatField(null=True, default=0.00, db_column='dE_2')
-    dE_3 = models.FloatField(null=True, default=0.000, db_column='dE_3')
-    dE_4 = models.FloatField(null=True, default=0.000, db_column='dE_4')
+    dE_1 = models.FloatField(null=True,blank=True, default=0.0, db_column='dE_1')
+    dE_2 = models.FloatField(null=True,blank=True, default=0.00, db_column='dE_2')
+    dE_3 = models.FloatField(null=True,blank=True, default=0.000, db_column='dE_3')
+    dE_4 = models.FloatField(null=True,blank=True, default=0.000, db_column='dE_4')
 
     class Meta:
         db_table = 'diluciones_empleadas'
@@ -142,10 +142,10 @@ class Direct_o_Dilucion(models.Model):
         db_column='id_cbap_dD',
         related_name='dilucion_directa'
     )
-    placa_dD = models.DecimalField(null=True, max_digits=10, decimal_places=5, default=None,blank=True, db_column='placa_dD')
-    placa_dD2 = models.DecimalField(null=True, max_digits=10, decimal_places=5, default=None,blank=True, db_column='placa_dD2')
+    placa_dD = models.CharField(null=True, max_length=250, default='---',blank=True, db_column='placa_dD')
+    placa_dD2 = models.CharField(null=True, max_length=250, default='---',blank=True, db_column='placa_dD2')
     promedio_dD = models.CharField(null=True, max_length=250, default='---',blank=True, db_column='promedio_dD')
-
+   
     class Meta:
         db_table = 'direct_o_dilucion'
 ################
@@ -160,13 +160,13 @@ class Dilucion(models.Model):
         db_column='id_cbap_d',
         related_name='dilucion'
     ) 
-    placa_d = models.DecimalField(null=True, max_digits=10, decimal_places=5, default=None,blank=True, db_column='placa_d')
-    placa_d2 = models.DecimalField(null=True, max_digits=10, decimal_places=5, default=None,blank=True, db_column='placa_d2')
+    placa_d = models.CharField(null=True, max_length=250, default='---',blank=True, db_column='placa_d')
+    placa_d2 = models.CharField(null=True, max_length=250, default='---',blank=True, db_column='placa_d2')
     promedio_d = models.CharField(null=True, max_length=250, default='---',blank=True, db_column='promedio_d')
-    placa_d_2 = models.DecimalField(null=True, max_digits=10, decimal_places=5, default=None,blank=True, db_column='placa_d_2')
-    placa_d2_2 = models.DecimalField(null=True, max_digits=10, decimal_places=5, default=None,blank=True, db_column='placa_d2_2')
+    placa_d_2 = models.CharField(null=True, max_length=250, default='---',blank=True, db_column='placa_d_2')
+    placa_d2_2 = models.CharField(null=True, max_length=250, default='---',blank=True, db_column='placa_d2_2')
     promedio_d_2 = models.CharField(null=True, max_length=250, default='---',blank=True, db_column='promedio_d_2')
-
+    
     class Meta:
         db_table = 'dilucion'
 
@@ -176,7 +176,7 @@ class Dilucion(models.Model):
 class ControlCalidad(models.Model):
     id_cc = models.AutoField(primary_key=True, db_column='id_cc')
     nombre_laf = models.CharField(null=True, max_length=250, default='---',blank=True, db_column='nombre_laf')
-    fecha_1cc = models.DateField(null=True, max_length=250, default='---', blank=True, db_column='fecha_1cc')
+    fecha_1cc = models.DateField(null=True, blank=True, db_column='fecha_1cc')
     page_1cc = models.CharField(null=True, max_length=50, default='---', blank=True, db_column='page_1cc')
     id_cbap_cc = models.ForeignKey(
         'bita_cbap',
@@ -232,8 +232,8 @@ class ClaveMuestraCbap(models.Model):
     )
     fecha_c_m = models.DateTimeField(auto_now_add=True)
     clave_c_m = models.CharField(null=True, max_length=50, default='-', blank=True, db_column='clave_c_m')
+    medicion_c_m = models.CharField(null=True, max_length=50, default='-', blank=True, db_column='medicion_c_m')
     cantidad_c_m = models.CharField(null=True, max_length=50, default='-', blank=True, db_column='cantidad_c_m')
-
     class Meta:
         db_table = 'clave_muestra'
 
@@ -285,7 +285,7 @@ class bita_cbap(models.Model):
         related_name='bita_cbap'
     )
     letra_analista_cbap = models.CharField(null=True, max_length=250, default='---', blank=True, db_column='numero_analista_cbap')
-    mes_muestra_cbap = models.CharField(null=True, max_length=250, default='-', blank=True, db_column='mes_muestra_cbap')
+    mes_muestra_cbap = models.DateField(null=True, blank=True, db_column='mes_muestra_cbap')
     pagina_muestra_cbap = models.CharField(null=True, max_length=250, default='---', blank=True, db_column='pagina_muestra_cbap')
     pagina_fosfato_cbap = models.CharField(null=True, max_length=250, default='---', blank=True, db_column='pagina_fosfato_cbap')
     numero_fosfato_cbap = models.CharField(null=True, max_length=250, default='---', blank=True, db_column='numero_fosfato_cbap')
@@ -372,3 +372,8 @@ class Bitcoras_Cbap(models.Model):
 
     class Meta:
         db_table = 'bitcoras_cbap'
+class tableBlanco(models.Model):
+    id_blanco = models.AutoField(primary_key=True, db_column='id_blanco')
+    cantidad_blanco = models.CharField(null=True, max_length=50, default='---', blank=True, db_column='cantidad_blanco')
+    placa_blanco = models.CharField(null=True, max_length=250, default='---',blank=True, db_column='placa_blanco')
+    resultado_blanco = models.CharField(null=True, max_length=250, blank=True, db_column='resultado_blanco')

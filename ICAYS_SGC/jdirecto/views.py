@@ -511,6 +511,7 @@ def cambiar_estado(request, bitacora_id):
         
         messages.error(request, f"Error al cambiar el estado de la bitácora: {str(e)}")
         return redirect('jdirecto:lista_bitacoras_pendientes')
+
 @login_required
 def api_usuarios(request):
     try:
@@ -526,8 +527,9 @@ def api_usuarios(request):
             # Para otros roles, mostrar solo Analistas
             usuarios = CustomUser.objects.filter(rol_user__name_rol='Analista de Laboratorio')
         
-        # Filtrar usuarios sin rol asignado y excluir al usuario actual
-        usuarios = usuarios.exclude(rol_user__isnull=True).exclude(id_user=request.user.id_user)
+        # Filtrar usuarios sin rol asignado pero NO excluir al usuario actual
+        usuarios = usuarios.exclude(rol_user__isnull=True)
+        # Se eliminó la línea: .exclude(id_user=request.user.id_user)
         
         usuarios_data = []
         for usuario in usuarios:
@@ -539,7 +541,7 @@ def api_usuarios(request):
                 'rol': usuario.rol_user.name_rol if usuario.rol_user else ''
             })
         
-        logger.debug(f"API usuarios: {len(usuarios_data)} usuarios devueltos para {request.user}")
+        logger.debug(f"API usuarios: {len(usuarios_data)} usuarios devueltos para {request.user}, incluyendo al usuario actual")
         return JsonResponse(usuarios_data, safe=False)
     except Exception as e:
         logger.error(f"Error en api_usuarios: {str(e)}")

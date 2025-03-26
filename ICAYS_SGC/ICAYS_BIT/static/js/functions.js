@@ -535,43 +535,46 @@ function ejemplDiferencia() {
     const num8 = parseFloat(document.getElementById('num8').value);
     const resultElement3 = document.getElementById('result3');
     
-    // Corregir la variable resultElement a resultElement3
     if (isNaN(num6) || isNaN(num7) || isNaN(num8)) {
         resultElement3.textContent = "Ingrese números válidos.";
         resultElement3.style.color = "black";
         return;
     }
 
-    // Verificar división por cero (es num8 el divisor, no num7)
-    if (num8 === 0) {
-        resultElement3.textContent = "No se puede dividir por cero.";
-        resultElement3.style.color = "black";
-        return;
-    }
-
-    const resultado3 = Math.abs((num6 - num7) / num8 * 100);
-    const resultadoFormateado = parseFloat(resultado3.toFixed(3));
+    let resultado3 = 0;
+    let esDivisionCero = false;
     
-    // Verificar si el resultado es mayor al 5%
-    if (resultado3 > 5) {
-        resultElement3.textContent = "Resultado: " + resultadoFormateado + "% (Excede el 5%)";
-        resultElement3.style.color = "red";
-        
-        // También puedes cambiar el color del input si lo deseas
-        document.getElementById('num6').style.borderColor = "red";
-        document.getElementById('num7').style.borderColor = "red";
-        document.getElementById('num8').style.borderColor = "red";
+    if (num8 !== 0) {
+        resultado3 = Math.abs((num6 - num7) / num8 * 100);
     } else {
-        resultElement3.textContent = "Resultado: " + resultadoFormateado + "% (Aceptable)";
-        resultElement3.style.color = "green";
-        
-        // Restaurar el color de los inputs
-        document.getElementById('num6').style.borderColor = "";
-        document.getElementById('num7').style.borderColor = "";
-        document.getElementById('num8').style.borderColor = "";
+        esDivisionCero = true; // Marcar como división entre cero
     }
-}
 
+    const resultadoFormateado = parseFloat(resultado3.toFixed(3));
+    let mensaje = `Resultado: ${resultadoFormateado}%`;
+    let color = "black";
+
+    if (esDivisionCero) {
+        // Caso especial de división entre cero
+        mensaje = `Resultado: 0`; // Forzar formato
+        color = "black";
+    } else if (resultado3 > 5) {
+        mensaje += " (Excede el 5%)";
+        color = "red";
+    } else if (resultado3 > 0) {
+        mensaje += " (Aceptable)";
+        color = "green";
+    }
+    // Si resultado3 es 0 (no por división entre cero) no agregar mensaje
+
+    resultElement3.textContent = mensaje;
+    resultElement3.style.color = color;
+    
+    // Restablecer bordes de inputs
+    ['num6', 'num7', 'num8'].forEach(id => {
+        document.getElementById(id).style.borderColor = "";
+    });
+}
 // Detecta cambios en los campos de entrada
 document.getElementById('num6').addEventListener('input', ejemplDiferencia);
 document.getElementById('num7').addEventListener('input', ejemplDiferencia);

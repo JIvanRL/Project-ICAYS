@@ -65,6 +65,9 @@ def registrar_bitacora(request):
                 # Procesar fechas y horas para bita_cbap
                 fecha_lectura = safe_date_time(request.POST.get('fecha_lectura_cbap'))
                 hora_lectura = safe_date_time(request.POST.get('hora_lectura_cbap'))
+                mes_muestra_cbap = safe_date_time(request.POST.get('mes_muestra_cbap'))
+
+
                 
                 # Registrar para depuración
                 logger.debug(f"Fecha lectura: {fecha_lectura}, Hora lectura: {hora_lectura}")
@@ -75,7 +78,7 @@ def registrar_bitacora(request):
                     nombre_cbap=request.POST.get('nombre_cbap'),
                     pagina_cbap=request.POST.get('pagina_cbap'),
                     letra_analista_cbap=request.POST.get('letra_analista_cbap'),
-                    mes_muestra_cbap=request.POST.get('mes_muestra_cbap'),
+                    mes_muestra_cbap=mes_muestra_cbap,
                     pagina_muestra_cbap=request.POST.get('pagina_muestra_cbap'),
                     pagina_fosfato_cbap=request.POST.get('pagina_fosfato_cbap'),
                     numero_fosfato_cbap=request.POST.get('numero_fosfato_cbap'),
@@ -90,10 +93,12 @@ def registrar_bitacora(request):
                 num_filas = int(request.POST.get('num_filas', 0))  # Número de filas dinámicas
                 for i in range(num_filas):
                     # Verificar si la fila tiene datos antes de procesarla
-                    if request.POST.get(f'clave_c_m_{i}') or request.POST.get(f'cantidad_c_m_{i}') or request.POST.get(f'dE_1_{i}') or request.POST.get(f'dE_2_{i}') or request.POST.get(f'dE_3_{i}') or request.POST.get(f'dE_4_{i}') or request.POST.get(f'placa_dD_{i}') or request.POST.get(f'placa_dD2_{i}') or request.POST.get(f'promedio_dD_{i}') or request.POST.get(f'placa_d_{i}') or request.POST.get(f'placa_d2_{i}') or request.POST.get(f'promedio_d_{i}') or request.POST.get(f'placa_d_2_{i}') or request.POST.get(f'placa_d2_2_{i}') or request.POST.get(f'promedio_d_2_{i}') or request.POST.get(f'resultado_r_{i}') or request.POST.get(f'ufC_placa_r_{i}') or request.POST.get(f'diferencia_r_{i}'):
+                    if  request.POST.get(f'clave_c_m_{i}') or request.POST.get(f'medicion_c_m_{i}')  or request.POST.get(f'cantidad_c_m_{i}') or request.POST.get(f'dE_1_{i}') or request.POST.get(f'dE_2_{i}') or request.POST.get(f'dE_3_{i}') or request.POST.get(f'dE_4_{i}') or request.POST.get(f'placa_dD_{i}') or request.POST.get(f'placa_dD2_{i}') or request.POST.get(f'promedio_dD_{i}') or request.POST.get(f'placa_d_{i}') or request.POST.get(f'placa_d2_{i}') or request.POST.get(f'promedio_d_{i}') or request.POST.get(f'placa_d_2_{i}') or request.POST.get(f'placa_d2_2_{i}') or request.POST.get(f'promedio_d_2_{i}') or request.POST.get(f'resultado_r_{i}') or request.POST.get(f'ufC_placa_r_{i}') or request.POST.get(f'diferencia_r_{i}'):
                         # Procesar cada fila
                         clave_c_m = request.POST.get(f'clave_c_m_{i}', '')
+                        medicion_c_m = (request.POST.get(f'medicion_c_m_{i}'))
                         cantidad_c_m = request.POST.get(f'cantidad_c_m_{i}', '')
+                      
                         
                         # Usar safe_float para todas las conversiones de string a float
                         # Esto permitirá valores NULL en la base de datos
@@ -101,24 +106,27 @@ def registrar_bitacora(request):
                         dE_2 = safe_float(request.POST.get(f'dE_2_{i}'))
                         dE_3 = safe_float(request.POST.get(f'dE_3_{i}'))
                         dE_4 = safe_float(request.POST.get(f'dE_4_{i}'))
-                        placa_dD = safe_float(request.POST.get(f'placa_dD_{i}'))
-                        placa_dD2 = safe_float(request.POST.get(f'placa_dD2_{i}'))
+                        placa_dD = (request.POST.get(f'placa_dD_{i}'))
+                        placa_dD2 = (request.POST.get(f'placa_dD2_{i}'))
                         promedio_dD = (request.POST.get(f'promedio_dD_{i}'))
-                        placa_d = safe_float(request.POST.get(f'placa_d_{i}'))
-                        placa_d2 = safe_float(request.POST.get(f'placa_d2_{i}'))
+                        placa_d = (request.POST.get(f'placa_d_{i}'))
+                        placa_d2 = (request.POST.get(f'placa_d2_{i}'))
                         promedio_d = (request.POST.get(f'promedio_d_{i}'))
-                        placa_d_2 = safe_float(request.POST.get(f'placa_d_2_{i}'))
-                        placa_d2_2 = safe_float(request.POST.get(f'placa_d2_2_{i}'))
+                        placa_d_2 = (request.POST.get(f'placa_d_2_{i}'))
+                        placa_d2_2 = (request.POST.get(f'placa_d2_2_{i}'))
                         promedio_d_2 = (request.POST.get(f'promedio_d_2_{i}'))
+                       
                         
                         # Para estos campos, mantener como string
                         resultado_r = request.POST.get(f'resultado_r_{i}', '')
                         ufC_placa_r = request.POST.get(f'ufC_placa_r_{i}', '')
                         diferencia_r = request.POST.get(f'diferencia_r_{i}', '')
+                       
 
                         # === 4.1. CREAR CLAVE MUESTRA ===
                         clave_muestra_data = {
                             'clave_c_m': clave_c_m,
+                            'medicion_c_m': medicion_c_m,
                             'cantidad_c_m': cantidad_c_m,
                             'id_cbap_c_m': bita_cbap_instance,
                         }
@@ -209,22 +217,29 @@ def registrar_bitacora(request):
                     # Procesar fecha para control de calidad
                     fecha_cc = safe_date_time(request.POST.get(f'fecha_1cc_{i}'))
                     
-                    control_calidad_data = {
-                        'nombre_laf': request.POST.get(f'nombre_laf_{i}'),
-                        'fecha_1cc': fecha_cc,
-                        'page_1cc': request.POST.get(f'page_1cc_{i}', ''),  # Valor vacío por defecto
-                        'id_cbap_cc': bita_cbap_instance,
-                    }
-                    control_calidad_form = ControlCalidadForm(control_calidad_data)
-                    if not control_calidad_form.is_valid():
-                        logger.error(f"Error en formulario Control de Calidad {i}: {control_calidad_form.errors.as_json()}")
-                        return JsonResponse({
-                            'success': False,
-                            'error': f"Error en formulario Control de Calidad {i}: {control_calidad_form.errors.as_json()}"
-                        }, status=400)
-                    control_calidad = control_calidad_form.save(commit=False)
-                    control_calidad.id_cbap_cc = bita_cbap_instance
-                    control_calidad.save()
+                    # Solo crear el control de calidad si hay datos significativos
+                    nombre_laf = request.POST.get(f'nombre_laf_{i}', '')
+                    page_1cc = request.POST.get(f'page_1cc_{i}', '')
+                    
+                    if nombre_laf or fecha_cc or page_1cc:  # Solo procesar si hay al menos un dato
+                        control_calidad_data = {
+                            'nombre_laf': nombre_laf,
+                            'fecha_1cc': fecha_cc,  # Esto será None si está vacío
+                            'page_1cc': page_1cc,
+                            'id_cbap_cc': bita_cbap_instance,
+                        }
+                        
+                        control_calidad_form = ControlCalidadForm(control_calidad_data)
+                        if not control_calidad_form.is_valid():
+                            logger.error(f"Error en formulario Control de Calidad {i}: {control_calidad_form.errors.as_json()}")
+                            return JsonResponse({
+                                'success': False,
+                                'error': f"Error en formulario Control de Calidad {i}: {control_calidad_form.errors.as_json()}"
+                            }, status=400)
+                        
+                        control_calidad = control_calidad_form.save(commit=False)
+                        control_calidad.id_cbap_cc = bita_cbap_instance
+                        control_calidad.save()
 
                 # === 6. CREAR VERIFICACIÓN DE BALANZA ===
                 for i in range(1, 3):
@@ -1013,44 +1028,52 @@ def modificar_bitacora(request, bitacora_id):
                 
                 for i in range(num_filas):
                     # Verificar si la fila tiene datos antes de procesarla
-                    if request.POST.get(f'clave_c_m_{i}') or request.POST.get(f'cantidad_c_m_{i}') or request.POST.get(f'dE_1_{i}') or request.POST.get(f'dE_2_{i}') or request.POST.get(f'dE_3_{i}') or request.POST.get(f'dE_4_{i}') or request.POST.get(f'placa_dD_{i}') or request.POST.get(f'placa_dD2_{i}') or request.POST.get(f'promedio_dD_{i}') or request.POST.get(f'placa_d_{i}') or request.POST.get(f'placa_d2_{i}') or request.POST.get(f'promedio_d_{i}') or request.POST.get(f'placa_d_2_{i}') or request.POST.get(f'placa_d2_2_{i}') or request.POST.get(f'promedio_d_2_{i}') or request.POST.get(f'resultado_r_{i}') or request.POST.get(f'ufC_placa_r_{i}') or request.POST.get(f'diferencia_r_{i}'):
+                    if request.POST.get(f'clave_c_m_{i}') or request.POST.get(f'medicion_c_m_{i}') or request.POST.get(f'cantidad_c_m_{i}') or request.POST.get(f'dE_1_{i}') or request.POST.get(f'dE_2_{i}') or request.POST.get(f'dE_3_{i}') or request.POST.get(f'dE_4_{i}') or request.POST.get(f'placa_dD_{i}') or request.POST.get(f'placa_dD2_{i}') or request.POST.get(f'promedio_dD_{i}') or request.POST.get(f'placa_d_{i}') or request.POST.get(f'placa_d2_{i}') or request.POST.get(f'promedio_d_{i}') or request.POST.get(f'placa_d_2_{i}') or request.POST.get(f'placa_d2_2_{i}') or request.POST.get(f'promedio_d_2_{i}') or request.POST.get(f'resultado_r_{i}') or request.POST.get(f'ufC_placa_r_{i}') or request.POST.get(f'diferencia_r_{i}'):
                         # Obtener los datos de la fila
                         clave_c_m = request.POST.get(f'clave_c_m_{i}', '')
+                        medicion_c_m = request.POST.get(f'medicion_c_m_{i}', '')
                         cantidad_c_m = request.POST.get(f'cantidad_c_m_{i}', '')
+                       
                         
                         # Usar safe_float para todas las conversiones de string a float
                         dE_1 = safe_float(request.POST.get(f'dE_1_{i}'))
                         dE_2 = safe_float(request.POST.get(f'dE_2_{i}'))
                         dE_3 = safe_float(request.POST.get(f'dE_3_{i}'))
                         dE_4 = safe_float(request.POST.get(f'dE_4_{i}'))
-                        placa_dD = safe_float(request.POST.get(f'placa_dD_{i}'))
-                        placa_dD2 = safe_float(request.POST.get(f'placa_dD2_{i}'))
-                        promedio_dD = safe_float(request.POST.get(f'promedio_dD_{i}'))
-                        placa_d = safe_float(request.POST.get(f'placa_d_{i}'))
-                        placa_d2 = safe_float(request.POST.get(f'placa_d2_{i}'))
-                        promedio_d = safe_float(request.POST.get(f'promedio_d_{i}'))
-                        placa_d_2 = safe_float(request.POST.get(f'placa_d_2_{i}'))
-                        placa_d2_2 = safe_float(request.POST.get(f'placa_d2_2_{i}'))
-                        promedio_d_2 = safe_float(request.POST.get(f'promedio_d_2_{i}'))
+                        placa_dD = (request.POST.get(f'placa_dD_{i}'))
+                        placa_dD2 = (request.POST.get(f'placa_dD2_{i}'))
+                        promedio_dD = (request.POST.get(f'promedio_dD_{i}'))
+                        placa_d = (request.POST.get(f'placa_d_{i}'))
+                        placa_d2 = (request.POST.get(f'placa_d2_{i}'))
+                        promedio_d = (request.POST.get(f'promedio_d_{i}'))
+                        placa_d_2 = (request.POST.get(f'placa_d_2_{i}'))
+                        placa_d2_2 = (request.POST.get(f'placa_d2_2_{i}'))
+                        promedio_d_2 = (request.POST.get(f'promedio_d_2_{i}'))
+                       
                         
                         # Para estos campos, mantener como string
                         resultado_r = request.POST.get(f'resultado_r_{i}', '')
                         ufC_placa_r = request.POST.get(f'ufC_placa_r_{i}', '')
                         diferencia_r = request.POST.get(f'diferencia_r_{i}', '')
                         
+                        
                         # === 3.1. ACTUALIZAR O CREAR CLAVE MUESTRA ===
                         if filas_procesadas < len(claves_muestra_existentes):
                             # Actualizar registro existente
                             clave_muestra = claves_muestra_existentes[filas_procesadas]
                             clave_muestra.clave_c_m = clave_c_m
+                            clave_muestra.medicion_c_m = medicion_c_m
                             clave_muestra.cantidad_c_m = cantidad_c_m
+                            
                             clave_muestra.save()
                         else:
                             # Crear nuevo registro
                             ClaveMuestraCbap.objects.create(
                                 id_cbap_c_m=bitacora,
                                 clave_c_m=clave_c_m,
-                                cantidad_c_m=cantidad_c_m
+                                medicion_c_m=medicion_c_m,
+                                cantidad_c_m=cantidad_c_m,
+                               
                             )
                         
                         # === 3.2. ACTUALIZAR O CREAR DILUCIONES EMPLEADAS ===
@@ -1079,6 +1102,7 @@ def modificar_bitacora(request, bitacora_id):
                             direct_o_dilucion.placa_dD = placa_dD
                             direct_o_dilucion.placa_dD2 = placa_dD2
                             direct_o_dilucion.promedio_dD = promedio_dD
+                          
                             direct_o_dilucion.save()
                         else:
                             # Crear nuevo registro
@@ -1086,7 +1110,8 @@ def modificar_bitacora(request, bitacora_id):
                                 id_cbap_dD=bitacora,
                                 placa_dD=placa_dD,
                                 placa_dD2=placa_dD2,
-                                promedio_dD=promedio_dD
+                                promedio_dD=promedio_dD,
+                               
                             )
                         
                         # === 3.4. ACTUALIZAR O CREAR DILUCIÓN ===
@@ -1119,6 +1144,7 @@ def modificar_bitacora(request, bitacora_id):
                             resultado.resultado_r = resultado_r
                             resultado.ufC_placa_r = ufC_placa_r
                             resultado.diferencia_r = diferencia_r
+                         
                             resultado.save()
                         else:
                             # Crear nuevo registro
@@ -1126,7 +1152,8 @@ def modificar_bitacora(request, bitacora_id):
                                 id_cbap_r=bitacora,
                                 resultado_r=resultado_r,
                                 ufC_placa_r=ufC_placa_r,
-                                diferencia_r=diferencia_r
+                                diferencia_r=diferencia_r,
+                              
                             )
                         
                         filas_procesadas += 1

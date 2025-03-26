@@ -89,7 +89,7 @@ class DatosCampoCbapForm(forms.ModelForm):
 class ClaveMuestraCbapForm(forms.ModelForm):
     class Meta:
         model = ClaveMuestraCbap
-        fields = ['clave_c_m', 'cantidad_c_m']
+        fields = ['clave_c_m','medicion_c_m', 'cantidad_c_m',]
 class ResultadoCbapForm(forms.ModelForm):
     class Meta:
         model = Resultado

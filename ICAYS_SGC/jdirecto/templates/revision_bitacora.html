@@ -150,19 +150,19 @@
                                                     <label for="letra_analista_cbap">Letra Analista</label>
                                                 </div>
                                             </div>
-                                            <div class="col-12 col-md-4">   
+                                            <!-- <div class="col-12 col-md-4">   
                                                 <div class="form-floating">
                                                     <input type="date" 
-                                                                    class="form-control form-control-sm" 
-                                                                    id="mes_muestra_cbap" 
-                                                                    name="mes_muestra_cbap" 
-                                                                    value="{{ bitacora.mes_muestra_cbap|date:'Y-m-d' }}" 
-                                                                    min="2000-01-01" 
-                                                                    max="{% now 'Y-m-d' %}"  
-                                                                    placeholder="Tomo">
+                                                           class="form-control form-control-sm" 
+                                                           id="mes_muestra_cbap" 
+                                                           name="mes_muestra_cbap" 
+                                                           value="{{ bitacora.mes_muestra_cbap }}" 
+                                                           min="2000-01-01" 
+                                                           max="{% now 'Y-m-d' %}"  
+                                                           placeholder="Mes">
                                                     <label for="mes_muestra_cbap">Mes</label>
                                                 </div>
-                                            </div>
+                                        </div> -->
                                             <div class="col-12 col-md-4">
                                                 <div class="form-floating">
                                                     <input type="text" class="form-control form-control-sm" id="pagina_muestra_cbap" name="pagina_muestra_cbap" value="{{bitacora.pagina_muestra_cbap}}" placeholder="Página" >
@@ -530,35 +530,36 @@
                     </thead>
                     <tbody id="tabla-body">
                         <!-- Fila adicional debajo de los títulos -->
-                            <tr>
-                                <td><input type="text" value="Blanco" readonly></td> <!-- No editable -->
-                                <td><input type="text" name="cantidad_blanco[]" readonly></td>
-                                <td><input type="text" name="dil1_blanco[]" readonly></td>
-                                <td><input type="text" name="dil2_blanco[]" readonly></td>
-                                <td><input type="text" name="dil3_blanco[]" readonly></td>
-                                <td><input type="text" name="dil4_blanco[]" readonly></td>
-                                <td><input type="text" name="dir_placa1_blanco[]" readonly></td>
-                                <td><input type="text" name="dir_placa2_blanco[]" readonly></td>
-                                <td><input type="text" name="promedio1_blanco[]" readonly></td>
-                                <td><input type="text" name="dil_placa1_blanco[]" readonly></td>
-                                <td><input type="text" name="dil_placa2_blanco[]" readonly></td>
-                                <td><input type="text" name="promedio2_blanco[]" readonly></td>
-                                <td><input type="text" name="dil_placa1_dup_blanco[]" readonly></td>
-                                <td><input type="text" name="dil_placa2_dup_blanco[]" readonly></td>
-                                <td><input type="text" name="promedio3_blanco[]"></td>
-                                <!-- Subcolumnas de "Resultado" -->
-                                <td><input type="text" name="resultado_blanco[]"></td> <!-- Editable -->
-                                <td><input type="text" value="UFC/placa" readonly></td> <!-- No editable en "Blanco" -->
-                                <td><input type="text" name="diferencia_blanco[]"></td>
-                            </tr>
+                        <tr>
+                            <td><input type="text" value="Blanco" readonly></td> <!-- No editable -->
+                            <td><input type="text" name="cantidad_blanco[]" value="---" style="width: 110px;" readonly></td>
+                           
+                            <td style="background:#c3ccd6;"><input type="text" name="dil1_blanco[]" value="---" readonly></td>
+                            <td style="background:#c3ccd6;"><input type="text" name="dil2_blanco[]" value="---" readonly></td>
+                            <td style="background:#c3ccd6;"><input type="text" name="dil3_blanco[]" value="---" readonly></td>
+                            <td style="background:#c3ccd6;"><input type="text" name="dil4_blanco[]" value="---" readonly></td>
+                            <td style="background:#c3ccd6;"><input type="text" name="dir_placa1_blanco[]" value="---" readonly></td>
+                            <td style="background:#c3ccd6;"><input type="text" name="dir_placa2_blanco[]" value="---" readonly></td>
+                            <td style="background:#c3ccd6;"><input type="text" name="promedio1_blanco[]" value="---" readonly></td>
+                            <td style="background:#c3ccd6;"><input type="text" name="dil_placa1_blanco[]" value="---" readonly></td>
+                            <td style="background:#c3ccd6;"><input type="text" name="dil_placa2_blanco[]" value="---" readonly></td>
+                            <td style="background:#c3ccd6;"><input type="text" name="promedio2_blanco[]" value="---" readonly></td>
+                            <td style="background:#c3ccd6;"><input type="text" name="dil_placa1_dup_blanco[]" value="---" readonly></td>
+                            <td style="background:#c3ccd6;"><input type="text" name="dil_placa2_dup_blanco[]" value="---" readonly></td>
+                            <td style="background:#c3ccd6;"><input type="text" name="promedio3_blanco[]" value="---" readonly></td>
+                            <!-- Subcolumnas de "Resultado" -->
+                            <td><input type="text" name="resultado_blanco[]" value="---"></td> <!-- Editable -->
+                            <td style="background:#c3ccd6;"><input type="text" value="UFC/placa" style="width: 150px;" readonly></td> <!-- No editable en "Blanco" -->
+                            <td style="background:#c3ccd6;"><input type="text" name="diferencia_blanco[]" value="---" readonly></td>
+                        </tr>
                         <!-- Fila principal de inputs -->
                         
                         
                         {% for fila in filas_datos %}
                             <tr>
                                 <!-- Datos de ClaveMuestra -->
-                                <td><input type="text" name="clave_c_m_{{ fila.index  }}" id="clave_c_m_{{ forloop.counter }}" value="{{ fila.clave_muestra.clave_c_m }}"></td>
-                                <td><input type="text" name="cantidad_c_m_{{ fila.index  }}" id="cantidad_c_m_{{ forloop.counter }}" value="{{ fila.clave_muestra.cantidad_c_m }}"></td>
+                                <td><input type="text" name="clave_c_m_{{ fila.index  }}" id="clave_c_m_{{ forloop.counter }}" value="{{ fila.clave_muestra.clave_c_m|default:'' }}"></td>
+                                <td><input type="text" name="cantidad_c_m_{{ fila.index  }}" id="cantidad_c_m_{{ forloop.counter }}" value="{{ fila.clave_muestra.cantidad_c_m|default:'' }}"></td>
                                
                         
                                 <!-- Diluciones empleadas -->
@@ -592,39 +593,37 @@
                                 </td>
                                
                         
-                                <!-- Dilución directa -->
-                                <td><input type="number" name="placa_dD_{{ fila.index  }}" class="placa1" id="placa_dD_{{ forloop.counter }}" 
-                                    value="{{ fila.directa.placa_dD|floatformat:2|default:'---' }}"></td>
-                                <td><input type="number" name="placa_dD2_{{ fila.index  }}" class="placa2" id="placa_dD2_{{ forloop.counter }}" 
-                                    value="{{ fila.directa.placa_dD2|floatformat:2|default:'---' }}"></td>
-                                <td><input type="text" name="promedio_dD_{{ fila.index  }}" class="promedio" id="promedio_dD_{{ forloop.counter }}" 
-                                    value="{{ fila.directa.promedio_dD|floatformat:2|default:'---' }}"></td>
-                               
-                        
-                             
-                                <!-- Dilución -->
-                                <td><input type="text" name="placa_d_{{ fila.index  }}" class="placa3" id="placa_d_{{ forloop.counter }}" 
-                                    value="{{ fila.dilucion.placa_d|floatformat:2|default:'---' }}"></td>
-                                <td><input type="text" name="placa_d2_{{ fila.index  }}" class="placa4" id="placa_d2_{{ forloop.counter }}" 
-                                    value="{{ fila.dilucion.placa_d2|floatformat:2|default:'---' }}"></td>
-                                <td><input type="text" name="promedio_d_{{ fila.index  }}" class="promedio2" id="promedio_d_{{ forloop.counter }}" 
-                                    value="{{ fila.dilucion.promedio_d|floatformat:2|default:'---' }}"></td>
-                                <td><input type="text" name="placa_d_2_{{ fila.index  }}" class="placa5" id="placa_d_2_{{ forloop.counter }}" 
-                                    value="{{ fila.dilucion.placa_d_2|floatformat:2|default:'---' }}"></td>
-                                <td><input type="text" name="placa_d2_2_{{ fila.index }}" class="placa6" id="placa_d2_2_{{ forloop.counter }}" 
-                                    value="{{ fila.dilucion.placa_d2_2|floatformat:2|default:'---' }}"></td>
-                                <td><input type="text" name="promedio_d_2_{{ fila.index  }}" class="promedio3" id="promedio_d_2_{{ forloop.counter }}" 
-                                    value="{{ fila.dilucion.promedio_d_2|floatformat:2|default:'---' }}"></td>
-                               
-                        
-                            
-                                <!-- Resultado -->
-                                <td><input type="text" name="resultado_r_{{ fila.index }}" id="resultado_r_{{ forloop.counter }}" 
-                                    value="{{ fila.resultado.resultado_r|floatformat:2|default:'---' }}"></td>
-                                <td><input type="text" name="ufC_placa_r_{{ fila.index }}" id="ufC_placa_r_{{ forloop.counter }}" 
-                                    value="{{ fila.resultado.ufC_placa_r|default:'---' }}"></td>
-                                <td><input type="text" name="diferencia_r_{{ fila.index  }}" id="diferencia_r_{{ forloop.counter }}" 
-                                    value="{{ fila.resultado.diferencia_r|default:'---' }}"></td>
+                                                                <!-- Dilución directa -->
+<td><input type="text" name="placa_dD_{{ fila.index }}" class="placa1" id="placa_dD_{{ forloop.counter }}" 
+    value="{{ fila.directa.placa_dD|default:'---' }}"></td>
+<td><input type="text" name="placa_dD2_{{ fila.index }}" class="placa2" id="placa_dD2_{{ forloop.counter }}" 
+    value="{{ fila.directa.placa_dD2|default:'---' }}"></td>
+<td><input type="text" name="promedio_dD_{{ fila.index }}" class="promedio" id="promedio_dD_{{ forloop.counter }}" 
+    value="{{ fila.directa.promedio_dD|default:'' }}"></td>
+
+
+<!-- Dilución -->
+<td><input type="text" name="placa_d_{{ fila.index }}" class="placa3" id="placa_d_{{ forloop.counter }}" 
+    value="{{ fila.dilucion.placa_d|default:'' }}"></td>
+<td><input type="text" name="placa_d2_{{ fila.index }}" class="placa4" id="placa_d2_{{ forloop.counter }}" 
+    value="{{ fila.dilucion.placa_d2|default:'' }}"></td>
+<td><input type="text" name="promedio_d_{{ fila.index }}" class="promedio2" id="promedio_d_{{ forloop.counter }}" 
+    value="{{ fila.dilucion.promedio_d|default:'' }}"></td>
+<td><input type="text" name="placa_d_2_{{ fila.index }}" class="placa5" id="placa_d_2_{{ forloop.counter }}" 
+    value="{{ fila.dilucion.placa_d_2|default:'' }}"></td>
+<td><input type="text" name="placa_d2_2_{{ fila.index }}" class="placa6" id="placa_d2_2_{{ forloop.counter }}" 
+    value="{{ fila.dilucion.placa_d2_2|default:'' }}"></td>
+<td><input type="text" name="promedio_d_2_{{ fila.index }}" class="promedio3" id="promedio_d_2_{{ forloop.counter }}" 
+    value="{{ fila.dilucion.promedio_d_2|default:'' }}"></td>
+
+
+<!-- Resultado -->
+<td><input type="text" name="resultado_r_{{ fila.index }}" id="resultado_r_{{ forloop.counter }}" 
+    value="{{ fila.resultado.resultado_r|default_if_none:'' }}"></td>
+<td><input type="text" name="ufC_placa_r_{{ fila.index }}" id="ufC_placa_r_{{ forloop.counter }}" 
+    value="{{ fila.resultado.ufC_placa_r|default_if_none:'' }}"></td>
+<td><input type="text" name="diferencia_r_{{ fila.index }}" id="diferencia_r_{{ forloop.counter }}" 
+    value="{{ fila.resultado.diferencia_r|default_if_none:'' }}"></td>  
                             
                             </tr>
                             {% empty %}
@@ -635,6 +634,10 @@
                         <!-- Se pueden agregar más filas de inputs si es necesario -->
                     </tbody>
                 </table>
+                </div>
+                <div>
+                    <strong><p style="font-size: 15px; color: black;">** Valor estimado/ se reporta como UFC/cantidad de alimento o ml de agua o superficie analizada</p></strong> 
+                 </div>
                     <div class="d-flex justify-content-center mt-4">
                         <div class="w-100">
                             <table class="table-container text-center border">
@@ -879,6 +882,62 @@
 </body>
 {% endblock content %}
 {% block extra_js %}
+<!-- Script para deshabilitar todos los campos excepto botones -->
+<script>
+   document.addEventListener('DOMContentLoaded', function() {
+    console.log('Inicializando bloqueo de elementos de entrada para revisión...');
+    
+    // Seleccionar todos los elementos de entrada del formulario
+    const formInputs = document.querySelectorAll('input, select, textarea');
+    
+    // Deshabilitar todos los campos de entrada excepto los específicos
+    formInputs.forEach(function(input) {
+        // No deshabilitar:
+        // 1. Botones
+        // 2. Campos ocultos
+        // 3. El select de usuario_destino
+        // 4. Elementos dentro de modales
+        if (input.type !== 'button' && 
+            input.type !== 'submit' && 
+            input.type !== 'reset' && 
+            input.type !== 'hidden' &&
+            !input.closest('button') && 
+            !input.closest('.modal') &&  // No deshabilitar elementos dentro de modales
+            input.id !== 'usuario_destino') {  // Excluir específicamente el select de usuario_destino
+            
+            input.disabled = true;
+            // Ya no agregamos la clase readonly-field para mantener el estilo original
+        }
+    });
+    
+    // Agregar estilo solo para el mensaje, no para los campos
+    const style = document.createElement('style');
+    style.textContent = `
+        /* Mensaje de solo lectura */
+        .readonly-message {
+            background-color: #cff4fc;
+            color: #055160;
+            padding: 10px 15px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            border: 1px solid #b6effb;
+        }
+    `;
+    document.head.appendChild(style);
+    
+    // Agregar mensaje de solo lectura
+    const formElement = document.getElementById('form-principal');
+    if (formElement) {
+        const readOnlyMessage = document.createElement('div');
+        readOnlyMessage.className = 'alert alert-info mt-3 mensaje-bloqueo';
+        readOnlyMessage.innerHTML = '<strong>Formulario de solo lectura:</strong> Esta bitácora está en modo de revisión y los campos no pueden ser modificados.';
+        formElement.parentNode.insertBefore(readOnlyMessage, formElement);
+    }
+    
+    console.log('Elementos de entrada bloqueados exitosamente, manteniendo habilitados el select de usuario_destino y los inputs de modales');
+});
+</script>
     <script src="{% static 'js/functions-jefe.js' %}"></script>
     <script src="{% static 'js/events-bita131.js' %}"></script>
+   
 {% endblock %}

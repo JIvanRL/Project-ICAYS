@@ -5,6 +5,7 @@
     <form id="form-principal" method="post" enctype="multipart/form-data" >
         {% csrf_token %}
         <input type="hidden" id="usuario_id_actual" value="{{ request.user.id_user }}">
+        <input type="hidden" id="estado_bitacora" name="estado_bitacora" value="guardada">
         <div class="d-flex flex-wrap justify-content-between align-items-center">
             <!-- Botón "Regresar" alineado a la izquierda -->
             <button class="icon-container button-style custom-button mb-2" type="button" data-url="{% url 'microalimentos:BitacorasAnaliticas' %}">Regresar</button>
@@ -131,12 +132,12 @@
                                                 <label for="letra_analista_cbap">Letra Analista</label>
                                             </div>
                                         </div>
-                                        <div class="col-12 col-md-4">
+                                        <!-- <div class="col-12 col-md-4">
                                             <div class="form-floating">
                                                 <input type="date" class="form-control form-control-sm" id="mes_muestra_cbap" name="mes_muestra_cbap" placeholder="Tomo" >
                                                 <label for="mes_muestra_cbap">Mes</label>
                                             </div>
-                                        </div>
+                                        </div> -->
                                         <div class="col-12 col-md-4">
                                             <div class="form-floating">
                                                 <input type="text" class="form-control form-control-sm" id="pagina_muestra_cbap" name="pagina_muestra_cbap" placeholder="Página" >
@@ -486,7 +487,7 @@
                 <thead>
                     <tr>
                         <th rowspan="2">Clave Muestra</th>
-                        <th rowspan="2">Medición</th>
+                        <th rowspan="2">Matriz</th>
                         <th rowspan="2">Cantidad de muestra</th>
                         <th colspan="4">Diluciones empleadas</th>
                         <th colspan="2">Dilución o Directa</th>
@@ -518,26 +519,26 @@
                 <tbody id="tabla-body">
                     <!-- Fila adicional debajo de los títulos -->
                     <tr>
-                        <td><input type="text" value="Blanco" readonly></td> <!-- No editable -->
-                        <td><input type="text" name="cantidad_blanco[]" style="width: 110px;" readonly></td>
-                        <td><input type="text" name="cantidad_blanco[]" readonly></td>
-                        <td><input type="text" name="dil1_blanco[]" readonly></td>
-                        <td><input type="text" name="dil2_blanco[]" readonly></td>
-                        <td><input type="text" name="dil3_blanco[]" readonly></td>
-                        <td><input type="text" name="dil4_blanco[]" readonly></td>
-                        <td><input type="text" name="dir_placa1_blanco[]" readonly></td>
-                        <td><input type="text" name="dir_placa2_blanco[]" readonly></td>
-                        <td><input type="text" name="promedio1_blanco[]" readonly></td>
-                        <td><input type="text" name="dil_placa1_blanco[]" readonly></td>
-                        <td><input type="text" name="dil_placa2_blanco[]" readonly></td>
-                        <td><input type="text" name="promedio2_blanco[]" readonly></td>
-                        <td><input type="text" name="dil_placa1_dup_blanco[]" readonly></td>
-                        <td><input type="text" name="dil_placa2_dup_blanco[]" readonly></td>
-                        <td><input type="text" name="promedio3_blanco[]"></td>
+                        <td><input type="text" value="Blanco" style="width: 110px;" readonly></td> <!-- No editable -->
+                        <td style="background:#c3ccd6;"><input type="text" name="cantidad_blanco[]" value="---" style="width: 110px;" readonly></td>
+                        <td ><input type="text" id="" name="" ></td>
+                        <td style="background:#c3ccd6;"><input type="text" name="dil1_blanco[]" value="---" readonly></td>
+                        <td style="background:#c3ccd6;"><input type="text" name="dil2_blanco[]" value="---" readonly></td>
+                        <td style="background:#c3ccd6;"><input type="text" name="dil3_blanco[]" value="---" readonly></td>
+                        <td style="background:#c3ccd6;"><input type="text" name="dil4_blanco[]" value="---" readonly></td>
+                        <td ><input type="text"  id="" name="" ></td>
+                        <td style="background:#c3ccd6;"><input type="text" name="dir_placa2_blanco[]" value="---" readonly></td>
+                        <td style="background:#c3ccd6;"><input type="text" name="promedio1_blanco[]" value="---" readonly></td>
+                        <td style="background:#c3ccd6;"><input type="text" name="dil_placa1_blanco[]" value="---" readonly></td>
+                        <td style="background:#c3ccd6;"><input type="text" name="dil_placa2_blanco[]" value="---" readonly></td>
+                        <td style="background:#c3ccd6;"><input type="text" name="promedio2_blanco[]" value="---" readonly></td>
+                        <td style="background:#c3ccd6;"><input type="text" name="dil_placa1_dup_blanco[]" value="---" readonly></td>
+                        <td style="background:#c3ccd6;"><input type="text" name="dil_placa2_dup_blanco[]" value="---" readonly></td>
+                        <td style="background:#c3ccd6;"><input type="text" name="promedio3_blanco[]" value="---" readonly></td>
                         <!-- Subcolumnas de "Resultado" -->
-                        <td><input type="text" name="resultado_blanco[]"></td> <!-- Editable -->
-                        <td><input type="text" value="UFC/placa" style="width: 150px;" readonly></td> <!-- No editable en "Blanco" -->
-                        <td><input type="text" name="diferencia_blanco[]"></td>
+                        <td><input type="text"  id="" name=""></td> <!-- Editable -->
+                        <td style="background:#c3ccd6;"><input type="text" value="UFC/placa" style="width: 150px;" readonly></td> <!-- No editable en "Blanco" -->
+                        <td style="background:#c3ccd6;"><input type="text" name="diferencia_blanco[]" value="---" readonly></td>
                     </tr>
                     <!-- Fila principal de inputs -->
                     <tr>
@@ -547,6 +548,9 @@
                 </tbody>
             </table>
         </div>  
+        <div>
+           <strong><p style="font-size: 15px; color: black;">** Valor estimado/ se reporta como UFC/cantidad de alimento o ml de agua o superficie analizada</p></strong> 
+        </div>
         
 
         <div class="container-fluid">
@@ -559,7 +563,7 @@
                                 <tr>
                                     <th class="w-20">Observaciones</th>
                                     <th>Ejemplo de calculo de resultado</th>
-                                    <th>Ejemplo de canculo de resultado de superficies vivas e inertes</th>
+                                    <th>Ejemplo de calculo de resultado de superficies vivas e inertes</th>
                                     <th>Ejemplo de calculo diferencia entre duplicados</th>
                                     <th class="w-8">Elabora</th>
                                     <th class="w-8">Revisa</th>
@@ -616,7 +620,7 @@
                                                       <td class="align-middle">
     <!-- Content for calculo de resultado -->
     <div class="d-flex flex-column gap-1">
-        <p class="fs-9 mb-0">Ejemplo de cálculo diferencia entre duplicados</p>
+        <p class="fs-9 mb-0">Ejemplo de cálculo diferencia entre dupados</p>
         <div class="formula-container">
             <p class="formula-text flex-column mb-0">
                
