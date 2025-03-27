@@ -377,3 +377,13 @@ class tableBlanco(models.Model):
     cantidad_blanco = models.CharField(null=True, max_length=50, default='---', blank=True, db_column='cantidad_blanco')
     placa_blanco = models.CharField(null=True, max_length=250, default='---',blank=True, db_column='placa_blanco')
     resultado_blanco = models.CharField(null=True, max_length=250, blank=True, db_column='resultado_blanco')
+     # Relación con nombre usuario de users
+    nombre_bita_cbap = models.ForeignKey(
+        bita_cbap,
+        on_delete=models.SET_NULL,
+        null=True,
+        db_column='nombre_bita_cbap_blancos',
+        related_name='muestras_blancos'
+    )
+    class Meta:
+        db_table = 'blancos_cbap'

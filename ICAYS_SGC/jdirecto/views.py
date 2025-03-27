@@ -7,7 +7,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from login.views import role_required
-from ICAYS_BIT.models import Bitcoras_Cbap, CustomUser, bita_cbap
+from ICAYS_BIT.models import Bitcoras_Cbap, CustomUser, bita_cbap, tableBlanco
 from django.shortcuts import render
 from functools import wraps
 logger = logging.getLogger(__name__)  # Configurar el logger correctamente
@@ -100,6 +100,14 @@ def ver_bitacora(request, bitacora_id):
             messages.error(request, 'La bitácora no existe.')
             return HttpResponse("Error: La bitácora no existe.", status=404)
 
+        # Obtener el registro de blanco para esta bitácora
+        try:
+            blanco = tableBlanco.objects.get(nombre_bita_cbap=bitacora)
+            logger.debug(f"Blanco encontrado para bitácora {bitacora_id}: ID={blanco.id_blanco}")
+        except tableBlanco.DoesNotExist:
+            logger.debug(f"No se encontró registro de blanco para la bitácora {bitacora_id}")
+            blanco = None
+
         filas_datos = []
         
         # Obtener todos los registros relacionados con la bitácora
@@ -129,6 +137,7 @@ def ver_bitacora(request, bitacora_id):
             'controles_calidad': bitacora.control_calidades.all(),
             'verificaciones_balanza': bitacora.verificaciones_balanza.all(),
             'registro': bitacora_registro,  # Incluir el registro de Bitcoras_Cbap
+            'blanco': blanco,  # Añadir el blanco al contexto
         }
 
         logger.debug(f"Renderizando vista de bitácora {bitacora_id} para usuario {request.user}")
@@ -197,6 +206,14 @@ def ver_bitacora_revisada(request, bitacora_id):
             messages.error(request, 'La bitácora no existe.')
             return HttpResponse("Error: La bitácora no existe.", status=404)
 
+        # Obtener el registro de blanco para esta bitácora
+        try:
+            blanco = tableBlanco.objects.get(nombre_bita_cbap=bitacora)
+            logger.debug(f"Blanco encontrado para bitácora {bitacora_id}: ID={blanco.id_blanco}")
+        except tableBlanco.DoesNotExist:
+            logger.debug(f"No se encontró registro de blanco para la bitácora {bitacora_id}")
+            blanco = None
+
         filas_datos = []
         
         # Obtener todos los registros relacionados con la bitácora
@@ -227,6 +244,7 @@ def ver_bitacora_revisada(request, bitacora_id):
             'verificaciones_balanza': bitacora.verificaciones_balanza.all(),
             'bitacora_cbap': bitacora_cbap,  # Pasar bitacora_cbap con el nombre correcto
             'registro': bitacora_cbap,  # Mantener registro para compatibilidad
+            'blanco': blanco,  # Añadir el blanco al contexto
             'debug': True  # Habilitar depuración en la plantilla
         }
 

@@ -11,7 +11,7 @@ from .models import ClaveMuestraCbap, ControlCalidad, Dilucion, DilucionesEmplea
 from .forms import (
     DilucionesEmpleadasForm, DirectODilucionForm, DilucionForm,
     ControlCalidadForm, VerificacionBalanzaForm, DatosCampoCbapForm,
-    ClaveMuestraCbapForm, ResultadoCbapForm
+    ClaveMuestraCbapForm, ResultadoCbapForm, tableBlanco
 )
 import logging
 logger = logging.getLogger(__name__)
@@ -67,8 +67,6 @@ def registrar_bitacora(request):
                 hora_lectura = safe_date_time(request.POST.get('hora_lectura_cbap'))
                 mes_muestra_cbap = safe_date_time(request.POST.get('mes_muestra_cbap'))
 
-
-                
                 # Registrar para depuración
                 logger.debug(f"Fecha lectura: {fecha_lectura}, Hora lectura: {hora_lectura}")
                 
@@ -89,7 +87,35 @@ def registrar_bitacora(request):
                     observaciones_cbap=request.POST.get('observaciones_cbap'),
                 )
                 bita_cbap_instance.save()
+                logger.info(f"Bitácora CBAP creada con ID: {bita_cbap_instance.id_cbap}")
 
+                # === 3. CREAR REGISTRO DE BLANCO (ÚNICO) ===
+                # Obtener datos del blanco (un solo registro)
+                cantidad_blanco = request.POST.get('cantidad_blanco')
+                placa_blanco = request.POST.get('placa_blanco')
+                resultado_blanco = request.POST.get('resultado_blanco')
+                
+                logger.debug(f"Datos de blanco: cantidad={cantidad_blanco}, placa={placa_blanco}, resultado={resultado_blanco}")
+                
+                # Crear el registro único de blanco
+                try:
+                    # Crear directamente el objeto tableBlanco
+                    blanco = tableBlanco(
+                        cantidad_blanco=cantidad_blanco if cantidad_blanco else '---',
+                        placa_blanco=placa_blanco if placa_blanco else '---',
+                        resultado_blanco=resultado_blanco,
+                        nombre_bita_cbap=bita_cbap_instance
+                    )
+                    blanco.save()
+                    logger.debug(f"Blanco guardado correctamente con ID: {blanco.id_blanco}")
+                except Exception as e:
+                    logger.error(f"Error al guardar blanco: {str(e)}")
+                    return JsonResponse({
+                        'success': False,
+                        'error': f"Error al guardar blanco: {str(e)}"
+                    }, status=400)
+
+                # === 4. PROCESAR FILAS DINÁMICAS ===
                 num_filas = int(request.POST.get('num_filas', 0))  # Número de filas dinámicas
                 for i in range(num_filas):
                     # Verificar si la fila tiene datos antes de procesarla
@@ -99,7 +125,6 @@ def registrar_bitacora(request):
                         medicion_c_m = (request.POST.get(f'medicion_c_m_{i}'))
                         cantidad_c_m = request.POST.get(f'cantidad_c_m_{i}', '')
                       
-                        
                         # Usar safe_float para todas las conversiones de string a float
                         # Esto permitirá valores NULL en la base de datos
                         dE_1 = safe_float(request.POST.get(f'dE_1_{i}'))
@@ -116,12 +141,10 @@ def registrar_bitacora(request):
                         placa_d2_2 = (request.POST.get(f'placa_d2_2_{i}'))
                         promedio_d_2 = (request.POST.get(f'promedio_d_2_{i}'))
                        
-                        
                         # Para estos campos, mantener como string
                         resultado_r = request.POST.get(f'resultado_r_{i}', '')
                         ufC_placa_r = request.POST.get(f'ufC_placa_r_{i}', '')
                         diferencia_r = request.POST.get(f'diferencia_r_{i}', '')
-                       
 
                         # === 4.1. CREAR CLAVE MUESTRA ===
                         clave_muestra_data = {
@@ -346,6 +369,7 @@ def registrar_bitacora(request):
             'verif_balanza_form': VerificacionBalanzaForm(),
             'datos_campo_form': DatosCampoCbapForm(),
             'clave_muestra_form': ClaveMuestraCbapForm(),
+            'blanco_form': tableBlanco(),  # Formulario para el registro único de blanco
         }
         return render(request, 'registerBita.html', context)
 
@@ -434,6 +458,12 @@ def ver_bitacora(request, bitacora_id):
             'verificaciones_balanza',
             'resultado'
         ).get(id_cbap=bitacora_id, firma_user=request.user)
+        
+        # Obtener el registro de blanco para esta bitácora
+        try:
+            blanco = tableBlanco.objects.get(nombre_bita_cbap=bitacora)
+        except tableBlanco.DoesNotExist:
+            blanco = None
 
         filas_datos = []
         
@@ -463,6 +493,7 @@ def ver_bitacora(request, bitacora_id):
             'usuario': bitacora.firma_user,
             'controles_calidad': bitacora.control_calidades.all(),
             'verificaciones_balanza': bitacora.verificaciones_balanza.all(),
+            'blanco': blanco,  # Añadir el registro de blanco al contexto
         }
 
         return render(request, 'detalles_bitacoras.html', context)
@@ -491,11 +522,23 @@ def ver_bitacora_revision(request, bitacora_id):
             'resultado'
         ).get(id_cbap=bitacora_id)
         
+        # Obtener el registro de blanco para esta bitácora
+        try:
+            blanco = tableBlanco.objects.get(nombre_bita_cbap=bitacora)
+        except tableBlanco.DoesNotExist:
+            blanco = None
+        
         # Verificar que el usuario actual sea el creador de la bitácora
         if bitacora.firma_user != request.user:
             messages.error(request, "No tienes permiso para ver esta bitácora")
             return redirect('microalimentos:lista_bitacoras_revision')
 
+        # Obtener el registro de blanco para esta bitácora
+        try:
+            blanco = tableBlanco.objects.get(nombre_bita_cbap=bitacora)
+        except tableBlanco.DoesNotExist:
+            blanco = None
+        
         # Obtener el registro de Bitcoras_Cbap correspondiente
         registro = Bitcoras_Cbap.objects.filter(
             nombre_bita_cbap=bitacora
@@ -608,6 +651,7 @@ def ver_bitacora_revision(request, bitacora_id):
             'controles_calidad': controles_calidad,
             'verificaciones_balanza': verificaciones_balanza,
             'registro': registro,
+            'blanco': blanco,  # Añadir el blanco al contexto
             # Agregar valores procesados al contexto
             'fecha_siembra': fecha_siembra,
             'hora_siembra': hora_siembra,
@@ -669,6 +713,12 @@ def ver_bitacora_autorizada(request, bitacora_id):
             'verificaciones_balanza',
             'resultado'
         ).get(id_cbap=bitacora_id, firma_user=request.user)
+
+        # Obtener el registro de blanco para esta bitácora
+        try:
+            blanco = tableBlanco.objects.get(nombre_bita_cbap=bitacora)
+        except tableBlanco.DoesNotExist:
+            blanco = None
 
         # Obtener el registro de Bitcoras_Cbap correspondiente
         # Intentamos obtener el registro más reciente
@@ -748,6 +798,7 @@ def ver_bitacora_autorizada(request, bitacora_id):
             'año': año,  # Añadir el año al contexto
             'mes': mes,  # Añadir el mes al contexto
             'nombre_mes': nombres_meses[mes-1] if mes and mes >= 1 and mes <= 12 else '',  # Nombre del mes
+            'blanco': blanco,  # Añadir el blanco al contexto
             'debug': True  # Habilitar depuración en la plantilla
         }
 
@@ -949,6 +1000,12 @@ def modificar_bitacora(request, bitacora_id):
         messages.error(request, "Solo se pueden modificar bitácoras en estado 'guardada'")
         return redirect('microalimentos:lista_bitacoras_guardadas')
     
+    # Obtener el registro de blanco existente para esta bitácora
+    try:
+        blanco_existente = tableBlanco.objects.get(nombre_bita_cbap=bitacora)
+    except tableBlanco.DoesNotExist:
+        blanco_existente = None
+    
     if request.method == 'POST':
         accion = request.POST.get('accion')  # Obtén la acción desde el formulario
         
@@ -1014,7 +1071,39 @@ def modificar_bitacora(request, bitacora_id):
                 bitacora.observaciones_cbap = request.POST.get('observaciones_cbap')
                 bitacora.save()
 
-                # === 3. ACTUALIZAR FILAS DINÁMICAS ===
+                # === 3. ACTUALIZAR REGISTRO DE BLANCO ===
+                # Obtener datos del blanco
+                cantidad_blanco = request.POST.get('cantidad_blanco')
+                placa_blanco = request.POST.get('placa_blanco')
+                resultado_blanco = request.POST.get('resultado_blanco')
+                
+                # Actualizar o crear el registro de blanco
+                try:
+                    if blanco_existente:
+                        # Actualizar el registro existente
+                        blanco_existente.cantidad_blanco = cantidad_blanco if cantidad_blanco else '---'
+                        blanco_existente.placa_blanco = placa_blanco if placa_blanco else '---'
+                        blanco_existente.resultado_blanco = resultado_blanco
+                        blanco_existente.save()
+                        logger.debug(f"Blanco actualizado correctamente con ID: {blanco_existente.id_blanco}")
+                    else:
+                        # Crear un nuevo registro
+                        blanco = tableBlanco(
+                            cantidad_blanco=cantidad_blanco if cantidad_blanco else '---',
+                            placa_blanco=placa_blanco if placa_blanco else '---',
+                            resultado_blanco=resultado_blanco,
+                            nombre_bita_cbap=bitacora
+                        )
+                        blanco.save()
+                        logger.debug(f"Nuevo blanco creado con ID: {blanco.id_blanco}")
+                except Exception as e:
+                    logger.error(f"Error al actualizar/crear blanco: {str(e)}")
+                    return JsonResponse({
+                        'success': False,
+                        'error': f"Error al actualizar/crear blanco: {str(e)}"
+                    }, status=400)
+                
+                # === 4. ACTUALIZAR FILAS DINÁMICAS ===
                 # Obtener todas las filas existentes
                 claves_muestra_existentes = list(ClaveMuestraCbap.objects.filter(id_cbap_c_m=bitacora))
                 diluciones_empleadas_existentes = list(DilucionesEmpleadas.objects.filter(id_cbap_dE=bitacora))
@@ -1158,7 +1247,7 @@ def modificar_bitacora(request, bitacora_id):
                         
                         filas_procesadas += 1
                         
-                # === 4. ACTUALIZAR CONTROL DE CALIDAD ===
+                # === 5. ACTUALIZAR CONTROL DE CALIDAD ===
                 controles_calidad_existentes = list(ControlCalidad.objects.filter(id_cbap_cc=bitacora))
                 for i in range(1, 5):
                     # Procesar fecha para control de calidad
@@ -1186,7 +1275,7 @@ def modificar_bitacora(request, bitacora_id):
                             page_1cc=control_calidad_data['page_1cc']
                         )
 
-                # === 5. ACTUALIZAR VERIFICACIÓN DE BALANZA ===
+                # === 6. ACTUALIZAR VERIFICACIÓN DE BALANZA ===
                 verificaciones_balanza_existentes = list(VerificacionBalanza.objects.filter(id_cbap_vb=bitacora))
                 for i in range(1, 3):
                     # Procesar hora para verificación de balanza
@@ -1379,6 +1468,12 @@ def modificar_bitacora(request, bitacora_id):
             control_calidad = ControlCalidad.objects.filter(id_cbap_cc=bitacora)
             verificacion_balanza = VerificacionBalanza.objects.filter(id_cbap_vb=bitacora)
             
+            # Obtener el registro de blanco existente
+            try:
+                blanco = tableBlanco.objects.get(nombre_bita_cbap=bitacora)
+            except tableBlanco.DoesNotExist:
+                blanco = None
+            
             # Preparar formularios con datos existentes
             datos_campo_form = DatosCampoCbapForm(instance=datos_campo)
             
@@ -1396,6 +1491,7 @@ def modificar_bitacora(request, bitacora_id):
                 'control_calidad': control_calidad,
                 'verificacion_balanza': verificacion_balanza,
                 'jefes': jefes,
+                'blanco': blanco,  # Añadir el registro de blanco al contexto
                 'modo': 'modificar'
             }
             

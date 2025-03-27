@@ -531,26 +531,26 @@
                     <tbody id="tabla-body">
                         <!-- Fila adicional debajo de los títulos -->
                         <tr>
-                            <td><input type="text" value="Blanco" readonly></td> <!-- No editable -->
-                            <td><input type="text" name="cantidad_blanco[]" value="---" style="width: 110px;" readonly></td>
-                           
-                            <td style="background:#c3ccd6;"><input type="text" name="dil1_blanco[]" value="---" readonly></td>
-                            <td style="background:#c3ccd6;"><input type="text" name="dil2_blanco[]" value="---" readonly></td>
-                            <td style="background:#c3ccd6;"><input type="text" name="dil3_blanco[]" value="---" readonly></td>
-                            <td style="background:#c3ccd6;"><input type="text" name="dil4_blanco[]" value="---" readonly></td>
-                            <td style="background:#c3ccd6;"><input type="text" name="dir_placa1_blanco[]" value="---" readonly></td>
-                            <td style="background:#c3ccd6;"><input type="text" name="dir_placa2_blanco[]" value="---" readonly></td>
-                            <td style="background:#c3ccd6;"><input type="text" name="promedio1_blanco[]" value="---" readonly></td>
-                            <td style="background:#c3ccd6;"><input type="text" name="dil_placa1_blanco[]" value="---" readonly></td>
-                            <td style="background:#c3ccd6;"><input type="text" name="dil_placa2_blanco[]" value="---" readonly></td>
-                            <td style="background:#c3ccd6;"><input type="text" name="promedio2_blanco[]" value="---" readonly></td>
-                            <td style="background:#c3ccd6;"><input type="text" name="dil_placa1_dup_blanco[]" value="---" readonly></td>
-                            <td style="background:#c3ccd6;"><input type="text" name="dil_placa2_dup_blanco[]" value="---" readonly></td>
-                            <td style="background:#c3ccd6;"><input type="text" name="promedio3_blanco[]" value="---" readonly></td>
+                            <td><input type="text" value="Blanco" style="width: 110px;" readonly></td> <!-- No editable -->
+                            <td style="background:#c3ccd6;"><input type="text" value="---" style="width: 110px;" readonly></td>
+                            <td><input type="text" id="cantidad_blanco" name="cantidad_blanco" value="{{ blanco.cantidad_blanco|default:'---' }}"></td>
+                            <td style="background:#c3ccd6;"><input type="text" value="---" readonly></td>
+                            <td style="background:#c3ccd6;"><input type="text" value="---" readonly></td>
+                            <td style="background:#c3ccd6;"><input type="text" value="---" readonly></td>
+                            <td style="background:#c3ccd6;"><input type="text" value="---" readonly></td>
+                            <td><input type="text" id="placa_blanco" name="placa_blanco" value="{{ blanco.placa_blanco|default:'---' }}"></td>
+                            <td style="background:#c3ccd6;"><input type="text" value="---" readonly></td>
+                            <td style="background:#c3ccd6;"><input type="text" value="---" readonly></td>
+                            <td style="background:#c3ccd6;"><input type="text" value="---" readonly></td>
+                            <td style="background:#c3ccd6;"><input type="text" value="---" readonly></td>
+                            <td style="background:#c3ccd6;"><input type="text" value="---" readonly></td>
+                            <td style="background:#c3ccd6;"><input type="text" value="---" readonly></td>
+                            <td style="background:#c3ccd6;"><input type="text" value="---" readonly></td>
+                            <td style="background:#c3ccd6;"><input type="text" value="---" readonly></td>
                             <!-- Subcolumnas de "Resultado" -->
-                            <td><input type="text" name="resultado_blanco[]" value="---"></td> <!-- Editable -->
+                            <td><input type="text" id="resultado_blanco" name="resultado_blanco" value="{{ blanco.resultado_blanco|default:'' }}"></td> <!-- Editable -->
                             <td style="background:#c3ccd6;"><input type="text" value="UFC/placa" style="width: 150px;" readonly></td> <!-- No editable en "Blanco" -->
-                            <td style="background:#c3ccd6;"><input type="text" name="diferencia_blanco[]" value="---" readonly></td>
+                            <td style="background:#c3ccd6;"><input type="text" value="---" readonly></td>
                         </tr>
                         <!-- Fila principal de inputs -->
                         
