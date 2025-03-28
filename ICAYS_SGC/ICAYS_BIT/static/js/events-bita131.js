@@ -1,6 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
     console.log("✅ Script cargado.");
-    console.log("✅ Script cargado.");
 
     // Botones y elementos de la tabla
     var addRowBtn = document.getElementById('add-row-btn'); // Botón para agregar filas
@@ -22,6 +21,20 @@ document.addEventListener('DOMContentLoaded', function () {
         const checkboxes = row.querySelectorAll('input[type="checkbox"]');
         checkboxes.forEach(checkbox => {
             checkbox.addEventListener('change', function() {
+                // Verificar si hay una medición seleccionada
+                const medicionSelect = row.querySelector('.medicion-select');
+                const medicionValue = medicionSelect ? medicionSelect.value : '';
+                
+                if (!medicionValue && this.checked) {
+                    // Si no hay medición seleccionada y se está marcando el checkbox
+                    mostrarModal('Advertencia', 'No se ha seleccionado ninguna medición. Por favor, seleccione una medición antes de continuar.');
+                    
+                    // Desmarcar el checkbox
+                    this.checked = false;
+                    return;
+                }
+                
+                // Si hay medición o se está desmarcando, continuar normalmente
                 const hiddenInput = checkbox.nextElementSibling;
                 if (checkbox.checked) {
                     hiddenInput.value = checkbox.value;
@@ -30,7 +43,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
                 
                 // Recalcular el resultado cuando cambia un checkbox
-                if (!detalleBody) { // Solo si no estamos en vista de detalles
+                if (!row.closest('#tabla-detalle')) { // Solo si no estamos en vista de detalles
                     calcularResultado(row);
                 }
             });
@@ -62,6 +75,369 @@ document.addEventListener('DOMContentLoaded', function () {
                 validarCampoPlaca(this);
             });
         });
+    }
+
+    /**
+     * Esta función determina qué promedio usar (priorizando el último disponible)
+     * y qué factor de dilución aplicar según los checkboxes seleccionados.
+     * 
+     * @param {HTMLElement} fila - La fila de la tabla que contiene los datos
+     */
+    function calcularResultado(fila) {
+        // 1. OBTENCIÓN DE ELEMENTOS
+        // Obtener los campos de promedio (de menor a mayor dilución)
+        const promedio1Input = fila.querySelector('.promedio');    // Promedio de primera dilución
+        const promedio2Input = fila.querySelector('.promedio2');   // Promedio de segunda dilución
+        const promedio3Input = fila.querySelector('.promedio3');   // Promedio de tercera dilución
+        
+        // Obtener los checkboxes de dilución (de menor a mayor factor)
+        const dilucion1Checkbox = fila.querySelector('[name^="dE_1_"]:checked');  // Factor 1
+        const dilucion2Checkbox = fila.querySelector('[name^="dE_2_"]:checked');  // Factor 10
+        const dilucion3Checkbox = fila.querySelector('[name^="dE_3_"]:checked');  // Factor 100
+        const dilucion4Checkbox = fila.querySelector('[name^="dE_4_"]:checked');  // Factor 1000
+        
+        // Obtener el campo donde se mostrará el resultado final
+        const resultadoInput = fila.querySelector('.resultadoF');
+        if (!resultadoInput) return; // Si no existe el campo, terminar
+        
+        // Verificar si hay al menos una dilución seleccionada
+        const hayDilucionSeleccionada = dilucion1Checkbox || dilucion2Checkbox || dilucion3Checkbox || dilucion4Checkbox;
+        
+        // Obtener la medición seleccionada
+        const medicionSelect = fila.querySelector('.medicion-select');
+        const medicionValue = medicionSelect ? medicionSelect.value : '';
+        
+        // Validar que se haya seleccionado una medición
+        if (hayDilucionSeleccionada && !medicionValue) {
+            // Si hay diluciones seleccionadas pero no hay medición, mostrar advertencia
+            mostrarModal('Advertencia', 'No se ha seleccionado ninguna medición. Por favor, seleccione una medición antes de continuar.');
+            
+            // Desmarcar el checkbox que acaba de ser seleccionado
+            if (dilucion1Checkbox) dilucion1Checkbox.checked = false;
+            if (dilucion2Checkbox) dilucion2Checkbox.checked = false;
+            if (dilucion3Checkbox) dilucion3Checkbox.checked = false;
+            if (dilucion4Checkbox) dilucion4Checkbox.checked = false;
+            
+            // Actualizar los valores de los inputs ocultos
+            const hiddenInputs = fila.querySelectorAll('input[type="hidden"][name^="dE_"]');
+            hiddenInputs.forEach(input => {
+                input.value = '0';
+            });
+            
+            // Mostrar "0" en el resultado cuando no hay medición seleccionada
+            resultadoInput.value = '0';
+            return;
+        }
+        
+        // 2. FUNCIÓN AUXILIAR PARA PROCESAR VALORES ESPECIALES
+        /**
+         * Convierte valores de texto especiales a números para cálculos
+         * - ">250" se convierte a 250
+         * - Valores con "**" al final se convierten quitando los asteriscos
+         * - Valores vacíos o no numéricos se convierten a 0
+         */
+       /**
+         * Esta función determina qué promedio usar (priorizando el último disponible)
+         * y qué factor de dilución aplicar según los checkboxes seleccionados.
+         * 
+         * @param {HTMLElement} fila - La fila de la tabla que contiene los datos
+         */
+ 
+        /**
+         * Calcula la diferencia entre lecturas duplicadas y verifica si está dentro del rango aceptable
+         * 
+         * Fórmula: (|placa1 - placa2| / promedio) × 100 ≤ 5%
+         * Muestra el resultado en verde si es aceptable (≤5%) o en rojo si no es aceptable (>5%)
+         * 
+         * @param {HTMLElement} fila - La fila de la tabla que contiene los datos
+         */
+        function calcularDiferencia(fila) {
+            // Obtener el campo de diferencia
+            const diferenciaInput = fila.querySelector('[name^="diferencia_r_"]');
+            if (!diferenciaInput) return;
+            
+            // Obtener los valores de las placas y promedios
+            // Primero intentamos con el primer par de placas
+            let placa1Input = fila.querySelector('.placa1');
+            let placa2Input = fila.querySelector('.placa2');
+            let promedioInput = fila.querySelector('.promedio');
+            
+            // Si no hay valores en el primer par, intentamos con el segundo par
+            if ((!placa1Input || !placa1Input.value) && (!placa2Input || !placa2Input.value)) {
+                placa1Input = fila.querySelector('.placa3');
+                placa2Input = fila.querySelector('.placa4');
+                promedioInput = fila.querySelector('.promedio2');
+            }
+            
+            // Si no hay valores en el segundo par, intentamos con el tercer par
+            if ((!placa1Input || !placa1Input.value) && (!placa2Input || !placa2Input.value)) {
+                placa1Input = fila.querySelector('.placa5');
+                placa2Input = fila.querySelector('.placa6');
+                promedioInput = fila.querySelector('.promedio3');
+            }
+            
+            // Si no hay valores en ningún par, establecer "N/A"
+            if ((!placa1Input || !placa1Input.value) && (!placa2Input || !placa2Input.value)) {
+                diferenciaInput.value = "";
+                
+                // Eliminar el contenedor personalizado si existe
+                const contenedorExistente = diferenciaInput.parentNode.querySelector('.diferencia-container');
+                if (contenedorExistente) {
+                    contenedorExistente.remove();
+                }
+                
+                // Mostrar el input original
+                diferenciaInput.style.display = '';
+                diferenciaInput.style.color = '';
+                
+                return;
+            }
+            
+            // Función para convertir valores especiales a números
+            function parseValor(valor) {
+                if (!valor) return 0;
+                if (valor === ">250") return 250;
+                // Si el valor termina con **, quitarlos para el cálculo
+                if (typeof valor === 'string' && valor.endsWith('**')) {
+                    return parseFloat(valor.replace('**', '')) || 0;
+                }
+                return parseFloat(valor) || 0;
+            }
+            
+            // Obtener los valores numéricos
+            const placa1 = parseValor(placa1Input.value);
+            const placa2 = parseValor(placa2Input.value);
+            
+            // Si alguna placa es 0, no calcular diferencia
+            if (placa1 === 0 || placa2 === 0) {
+                diferenciaInput.value = "0";
+                
+                // Eliminar el contenedor personalizado si existe
+                const contenedorExistente = diferenciaInput.parentNode.querySelector('.diferencia-container');
+                if (contenedorExistente) {
+                    contenedorExistente.remove();
+                }
+                
+                // Mostrar el input original
+                diferenciaInput.style.display = '';
+                diferenciaInput.style.color = '';
+                
+                return;
+            }
+            
+            // Calcular el promedio (o usar el valor del campo si existe)
+            let promedio;
+            if (promedioInput && promedioInput.value) {
+                promedio = parseValor(promedioInput.value);
+            } else {
+                promedio = (placa1 + placa2) / 2;
+            }
+            
+            // Si el promedio es 0, no calcular diferencia para evitar división por cero
+            if (promedio === 0) {
+                diferenciaInput.value = "0";
+                
+                // Eliminar el contenedor personalizado si existe
+                const contenedorExistente = diferenciaInput.parentNode.querySelector('.diferencia-container');
+                if (contenedorExistente) {
+                    contenedorExistente.remove();
+                }
+                
+                // Mostrar el input original
+                diferenciaInput.style.display = '';
+                diferenciaInput.style.color = '';
+                
+                return;
+            }
+            
+            // Calcular la diferencia porcentual
+            const diferenciaPorcentual = (Math.abs(placa1 - placa2) / promedio) * 100;
+            
+            // Formatear el resultado con 2 decimales
+            const diferenciaFormateada = diferenciaPorcentual.toFixed(2);
+            
+            // Determinar si la diferencia está dentro del rango aceptable (≤ 5%)
+            const esDiferenciaAceptable = diferenciaPorcentual <= 5;
+            
+            // Establecer el valor en el input original (para el envío del formulario)
+            diferenciaInput.value = diferenciaFormateada + "%";
+            
+            // Ocultar el input original
+            diferenciaInput.style.display = 'none';
+            
+            // Verificar si ya existe un contenedor personalizado
+            let contenedor = diferenciaInput.parentNode.querySelector('.diferencia-container');
+            
+            if (!contenedor) {
+                // Crear un nuevo contenedor
+                contenedor = document.createElement('div');
+                contenedor.className = 'diferencia-container';
+                contenedor.style.display = 'flex';
+                contenedor.style.flexDirection = 'column';
+                contenedor.style.alignItems = 'center';
+                contenedor.style.justifyContent = 'center';
+                contenedor.style.height = '100%';
+                contenedor.style.width = '100%';
+                
+                // Insertar el contenedor después del input
+                diferenciaInput.parentNode.appendChild(contenedor);
+            } else {
+                // Limpiar el contenedor existente
+                contenedor.innerHTML = '';
+            }
+            
+            // Crear el elemento para el porcentaje
+            const porcentajeElement = document.createElement('div');
+            porcentajeElement.textContent = diferenciaFormateada + '%';
+            porcentajeElement.style.fontWeight = 'bold';
+            porcentajeElement.style.fontSize = '14px';
+            
+            // Crear el elemento para el mensaje
+            const mensajeElement = document.createElement('div');
+            if (esDiferenciaAceptable) {
+                mensajeElement.textContent = 'Aceptable';
+                mensajeElement.style.color = '#28a745'; // Verde (Bootstrap success)
+            } else {
+                mensajeElement.textContent = 'Excede el 5%';
+                mensajeElement.style.color = '#dc3545'; // Rojo (Bootstrap danger)
+            }
+            mensajeElement.style.fontSize = '12px';
+            
+            // Agregar los elementos al contenedor
+            contenedor.appendChild(porcentajeElement);
+            contenedor.appendChild(mensajeElement);
+            
+            // Agregar tooltip para información adicional
+            contenedor.title = esDiferenciaAceptable ? 
+                'Diferencia aceptable (≤ 5%)' : 
+                'Diferencia no aceptable (> 5%)';
+        }
+        function parseValor(valor) {
+            if (!valor) return 0;
+            if (valor === ">250") return 250;
+            // Si el valor termina con **, quitarlos para el cálculo
+            if (typeof valor === 'string' && valor.endsWith('**')) {
+                return parseFloat(valor.replace('**', '')) || 0;
+            }
+            return parseFloat(valor) || 0;
+        }
+        
+        // 3. SELECCIÓN DE PROMEDIO Y FACTOR DE DILUCIÓN
+        let promedioUsado = 0;
+        let factorDilucion = 1;
+        let dilucionUsada = ""; // Para registro o depuración
+        
+        // Prioridad: promedio3 > promedio2 > promedio1
+        // Siempre se usa el promedio de la dilución más alta disponible
+        if (promedio3Input && promedio3Input.value) {
+            promedioUsado = parseValor(promedio3Input.value);
+            dilucionUsada = "tercera";
+            
+            // Para la tercera dilución, usar el factor más alto disponible
+            if (dilucion4Checkbox) {
+                factorDilucion = 1000;
+                dilucionUsada += " (factor 1000)";
+            } else if (dilucion3Checkbox) {
+                factorDilucion = 100;
+                dilucionUsada += " (factor 100)";
+            } else if (dilucion2Checkbox) {
+                factorDilucion = 10;
+                dilucionUsada += " (factor 10)";
+            } else {
+                factorDilucion = 1;
+                dilucionUsada += " (factor 1)";
+            }
+        } else if (promedio2Input && promedio2Input.value) {
+            promedioUsado = parseValor(promedio2Input.value);
+            dilucionUsada = "segunda";
+            
+            // Para la segunda dilución, usar el factor más alto disponible hasta 100
+            if (dilucion3Checkbox) {
+                factorDilucion = 100;
+                dilucionUsada += " (factor 100)";
+            } else if (dilucion2Checkbox) {
+                factorDilucion = 10;
+                dilucionUsada += " (factor 10)";
+            } else {
+                factorDilucion = 1;
+                dilucionUsada += " (factor 1)";
+            }
+        } else if (promedio1Input && promedio1Input.value) {
+            promedioUsado = parseValor(promedio1Input.value);
+            dilucionUsada = "primera";
+            
+            // Para la primera dilución, usar el factor más alto disponible hasta 10
+            if (dilucion2Checkbox) {
+                factorDilucion = 10;
+                dilucionUsada += " (factor 10)";
+            } else {
+                factorDilucion = 1;
+                dilucionUsada += " (factor 1)";
+            }
+        }
+        
+        // 4. CÁLCULO DEL RESULTADO FINAL
+        let resultado = promedioUsado * factorDilucion;
+        
+        // Opcional: registrar información para depuración
+        console.log(`Cálculo: ${promedioUsado} × ${factorDilucion} = ${resultado} (usando dilución ${dilucionUsada})`);
+        
+        // 5. FORMATEO DEL RESULTADO SEGÚN REGLAS ESPECÍFICAS
+        if (resultado > 250 * factorDilucion) {
+            // Si el resultado supera el límite máximo detectable
+            resultadoInput.value = ">" + (250 * factorDilucion);
+        } else if (resultado < 25 && resultado > 0) {
+            // Si el resultado es menor a 25, se marca como estimado con "**"
+            resultadoInput.value = resultado + "**";
+        } else if (resultado === 0) {
+            // Si el resultado es exactamente 0, mostrar "0"
+            resultadoInput.value = "0";
+        } else {
+            // Caso normal: mostrar el valor tal cual
+            resultadoInput.value = resultado.toString();
+        }
+        
+        // 6. CÁLCULOS ADICIONALES
+        // Calcular la diferencia si es necesario (para comparaciones o validaciones)
+        calcularDiferencia(fila);
+    }
+
+    /**
+     * Calcula la diferencia entre el resultado obtenido y un valor de referencia
+     * 
+     * Esta función puede utilizarse para comparar el resultado con un valor esperado,
+     * un límite normativo, o resultados anteriores.
+     * 
+     * @param {HTMLElement} fila - La fila de la tabla que contiene los datos
+     */
+    function calcularDiferencia(fila) {
+        const resultadoInput = fila.querySelector('.resultadoF');
+        const diferenciaInput = fila.querySelector('[name^="diferencia_r_"]');
+        
+        if (resultadoInput && diferenciaInput) {
+            // Obtener el valor del resultado (quitando caracteres especiales si es necesario)
+            let valorResultado = resultadoInput.value;
+            if (valorResultado.startsWith('>')) {
+                valorResultado = valorResultado.substring(1);
+            }
+            if (valorResultado.endsWith('**')) {
+                valorResultado = valorResultado.replace('**', '');
+            }
+            
+            // Convertir a número para cálculos
+            valorResultado = parseFloat(valorResultado) || 0;
+            
+            // Aquí se puede implementar la lógica específica para calcular diferencias
+            // Por ejemplo, comparar con un valor de referencia o límite normativo
+            
+            // Por ahora, establecemos un valor por defecto
+            diferenciaInput.value = "N/A";
+            
+            // Ejemplo de posible implementación futura:
+            // const valorReferencia = obtenerValorReferencia(fila);
+            // const diferenciaPorcentual = ((valorResultado - valorReferencia) / valorReferencia) * 100;
+            // diferenciaInput.value = diferenciaPorcentual.toFixed(2) + "%";
+        }
     }
 
     // Función para actualizar el campo UFC/placa basado en la selección de medición
@@ -333,6 +709,35 @@ document.addEventListener('DOMContentLoaded', function () {
                     checkboxInput.value = campo === 'dE_1' ? '1' : 
                                         campo === 'dE_2' ? '0.1' : 
                                         campo === 'dE_3' ? '0.01' : '0.001';
+                    
+                    // Agregar evento para validar medición al marcar checkbox
+                    checkboxInput.addEventListener('change', function() {
+                        // Verificar si se ha seleccionado una medición antes de permitir marcar el checkbox
+                        const medicionSelect = newRow.querySelector('.medicion-select');
+                        if (this.checked && (!medicionSelect || !medicionSelect.value)) {
+                            // Desmarcar el checkbox
+                            this.checked = false;
+                            
+                            // Mostrar modal de advertencia
+                            mostrarModal(
+                                "Medición no seleccionada", 
+                                "Debe seleccionar un tipo de medición antes de marcar las diluciones."
+                            );
+                            return;
+                        }
+                        
+                        const hiddenInput = this.nextElementSibling;
+                        if (this.checked) {
+                            hiddenInput.value = this.value;
+                        } else {
+                            hiddenInput.value = '0';
+                        }
+                        
+                        // Recalcular el resultado cuando cambia un checkbox
+                        if (!detalleBody) { // Solo si no estamos en vista de detalles
+                            calcularResultado(newRow);
+                        }
+                    });
 
                     const hiddenInput = document.createElement('input');
                     hiddenInput.type = 'hidden';
@@ -677,6 +1082,50 @@ document.addEventListener('DOMContentLoaded', function () {
         mostrarCheckboxesDiluciones();
     }
 });
+
+// Función para mostrar modal genérico
+function mostrarModal(titulo, mensaje) {
+    // Verificar si ya existe un modal en el DOM
+    let modalExistente = document.getElementById('modalAdvertencia');
+    
+    if (modalExistente) {
+        // Si ya existe, actualizar su contenido
+        document.getElementById('modalTitulo').textContent = titulo;
+        document.getElementById('modalMensaje').textContent = mensaje;
+        
+        // Mostrar el modal usando Bootstrap
+        const modal = new bootstrap.Modal(modalExistente);
+        modal.show();
+    } else {
+        // Crear el modal desde cero
+        const modalHTML = `
+        <div class="modal fade" id="modalAdvertencia" tabindex="-1" aria-labelledby="modalTitulo" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalTitulo">${titulo}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p id="modalMensaje">${mensaje}</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        `;
+        
+        // Agregar el modal al final del body
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        
+        // Mostrar el modal usando Bootstrap
+        const modalElement = document.getElementById('modalAdvertencia');
+        const modal = new bootstrap.Modal(modalElement);
+        modal.show();
+    }
+}
 
 // Función para actualizar el número de filas
 function actualizarNumFilas() {
