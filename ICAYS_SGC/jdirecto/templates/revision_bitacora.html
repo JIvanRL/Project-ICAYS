@@ -532,8 +532,8 @@
                         <!-- Fila adicional debajo de los títulos -->
                         <tr>
                             <td><input type="text" value="Blanco" style="width: 110px;" readonly></td> <!-- No editable -->
-                            <td style="background:#c3ccd6;"><input type="text" value="---" style="width: 110px;" readonly></td>
-                            <td><input type="text" id="cantidad_blanco" name="cantidad_blanco" value="{{ blanco.cantidad_blanco|default:'---' }}"></td>
+                            
+                            <td><input type="text" id="cantidad_blanco" name="cantidad_blanco" style="width: 150px;" value="{{ blanco.cantidad_blanco|default:'---' }}"></td>
                             <td style="background:#c3ccd6;"><input type="text" value="---" readonly></td>
                             <td style="background:#c3ccd6;"><input type="text" value="---" readonly></td>
                             <td style="background:#c3ccd6;"><input type="text" value="---" readonly></td>
@@ -558,8 +558,8 @@
                         {% for fila in filas_datos %}
                             <tr>
                                 <!-- Datos de ClaveMuestra -->
-                                <td><input type="text" name="clave_c_m_{{ fila.index  }}" id="clave_c_m_{{ forloop.counter }}" value="{{ fila.clave_muestra.clave_c_m|default:'' }}"></td>
-                                <td><input type="text" name="cantidad_c_m_{{ fila.index  }}" id="cantidad_c_m_{{ forloop.counter }}" value="{{ fila.clave_muestra.cantidad_c_m|default:'' }}"></td>
+                                <td><input type="text" name="clave_c_m_{{ fila.index  }}" id="clave_c_m_{{ forloop.counter }}" value="{{ fila.clave_muestra.clave_c_m|default:'---' }}"></td>
+                                <td><input type="text" name="cantidad_c_m_{{ fila.index  }}" id="cantidad_c_m_{{ forloop.counter }}" value="{{ fila.clave_muestra.cantidad_c_m|default:'---' }}"></td>
                                
                         
                                 <!-- Diluciones empleadas -->
@@ -599,31 +599,31 @@
 <td><input type="text" name="placa_dD2_{{ fila.index }}" class="placa2" id="placa_dD2_{{ forloop.counter }}" 
     value="{{ fila.directa.placa_dD2|default:'---' }}"></td>
 <td><input type="text" name="promedio_dD_{{ fila.index }}" class="promedio" id="promedio_dD_{{ forloop.counter }}" 
-    value="{{ fila.directa.promedio_dD|default:'' }}"></td>
+    value="{{ fila.directa.promedio_dD|default:'---' }}"></td>
 
 
 <!-- Dilución -->
 <td><input type="text" name="placa_d_{{ fila.index }}" class="placa3" id="placa_d_{{ forloop.counter }}" 
-    value="{{ fila.dilucion.placa_d|default:'' }}"></td>
+    value="{{ fila.dilucion.placa_d|default:'---' }}"></td>
 <td><input type="text" name="placa_d2_{{ fila.index }}" class="placa4" id="placa_d2_{{ forloop.counter }}" 
-    value="{{ fila.dilucion.placa_d2|default:'' }}"></td>
+    value="{{ fila.dilucion.placa_d2|default:'---' }}"></td>
 <td><input type="text" name="promedio_d_{{ fila.index }}" class="promedio2" id="promedio_d_{{ forloop.counter }}" 
-    value="{{ fila.dilucion.promedio_d|default:'' }}"></td>
+    value="{{ fila.dilucion.promedio_d|default:'---' }}"></td>
 <td><input type="text" name="placa_d_2_{{ fila.index }}" class="placa5" id="placa_d_2_{{ forloop.counter }}" 
-    value="{{ fila.dilucion.placa_d_2|default:'' }}"></td>
+    value="{{ fila.dilucion.placa_d_2|default:'---' }}"></td>
 <td><input type="text" name="placa_d2_2_{{ fila.index }}" class="placa6" id="placa_d2_2_{{ forloop.counter }}" 
-    value="{{ fila.dilucion.placa_d2_2|default:'' }}"></td>
+    value="{{ fila.dilucion.placa_d2_2|default:'---' }}"></td>
 <td><input type="text" name="promedio_d_2_{{ fila.index }}" class="promedio3" id="promedio_d_2_{{ forloop.counter }}" 
-    value="{{ fila.dilucion.promedio_d_2|default:'' }}"></td>
+    value="{{ fila.dilucion.promedio_d_2|default:'---' }}"></td>
 
 
 <!-- Resultado -->
 <td><input type="text" name="resultado_r_{{ fila.index }}" id="resultado_r_{{ forloop.counter }}" 
-    value="{{ fila.resultado.resultado_r|default_if_none:'' }}"></td>
+    value="{{ fila.resultado.resultado_r|default:'---' }}"></td>
 <td><input type="text" name="ufC_placa_r_{{ fila.index }}" id="ufC_placa_r_{{ forloop.counter }}" 
-    value="{{ fila.resultado.ufC_placa_r|default_if_none:'' }}"></td>
+    value="{{ fila.resultado.ufC_placa_r|default:'---' }}"></td>
 <td><input type="text" name="diferencia_r_{{ fila.index }}" id="diferencia_r_{{ forloop.counter }}" 
-    value="{{ fila.resultado.diferencia_r|default_if_none:'' }}"></td>  
+    value="{{ fila.resultado.diferencia_r|default:'---' }}"></td>  
                             
                             </tr>
                             {% empty %}

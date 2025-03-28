@@ -552,7 +552,7 @@
                             <!-- Subcolumnas de "Resultado" -->
                             <td><input type="text" id="resultado_blanco" name="resultado_blanco" value="{{ blanco.resultado_blanco|default:'---' }}"></td> <!-- Editable -->
                             <td style="background:#c3ccd6;"><input type="text" value="UFC/placa" style="width: 150px;" readonly></td> <!-- No editable en "Blanco" -->
-                            <td style="background:#c3ccd6;"><input type="text" value="---" readonly></td>
+                            
                         </tr>
                         <!-- Fila principal de inputs -->
                         
@@ -617,16 +617,16 @@
 <td><input type="text" name="placa_d2_2_{{ fila.index }}" class="placa6" id="placa_d2_2_{{ forloop.counter }}" 
     value="{{ fila.dilucion.placa_d2_2|default:'' }}"></td>
 <td><input type="text" name="promedio_d_2_{{ fila.index }}" class="promedio3" id="promedio_d_2_{{ forloop.counter }}" 
-    value="{{ fila.dilucion.promedio_d_2|default:'' }}"></td>
+    value="{{ fila.dilucion.promedio_d_2|default:'---' }}"></td>
 
 
 <!-- Resultado -->
 <td><input type="text" name="resultado_r_{{ fila.index }}" id="resultado_r_{{ forloop.counter }}" 
-    value="{{ fila.resultado.resultado_r|default_if_none:'' }}"></td>
+    value="{{ fila.resultado.resultado_r|default:'' }}"></td>
 <td><input type="text" name="ufC_placa_r_{{ fila.index }}" id="ufC_placa_r_{{ forloop.counter }}" 
-    value="{{ fila.resultado.ufC_placa_r|default_if_none:'' }}"></td>
+    value="{{ fila.resultado.ufC_placa_r|default:'' }}"></td>
 <td><input type="text" name="diferencia_r_{{ fila.index }}" id="diferencia_r_{{ forloop.counter }}" 
-    value="{{ fila.resultado.diferencia_r|default_if_none:'' }}"></td>  
+    value="{{ fila.resultado.diferencia_r|default:'' }}"></td>  
                             
                             </tr>
                             {% empty %}
