@@ -28,6 +28,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 } else {
                     hiddenInput.value = '0';
                 }
+                
+                // Recalcular el resultado cuando cambia un checkbox
+                if (!detalleBody) { // Solo si no estamos en vista de detalles
+                    calcularResultado(row);
+                }
             });
         });
     }
@@ -187,6 +192,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     ufcPlacaInput.value = "";
                 }
             }
+        }
+        
+        // Recalcular el resultado cuando cambia la medición
+        if (!esVistaDetalles) {
+            calcularResultado(fila);
         }
     }
 
@@ -425,6 +435,10 @@ document.addEventListener('DOMContentLoaded', function () {
                             textInput.classList.add('promedio3');
                             textInput.setAttribute('readonly', true); // Hacer el campo no editable
                             break;
+                        case 'resultado_r':
+                            textInput.classList.add('resultadoF');
+                            textInput.setAttribute('readonly', true); // Hacer el campo no editable
+                            break;
                         case 'ufC_placa_r':
                             textInput.classList.add('ufc-placa');
                             break;
@@ -512,7 +526,9 @@ document.addEventListener('DOMContentLoaded', function () {
             
             console.log(`Valor original: ${valor}, Valor redondeado: ${valorRedondeado}`); // Para depuración
             
-            if (valorRedondeado < 25) {
+            if (valorRedondeado > 250) {
+                return ">250";
+            } else if (valorRedondeado < 25) {
                 return valorRedondeado + "**";
             } else {
                 return valorRedondeado.toString();
@@ -529,7 +545,12 @@ document.addEventListener('DOMContentLoaded', function () {
             let placa2 = placa2Input.value === ">250" ? 250 : parseFloat(placa2Input.value) || 0;
             
             const promedio1 = (placa1 + placa2) / 2;
-            fila.querySelector('.promedio').value = formatearPromedio(promedio1);
+            const promedioInput = fila.querySelector('.promedio');
+            if (promedioInput) {
+                promedioInput.value = formatearPromedio(promedio1);
+                // Recalcular el resultado cuando cambia un promedio
+                calcularResultado(fila);
+            }
         }
 
         // Calcular promedio2 (placa3 y placa4)
@@ -542,7 +563,12 @@ document.addEventListener('DOMContentLoaded', function () {
             let placa4 = placa4Input.value === ">250" ? 250 : parseFloat(placa4Input.value) || 0;
             
             const promedio2 = (placa3 + placa4) / 2;
-            fila.querySelector('.promedio2').value = formatearPromedio(promedio2);
+            const promedioInput = fila.querySelector('.promedio2');
+            if (promedioInput) {
+                promedioInput.value = formatearPromedio(promedio2);
+                // Recalcular el resultado cuando cambia un promedio
+                calcularResultado(fila);
+            }
         }
 
         // Calcular promedio3 (placa5 y placa6)
@@ -555,7 +581,12 @@ document.addEventListener('DOMContentLoaded', function () {
             let placa6 = placa6Input.value === ">250" ? 250 : parseFloat(placa6Input.value) || 0;
             
             const promedio3 = (placa5 + placa6) / 2;
-            fila.querySelector('.promedio3').value = formatearPromedio(promedio3);
+            const promedioInput = fila.querySelector('.promedio3');
+            if (promedioInput) {
+                promedioInput.value = formatearPromedio(promedio3);
+                // Recalcular el resultado cuando cambia un promedio
+                calcularResultado(fila);
+            }
         }
         
         // Manejar cambios en el select de medición
