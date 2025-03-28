@@ -36,10 +36,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 
                 // Si hay medición o se está desmarcando, continuar normalmente
                 const hiddenInput = checkbox.nextElementSibling;
-                if (checkbox.checked) {
-                    hiddenInput.value = checkbox.value;
-                } else {
-                    hiddenInput.value = '0';
+                if (hiddenInput) {
+                    if (checkbox.checked) {
+                        hiddenInput.value = checkbox.value;
+                    } else {
+                        hiddenInput.value = '0';
+                    }
                 }
                 
                 // Recalcular el resultado cuando cambia un checkbox
