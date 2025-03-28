@@ -180,3 +180,33 @@ h1 {
 .oculto {
   display: none;
 }
+
+
+.formula-text {
+  font-family: "Times New Roman", serif;
+  font-size: 12px;
+  text-align: center;
+}
+
+.formula-part {
+  display: block;
+  font-family: "Times New Roman", serif;
+  font-size: 12px;
+  margin-bottom: 5px;
+}
+
+.formula-line {
+  display: block;
+
+  margin: 5px 0;
+}
+
+.formula-operator {
+  font-family: "Times New Roman", serif;
+  font-size: 18px;
+  font-weight: bold;
+  color: #007bff; /* Color azul para resaltar */
+}
+p{
+  font-size: 12px;
+}

@@ -1,24 +1,4 @@
-// Función para abrir la modal de firma
-function abrirModalFirma() {
-    // Ocultar el modal de enviar
-    const modalEnviar = document.getElementById('enviar');
-    if (modalEnviar) {
-        const modalEnv = bootstrap.Modal.getInstance(modalEnviar);
-        if (modalEnv) {
-            modalEnv.hide();
-        }
-    }
-
-    // Mostrar el modal de firma
-    const modalFirmar = document.getElementById('firmar');
-    if (modalFirmar) {
-        const modalFirma = new bootstrap.Modal(modalFirmar, {
-            backdrop: 'static',
-            keyboard: false
-        });
-        modalFirma.show();
-    }
-}
+// Load the full build.
 // Variable global para la instancia del modal de error
 let modalErrorInstance = null;
 
@@ -61,6 +41,7 @@ document.addEventListener('hidden.bs.modal', function (event) {
         if (backdrop) backdrop.remove();
     }
 });
+
 // Variables globales para mantener una única instancia de cada modal
 let modalFirmaInstance = null;
 let modalExitoInstance = null;
@@ -70,7 +51,6 @@ let modalGuardarExitoInstance = null;
 function limpiarUI() {
     // Eliminar todos los backdrops
     $('.modal-backdrop').remove();
-    
     // Restaurar el estado del body
     $('body').removeClass('modal-open');
     $('body').css({
@@ -139,14 +119,29 @@ function getModalGuardarExito() {
     }
     return modalGuardarExitoInstance;
 }
-//Guardar formulario
-// Función para guardar el formulario
+
+import { recolectarDatosTabla } from './events-bita131.js';
+
+// Función modificada para guardar el formulario
 function guardarFormulario() {
+    // Verificar si la bitácora está vacía
+    if (esBitacoraVacia()) {
+        mostrarError('Esta bitácora está vacía. No se puede guardar una bitácora sin datos.');
+        return false;
+    }
+
     const formData = new FormData($('#form-principal')[0]);
+     // Agregar los datos de la tabla
+     const datosTabla = recolectarDatosTabla();
     formData.append('accion', 'guardar');
 
+    Object.keys(datosTabla).forEach(key => {
+        formData.append(key, JSON.stringify(datosTabla[key]));
+        formData.append('num_filas', datosTabla.num_filas);
+    });
+
     $.ajax({
-        url: '/registrar_bitacora/',
+        url: '/microbiologia/registrar_bitacora/',
         type: 'POST',
         data: formData,
         processData: false,
@@ -158,18 +153,15 @@ function guardarFormulario() {
         },
         success: function(data) {
             console.log('Respuesta recibida:', data);
-            
-            if (data && data.success) {
-                // Mostrar mensaje de éxito
+            // Verificar si la respuesta es exitosa
+            if (data && data.success === true) {
                 $('#mensajeExitoTextoGuardar').text(data.message);
                 getModalGuardarExito().modal('show');
                 
-                // Redirigir automáticamente después de 2 segundos
                 setTimeout(function() {
                     window.location.href = data.redirect_url;
                 }, 2000);
             } else {
-                // Mostrar mensaje de error
                 const errorMsg = data.error || 'Error al guardar la bitácora.';
                 $('#error-guardar').text(errorMsg).show();
                 getModalError().modal('show');
@@ -179,10 +171,12 @@ function guardarFormulario() {
             console.error('Error en la solicitud:', status, error);
             let errorMsg = 'Error al guardar la bitácora.';
             
-            try {
-                const errorData = JSON.parse(xhr.responseText);
+            try { // Intentar analizar la respuesta como JSON
+                const errorData = JSON.parse(xhr.responseText); // Parsear la respuesta
                 if (errorData.error) {
                     errorMsg = errorData.error;
+                } else if (errorData.placa_d || errorData.placa_d2 || errorData.promedio_d) {
+                    errorMsg = 'Error en formulario Dilución 3: ' + JSON.stringify(errorData);
                 }
             } catch (e) {
                 console.error('Error al parsear la respuesta:', e);
@@ -193,82 +187,452 @@ function guardarFormulario() {
         }
     });
 }
-
-
+// Exportar la función para uso global
+window.guardarFormulario = guardarFormulario;
 
 // Función revisada para enviar formulario con jQuery
 function enviarFormulario() {
-    const formData = new FormData($('#form-principal')[0]);
-    formData.append('accion', 'enviar');
-
-    // Validar contraseña
-    const password = $('#password').val();
-    if (!password) {
-        $('#error-message').text('La contraseña es requerida.').show();
-        return;
+    console.log('Iniciando envío de formulario...');
+    
+    // Verificar si la bitácora está vacía
+    if (esBitacoraVacia()) {
+        mostrarError('Esta bitácora está vacía. No se puede enviar una bitácora sin datos.');
+        return false;
     }
+    
+    // Validar que se haya seleccionado un usuario destino y proporcionado una contraseña
+    const usuarioDestino = $('#usuario_destino').val();
+    const password = $('#password').val();
+    
+    if (!usuarioDestino) {
+        $('#error-message').text('Debe seleccionar un usuario destino').show();
+        return false;
+    }
+    
+    if (!password) {
+        $('#error-message').text('Debe ingresar su contraseña').show();
+        return false;
+    }
+    
+    // Crear FormData con todos los datos del formulario
+    const formData = new FormData($('#form-principal')[0]);
+    
+    // Obtener datos de la tabla
+    const datosTabla = recolectarDatosTabla();
+    
+    // Agregar acción y datos adicionales
+    formData.append('accion', 'enviar');
+    formData.append('usuario_destino', usuarioDestino);
+    formData.append('password', password);
+
+    // Agregar datos de la tabla
+    Object.keys(datosTabla).forEach(key => {
+        formData.append(key, JSON.stringify(datosTabla[key]));
+    });
+    formData.append('num_filas', datosTabla.num_filas);
+
+    // Debug
+    console.log('Datos a enviar:', {
+        accion: 'enviar',
+        usuario_destino: usuarioDestino,
+        has_password: !!password,
+        num_filas: datosTabla.num_filas
+    });
 
     $.ajax({
-        url: '/registrar_bitacora/',
+        url: '/microbiologia/registrar_bitacora/',  // Cambiado a registrar_bitacora
         type: 'POST',
         data: formData,
         processData: false,
         contentType: false,
-        dataType: 'json', // Especificar explícitamente que esperamos JSON
         headers: {
             'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val() // Obtener token dinámicamente
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        success: function(response) {
+            console.log('Respuesta:', response);
+            if (response.success) {
+                $('#firmar').modal('hide');
+                $('#mensajeExitoTexto').text(response.message || 'Bitácora enviada correctamente');
+                $('#mensajeExito').modal('show');
+                
+                // Redireccionar después de mostrar el mensaje
+                setTimeout(function() {
+                    window.location.href = response.redirect_url;
+                }, 2000);
+            } else {
+                const errorMsg = response.error || response.message || 'Error al enviar la bitácora';
+                $('#error-message').text(errorMsg).show();
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error al enviar:', {
+                status: xhr.status,
+                statusText: xhr.statusText,
+                responseText: xhr.responseText
+            });
+            
+            // Intentar extraer mensaje de error más detallado
+            let errorMsg = error;
+            try {
+                const errorResponse = JSON.parse(xhr.responseText);
+                if (errorResponse.error) {
+                    errorMsg = errorResponse.error;
+                } else if (errorResponse.message) {
+                    errorMsg = errorResponse.message;
+                }
+            } catch (e) {
+                console.log('No se pudo parsear la respuesta de error');
+            }
+            
+            $('#error-message').text('Error al enviar la bitácora: ' + errorMsg).show();
+        }
+    });
+
+    return false;
+}
+function guardarFormularioEditadoParaMas() {
+    // Verificar si la bitácora está vacía
+    if (esBitacoraVacia()) {
+        mostrarError('Esta bitácora está vacía. No se puede guardar una bitácora sin datos.');
+        return false;
+    }
+
+    const formData = new FormData($('#form-principal')[0]);
+    console.log('Iniciando envío de formulario guardado...');
+    const bitacoraEstado = document.getElementById('bitacora_id');
+    const bitacoraId = bitacoraEstado ? bitacoraEstado.value : null;
+    if (!bitacoraId) {
+        console.error('No se pudo obtener el ID de la bitacora actual');
+        return;
+    }
+
+     // Agregar los datos de la tabla
+     const datosTabla = recolectarDatosTabla();
+    formData.append('accion', 'guardar');
+
+    Object.keys(datosTabla).forEach(key => {
+        formData.append(key, JSON.stringify(datosTabla[key]));
+        formData.append('num_filas', datosTabla.num_filas);
+    });
+
+    $.ajax({
+         url: `/microbiologia/modificar_bitacora/${bitacoraId}/`,
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        dataType: 'json',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val()
         },
         success: function(data) {
-            console.log('Respuesta recibida:', data); // Para depuración
-            
-            if (data && data.success) {
-                // Cerrar modal de firma
-                getModalFirma().modal('hide');
+            console.log('Respuesta recibida:', data);
+            // Verificar si la respuesta es exitosa
+            if (data && data.success === true) {
+                $('#mensajeExitoTextoGuardar').text(data.message);
+                getModalGuardarExito().modal('show');
                 
-                // Mostrar modal de éxito
                 setTimeout(function() {
-                    $('#mensajeExitoTexto').text('Bitácora enviada correctamente.');
-                    limpiarUI();
-                    getModalExito().modal('show');
-                }, 300);
+                    window.location.href = data.redirect_url;
+                }, 2000);
             } else {
-                // Mostrar error específico de la respuesta
-                const errorMsg = (data && data.error) ? data.error : 'Error al enviar la bitácora.';
-                $('#error-message').text(errorMsg).show();
-                
-                // Verificar si el modal está abierto
-                if (!$('#firmar').hasClass('show')) {
-                    limpiarUI();
-                    getModalFirma().modal('show');
-                }
+                const errorMsg = data.error || 'Error al guardar la bitácora.';
+                $('#error-guardar').text(errorMsg).show();
+                getModalError().modal('show');
             }
         },
         error: function(xhr, status, error) {
             console.error('Error en la solicitud:', status, error);
-            console.log('Respuesta del servidor:', xhr.responseText);
+            let errorMsg = 'Error al guardar la bitácora.';
             
-            // Intentar analizar la respuesta por si es JSON
-            let errorMsg = 'Contraseña incorrecta.';
-            try {
-                const errorData = JSON.parse(xhr.responseText);
-                if (errorData && errorData.error) {
+            try { // Intentar analizar la respuesta como JSON
+                const errorData = JSON.parse(xhr.responseText); // Parsear la respuesta
+                if (errorData.error) {
                     errorMsg = errorData.error;
+                } else if (errorData.placa_d || errorData.placa_d2 || errorData.promedio_d) {
+                    errorMsg = 'Error en formulario Dilución 3: ' + JSON.stringify(errorData);
                 }
             } catch (e) {
-                console.error('No se pudo parsear la respuesta como JSON:', e);
+                console.error('Error al parsear la respuesta:', e);
             }
             
-            $('#error-message').text(errorMsg).show();
-            
-            // Verificar si el modal está abierto
-            if (!$('#firmar').hasClass('show')) {
-                limpiarUI();
-                getModalFirma().modal('show');
-            }
+            $('#error-guardar').text(errorMsg).show();
+            getModalError().modal('show');
         }
     });
 }
+function enviarFormularioGuardadaARevision() {
+    console.log('Iniciando envío de formulario guardado...');
+    
+    // Verificar si la bitácora está vacía
+    if (esBitacoraVacia()) {
+        mostrarError('Esta bitácora está vacía. No se puede enviar una bitácora sin datos.');
+        return false;
+    }
+    
+    const bitacoraEstado = document.getElementById('bitacora_id');
+    const bitacoraId = bitacoraEstado ? bitacoraEstado.value : null;
+    if (!bitacoraId) {
+        console.error('No se pudo obtener el ID de la bitacora actual');
+        return;
+    }
+    console.log('ID de la bitacora actual:', bitacoraId);
+    
+    // Validar que se haya seleccionado un usuario destino y proporcionado una contraseña
+    const usuarioDestino = $('#usuario_destino').val();
+    const password = $('#password').val();
+    
+    if (!usuarioDestino) {
+        $('#error-message').text('Debe seleccionar un usuario destino').show();
+        return false;
+    }
+    
+    if (!password) {
+        $('#error-message').text('Debe ingresar su contraseña').show();
+        return false;
+    }
+    
+    // Obtener todos los datos del formulario principal
+    const formPrincipal = document.getElementById('form-principal');
+    if (!formPrincipal) {
+        console.error('No se encontró el formulario principal');
+        $('#error-message').text('Error: No se encontró el formulario principal').show();
+        return false;
+    }
+    
+    // Crear FormData con todos los datos del formulario
+    const formData = new FormData(formPrincipal);
+    
+    // Agregar datos adicionales necesarios para el envío
+    formData.append('accion', 'enviar');
+    formData.append('usuario_destino', usuarioDestino);
+    formData.append('password', password);
+    formData.append('csrfmiddlewaretoken', getCookie('csrftoken'));
+
+    // Debug: Mostrar todos los datos que se van a enviar
+    console.log('Enviando formulario con los siguientes datos:');
+    for (let [key, value] of formData.entries()) {
+        console.log(`${key}: ${value}`);
+    }
+
+    $.ajax({
+        url: `/microbiologia/modificar_bitacora/${bitacoraId}/`,
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        success: function(response) {
+            console.log('Respuesta:', response);
+            if (response.success) {
+                $('#firmar').modal('hide');
+                $('#mensajeExitoTexto').text(response.message || 'Bitácora enviada correctamente');
+                $('#mensajeExito').modal('show');
+                
+                // Redireccionar después de mostrar el mensaje
+                setTimeout(function() {
+                    window.location.href = response.redirect_url || '/microbiologia/lista-bitacoras-revision/';
+                }, 2000);
+            } else {
+                const errorMsg = response.error || response.message || 'Error al enviar la bitácora';
+                $('#error-message').text(errorMsg).show();
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error al enviar:', {
+                status: xhr.status,
+                statusText: xhr.statusText,
+                responseText: xhr.responseText
+            });
+            
+            // Intentar extraer mensaje de error más detallado
+            let errorMsg = error;
+            try {
+                const errorResponse = JSON.parse(xhr.responseText);
+                if (errorResponse.error) {
+                    errorMsg = errorResponse.error;
+                } else if (errorResponse.message) {
+                    errorMsg = errorResponse.message;
+                }
+            } catch (e) {
+                console.log('No se pudo parsear la respuesta de error');
+            }
+            
+            $('#error-message').text('Error al enviar la bitácora: ' + errorMsg).show();
+        }
+    });
+
+    return false;
+}
+function guardarFormularioEditado() {
+    console.log('Iniciando envío de formulario guardado...');
+    
+    // Verificar si la bitácora está vacía
+    if (esBitacoraVacia()) {
+        mostrarError('Esta bitácora está vacía. No se puede enviar una bitácora sin datos.');
+        return false;
+    }
+    
+    const bitacoraEstado = document.getElementById('bitacora_id');
+    const bitacoraId = bitacoraEstado ? bitacoraEstado.value : null;
+    if (!bitacoraId) {
+        console.error('No se pudo obtener el ID de la bitacora actual');
+        return;
+    }
+    console.log('ID de la bitacora actual:', bitacoraId);
+    
+    // Validar que se haya seleccionado un usuario destino y proporcionado una contraseña
+    const usuarioDestino = $('#usuario_destino').val();
+    const password = $('#password').val();
+    
+    if (!usuarioDestino) {
+        $('#error-message').text('Debe seleccionar un usuario destino').show();
+        return false;
+    }
+    
+    if (!password) {
+        $('#error-message').text('Debe ingresar su contraseña').show();
+        return false;
+    }
+    
+    // Obtener todos los datos del formulario principal
+    const formPrincipal = document.getElementById('form-principal');
+    if (!formPrincipal) {
+        console.error('No se encontró el formulario principal');
+        $('#error-message').text('Error: No se encontró el formulario principal').show();
+        return false;
+    }
+    
+    // Crear FormData con todos los datos del formulario
+    const formData = new FormData(formPrincipal);
+    
+    // Agregar datos adicionales necesarios para el envío
+    formData.append('accion', 'enviar');
+    formData.append('usuario_destino', usuarioDestino);
+    formData.append('password', password);
+    formData.append('csrfmiddlewaretoken', getCookie('csrftoken'));
+
+    // Debug: Mostrar todos los datos que se van a enviar
+    console.log('Enviando formulario con los siguientes datos:');
+    for (let [key, value] of formData.entries()) {
+        console.log(`${key}: ${value}`);
+    }
+
+    $.ajax({
+        url: `/microbiologia/modificar_bitacora/${bitacoraId}/`,
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        success: function(response) {
+            console.log('Respuesta:', response);
+            if (response.success) {
+                $('#firmar').modal('hide');
+                $('#mensajeExitoTexto').text(response.message || 'Bitácora enviada correctamente');
+                $('#mensajeExito').modal('show');
+                
+                // Redireccionar después de mostrar el mensaje
+                setTimeout(function() {
+                    window.location.href = response.redirect_url || '/microbiologia/lista-bitacoras-revision/';
+                }, 2000);
+            } else {
+                const errorMsg = response.error || response.message || 'Error al enviar la bitácora';
+                $('#error-message').text(errorMsg).show();
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error al enviar:', {
+                status: xhr.status,
+                statusText: xhr.statusText,
+                responseText: xhr.responseText
+            });
+            
+            // Intentar extraer mensaje de error más detallado
+            let errorMsg = error;
+            try {
+                const errorResponse = JSON.parse(xhr.responseText);
+                if (errorResponse.error) {
+                    errorMsg = errorResponse.error;
+                } else if (errorResponse.message) {
+                    errorMsg = errorResponse.message;
+                }
+            } catch (e) {
+                console.log('No se pudo parsear la respuesta de error');
+            }
+            
+            $('#error-message').text('Error al enviar la bitácora: ' + errorMsg).show();
+        }
+    });
+
+    return false;
+}
+
+// Función para abrir el modal de firma
+function abrirModalFirma() {
+    $('#enviar').modal('hide');
+    $('#password').val(''); // Limpiar contraseña anterior
+    $('#error-message').hide(); // Ocultar mensajes de error previos
+    $('#firmar').modal('show');
+}
+// Función para verificar si la bitácora está completamente vacía
+function esBitacoraVacia() {
+    // Verificar campos principales del formulario
+    const nombreBitacora = $('#nombre_cbap').val() || '';
+    const fechaSiembra = $('#fecha_siembra').val() || '';
+    const horaSiembra = $('#hora_siembra').val() || '';
+    
+    // Verificar si hay filas en la tabla con datos
+    let hayDatosEnTabla = false;
+    
+    $('#tabla-body tr').each(function() {
+        const $fila = $(this);
+        
+        // Verificar si al menos un campo en esta fila tiene datos
+        if (
+            ($fila.find('[name^="clave_c_m_"]').val() || '').trim() !== '' ||
+            ($fila.find('[name^="cantidad_c_m_"]').val() || '').trim() !== '' ||
+            $fila.find('[name^="dE_1_"]:checked').length > 0 ||
+            $fila.find('[name^="dE_2_"]:checked').length > 0 ||
+            $fila.find('[name^="dE_3_"]:checked').length > 0 ||
+            $fila.find('[name^="dE_4_"]:checked').length > 0 ||
+            ($fila.find('[name^="placa_dD_"]').val() || '').trim() !== '' ||
+            ($fila.find('[name^="placa_dD2_"]').val() || '').trim() !== '' ||
+            ($fila.find('[name^="promedio_dD_"]').val() || '').trim() !== '' ||
+            ($fila.find('[name^="placa_d_"]').val() || '').trim() !== '' ||
+            ($fila.find('[name^="placa_d2_"]').val() || '').trim() !== '' ||
+            ($fila.find('[name^="promedio_d_"]').val() || '').trim() !== '' ||
+            ($fila.find('[name^="placa_d_2_"]').val() || '').trim() !== '' ||
+            ($fila.find('[name^="placa_d2_2_"]').val() || '').trim() !== '' ||
+            ($fila.find('[name^="promedio_d_2_"]').val() || '').trim() !== '' ||
+            ($fila.find('[name^="resultado_r_"]').val() || '').trim() !== '' ||
+            ($fila.find('[name^="ufC_placa_r_"]').val() || '').trim() !== '' ||
+            ($fila.find('[name^="diferencia_r_"]').val() || '').trim() !== ''
+        ) {
+            hayDatosEnTabla = true;
+            return false; // Salir del bucle each
+        }
+    });
+    
+    // La bitácora está vacía si no hay campos principales y no hay datos en la tabla
+    return (nombreBitacora.trim() === '' && fechaSiembra.trim() === '' && horaSiembra.trim() === '' && !hayDatosEnTabla);
+}
+
+// Exportar la función para uso global
+window.enviarFormulario = enviarFormulario;
+window.abrirModalFirma = abrirModalFirma;
+window.enviarFormularioGuardadaARevision = enviarFormularioGuardadaARevision;
+window.guardarFormularioEditado = guardarFormularioEditado;
+window.guardarFormularioEditadoParaMas = guardarFormularioEditadoParaMas;
+window.esBitacoraVacia = esBitacoraVacia;
 
 // Inicialización con jQuery
 $(document).ready(function() {
@@ -276,7 +640,7 @@ $(document).ready(function() {
     limpiarUI();
     
     // Botón de depuración opcional
-    const debugButton = $('<button></button>')
+    const debugButton = $('<button></button>') // Crear un botón
         .text('Forzar limpieza UI')
         .css({
             'position': 'fixed',
@@ -295,4 +659,8 @@ $(document).ready(function() {
     
     // Consejo de depuración
     console.log('Script inicializado correctamente');
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM listo - Formularios preparados para su uso');
 });
