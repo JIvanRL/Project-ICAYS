@@ -496,8 +496,8 @@
                         <th rowspan="2">Promedio</th> <!-- Columna 7: Promedio entre Diluciones -->
                         <th colspan="2">Dilución</th> <!-- Columnas 8 y 9 -->
                         <th rowspan="2">Promedio</th> <!-- Columna 10: Promedio después de la segunda Dilución -->
-                        <th colspan="2">Resultado</th> <!-- Columna 11: Subcolumnas sin título -->
-                        <th rowspan="2">Diferencia entre duplicados <5%</th>
+                        <th colspan="2" >Resultado</th> <!-- Columna 11: Subcolumnas sin título -->
+                        <th rowspan="2">Diferencia entre duplicados <5% </th>
                     </tr>
                     <tr>
                         <!-- Subencabezados para diluciones empleadas -->
@@ -514,6 +514,8 @@
                         <!-- Subencabezados para Dilución (columnas 8 y 9) -->
                         <th>Placa 1</th>
                         <th>Placa 2</th>
+                        <th>----</th>
+                        <th>----</th>
                     </tr>
                 </thead>
                 <tbody id="tabla-body">
@@ -538,7 +540,7 @@
                         <!-- Subcolumnas de "Resultado" -->
                         <td><input type="text"  id="resultado_blanco" name="resultado_blanco"></td> <!-- Editable -->
                         <td style="background:#c3ccd6;"><input type="text" value="UFC/placa" style="width: 150px;" readonly></td> <!-- No editable en "Blanco" -->
-                        <td style="background:#c3ccd6;"><input type="text" name="diferencia_blanco[]" value="---" style="width: 150px;" readonly></td>
+                        <td style="background:#c3ccd6;"><input type="text" style="width: 100px;" name="diferencia_blanco[]" value="---" readonly></td>
                     </tr>
                     <!-- Fila principal de inputs -->
                     <tr>
@@ -620,13 +622,11 @@
                                                       <td class="align-middle">
     <!-- Content for calculo de resultado -->
     <div class="d-flex flex-column gap-1">
-        <p class="fs-9 mb-0">Ejemplo de cálculo diferencia entre dupados</p>
+        <p class="fs-9 mb-0">Ejemplo de cálculo diferencia entre duplicados</p>
         <div class="formula-container">
             <p class="formula-text flex-column mb-0">
                
                     <span class="formula-part">(placa1 - placa2) ÷ Promedio × 100 = ≤5%</span>
-                
-                          
             </p>
           </div>
         
