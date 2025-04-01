@@ -465,13 +465,121 @@ document.addEventListener('DOMContentLoaded', function () {
         input.setAttribute('readonly', true);
     });
 
+    // function ResultadoCalculo(fila) {
+    //     const resultadoInput = fila.querySelector('[name^="resultado_r_"]');
+    //     if (!resultadoInput) return;
+
+    //     // Obtener la medición seleccionada
+    //     const medicionSelect = fila.querySelector('.medicion-select');
+    //     const medicionValue = medicionSelect ? medicionSelect.value : '';
+
+    //     // Verificar si hay medición seleccionada
+    //     if (!medicionValue) {
+    //         mostrarModal('Advertencia', 'No se ha seleccionado ninguna medición.');
+    //         resultadoInput.value = '0**';
+    //         return;
+    //     }
+
+    //     // Obtener estado de los checkboxes de dilución
+    //     const dE1 = fila.querySelector('[name^="dE_1_"]:checked');
+    //     const dE2 = fila.querySelector('[name^="dE_2_"]:checked');
+    //     const dE3 = fila.querySelector('[name^="dE_3_"]:checked');
+    //     const dE4 = fila.querySelector('[name^="dE_4_"]:checked');
+
+    //     // Obtener los tres promedios
+    //     const promedio1 = parseFloat(fila.querySelector('.promedio').value.replace('**', '')) || 0;
+    //     const promedio2 = parseFloat(fila.querySelector('.promedio2').value.replace('**', '')) || 0;
+    //     const promedio3 = parseFloat(fila.querySelector('.promedio3').value.replace('**', '')) || 0;
+
+    //     // Determinar qué promedio usar (prioridad: 1 > 2 > 3)
+    //     let promedioSeleccionado = 0;
+    //     if (promedio1 >= 25 && promedio1 <= 250) {
+    //         promedioSeleccionado = promedio1;
+    //     } else if (promedio2 >= 25 && promedio2 <= 250) {
+    //         promedioSeleccionado = promedio2;
+    //     } else if (promedio3 >= 25 && promedio3 <= 250) {
+    //         promedioSeleccionado = promedio3;
+    //     } else {
+    //         // Si ningún promedio está en rango, usar el mayor
+    //         promedioSeleccionado = Math.max(promedio1, promedio2, promedio3);
+    //     }
+
+    //     // Para mediciones que requieren volumen (Vm)
+    //     const requiereVm = ['Vivas', 'Inertes', 'Blancos'].includes(medicionValue);
+    //     let vm = 1; // Valor por defecto
+
+    //     if (requiereVm) {
+    //         // Verificar si ya tenemos Vm almacenado en la fila
+    //         if (!fila.dataset.vm) {
+    //             mostrarModalVolumen((vmInput) => {
+    //                 if (vmInput && !isNaN(vmInput)) {
+    //                     fila.dataset.vm = vmInput;
+    //                     calcularResultadoFinal();
+    //                 } else {
+    //                     resultadoInput.value = '0**';
+    //                 }
+    //             });
+    //             return; // Salir temporalmente hasta que se ingrese Vm
+    //         } else {
+    //             vm = parseFloat(fila.dataset.vm);
+    //         }
+    //     }
+
+    //     calcularResultadoFinal();
+
+    //     function calcularResultadoFinal() {
+    //         let resultado = 0;
+    //         let factorDilucion = 1; // Valor por defecto
+
+    //         // Determinar el factor de dilución basado en los checkboxes marcados
+    //         if (dE1) {
+    //             factorDilucion = 1;
+    //         } else if (dE2) {
+    //             factorDilucion = 0.1;
+    //         } else if (dE3) {
+    //             factorDilucion = 0.01;
+    //         } else if (dE4) {
+    //             factorDilucion = 0.001;
+    //         } else {
+    //             // Ninguna dilución seleccionada
+    //             resultadoInput.value = '0**';
+    //             return;
+    //         }
+
+    //         // Calcular el resultado según el tipo de medición
+    //         if (medicionValue === 'Alimentos' || medicionValue === 'Aguas') {
+    //             resultado = promedioSeleccionado / factorDilucion;
+    //         } else {
+    //             resultado = (promedioSeleccionado / factorDilucion) * vm;
+    //         }
+
+    //         // Asignar el resultado formateado
+    //         resultadoInput.value = resultado > 0 ? formatearResultado(resultado) : '0**';
+        
+    //         // Calcular la diferencia entre duplicados después de asignar el resultado
+    //         calcularDiferenciaEntreDuplicados(fila);
+    //     }
+    // }
     function ResultadoCalculo(fila) {
         const resultadoInput = fila.querySelector('[name^="resultado_r_"]');
+        let r1 = 0, r2 = 0, resultado = 0, VMH = 0;
         if (!resultadoInput) return;
 
         // Obtener la medición seleccionada
         const medicionSelect = fila.querySelector('.medicion-select');
         const medicionValue = medicionSelect ? medicionSelect.value : '';
+
+        // Obtener estado y valores de los checkboxes de dilución
+        const dE1 = fila.querySelector('[name^="dE_1_"]:checked');
+        const dE2 = fila.querySelector('[name^="dE_2_"]:checked');
+        const dE3 = fila.querySelector('[name^="dE_3_"]:checked');
+        const dE4 = fila.querySelector('[name^="dE_4_"]:checked');
+
+        // Obtener los tres promedios
+        const promedio1 = parseFloat(fila.querySelector('.promedio').value) || 0;
+        const promedio2 = parseFloat(fila.querySelector('.promedio2').value) || 0;
+        const promedio3 = parseFloat(fila.querySelector('.promedio3').value) || 0;
+
 
         // Verificar si hay medición seleccionada
         if (!medicionValue) {
@@ -480,87 +588,223 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        // Obtener estado de los checkboxes de dilución
-        const dE1 = fila.querySelector('[name^="dE_1_"]:checked');
-        const dE2 = fila.querySelector('[name^="dE_2_"]:checked');
-        const dE3 = fila.querySelector('[name^="dE_3_"]:checked');
-        const dE4 = fila.querySelector('[name^="dE_4_"]:checked');
 
-        // Obtener los tres promedios
-        const promedio1 = parseFloat(fila.querySelector('.promedio').value.replace('**', '')) || 0;
-        const promedio2 = parseFloat(fila.querySelector('.promedio2').value.replace('**', '')) || 0;
-        const promedio3 = parseFloat(fila.querySelector('.promedio3').value.replace('**', '')) || 0;
-
-        // Determinar qué promedio usar (prioridad: 1 > 2 > 3)
-        let promedioSeleccionado = 0;
-        if (promedio1 >= 25 && promedio1 <= 250) {
-            promedioSeleccionado = promedio1;
-        } else if (promedio2 >= 25 && promedio2 <= 250) {
-            promedioSeleccionado = promedio2;
-        } else if (promedio3 >= 25 && promedio3 <= 250) {
-            promedioSeleccionado = promedio3;
-        } else {
-            // Si ningún promedio está en rango, usar el mayor
-            promedioSeleccionado = Math.max(promedio1, promedio2, promedio3);
-        }
-
-        // Para mediciones que requieren volumen (Vm)
+        //Para mediciones que requieren volumen (Vm)
         const requiereVm = ['Vivas', 'Inertes', 'Blancos'].includes(medicionValue);
         let vm = 1; // Valor por defecto
 
-        if (requiereVm) {
-            // Verificar si ya tenemos Vm almacenado en la fila
-            if (!fila.dataset.vm) {
-                mostrarModalVolumen((vmInput) => {
-                    if (vmInput && !isNaN(vmInput)) {
-                        fila.dataset.vm = vmInput;
-                        calcularResultadoFinal();
-                    } else {
-                        resultadoInput.value = '0**';
-                    }
-                });
-                return; // Salir temporalmente hasta que se ingrese Vm
-            } else {
-                vm = parseFloat(fila.dataset.vm);
-            }
+        // Si requiere Vm y no está almacenado, mostrar modal
+        if (requiereVm && !fila.dataset.vm) {
+            mostrarModalVolumen((vmInput) => {
+                if (vmInput && !isNaN(vmInput)) {
+                    fila.dataset.vm = vmInput; // Almacenar Vm en la fila
+                    calcularResultadoFinal(); // Recalcular con el nuevo Vm
+                } else {
+                    resultadoInput.value = '0**'; // Valor inválido
+                }
+            });
+            return; // Salir hasta que se ingrese Vm
+        } else if (requiereVm) {
+            vm = parseFloat(fila.dataset.vm); // Usar Vm almacenado
         }
 
-        calcularResultadoFinal();
-
-        function calcularResultadoFinal() {
-            let resultado = 0;
-            let factorDilucion = 1; // Valor por defecto
-
-            // Determinar el factor de dilución basado en los checkboxes marcados
-            if (dE1) {
-                factorDilucion = 1;
-            } else if (dE2) {
-                factorDilucion = 0.1;
-            } else if (dE3) {
-                factorDilucion = 0.01;
-            } else if (dE4) {
-                factorDilucion = 0.001;
-            } else {
-                // Ninguna dilución seleccionada
-                resultadoInput.value = '0**';
-                return;
-            }
-
-            // Calcular el resultado según el tipo de medición
+        /////////////////////////////////////////
+        //           Promedio numero 1        //
+        /////////////////////////////////////////
+        if (promedio1 >= 5 && promedio1 <= 250 || promedio1 > promedio2 && promedio1 > promedio3) {
             if (medicionValue === 'Alimentos' || medicionValue === 'Aguas') {
-                resultado = promedioSeleccionado / factorDilucion;
-            } else {
-                resultado = (promedioSeleccionado / factorDilucion) * vm;
+                if (dE1) {
+                    resultado = promedio1 / 1;
+                    resultadoInput.value = resultado > 0 ? redondearNumero(resultado) : '0**';
+                    return;
+                } else if (dE2) {
+                    resultado = promedio1 / 0.1;
+                    resultadoInput.value = resultado > 0 ? redondearNumero(resultado) : '0**';
+                    return;
+                } else if (dE3) {
+                    resultado = promedio1 / 0.01;
+                    resultadoInput.value = resultado > 0 ? redondearNumero(resultado) : '0**';
+                    return;
+                } else if (dE4) {
+                    resultado = promedio1 / 0.001;
+                    resultadoInput.value = resultado > 0 ? redondearNumero(resultado) : '0**';
+                    return;
+                }
+            } else if (medicionValue === 'Vivas' || medicionValue === 'Blancos' || medicionValue === 'Inertes') {
+                if (dE1) {
+                    resultado = (promedio1 / 1) * vm;
+                    resultadoInput.value = resultado > 0 ? redondearNumero(resultado) : '0**';
+                    return;
+                } else if (dE2) {
+                    resultado = (promedio1 / 0.1) * vm;
+                    resultadoInput.value = resultado > 0 ? redondearNumero(resultado) : '0**';
+                    return;
+                } else if (dE3) {
+                    resultado = (promedio1 / 0.01) * vm;
+                    resultadoInput.value = resultado > 0 ? redondearNumero(resultado) : '0**';
+                    return;
+                } else if (dE4) {
+                    resultado = (promedio1 / 0.001) * vm;
+                    resultadoInput.value = resultado > 0 ? redondearNumero(resultado) : '0**';
+                    return;
+                }
             }
-
-            // Asignar el resultado formateado
-            resultadoInput.value = resultado > 0 ? formatearResultado(resultado) : '0**';
-        
-            // Calcular la diferencia entre duplicados después de asignar el resultado
-            calcularDiferenciaEntreDuplicados(fila);
         }
-    }
+        /////////////////////////////////////////
+        //           Promedio numero 2        //
+        /////////////////////////////////////////
+        if (promedio2 >= 5 && promedio2 <= 250 || promedio2 > promedio1 && promedio2 > promedio3) {
+            if (medicionValue === 'Alimentos' || medicionValue === 'Aguas') {
+                if (dE1) {
+                    if (dE2) {
+                        resultado = promedio2 / 0.1;
+                        resultadoInput.value = resultado > 0 ? redondearNumero(resultado) : '0**';
+                        return;
+                    } else if (dE3) {
+                        resultado = promedio2 / 0.01;
+                        resultadoInput.value = resultado > 0 ? redondearNumero(resultado) : '0**';
+                        return;
+                    } else if (dE4) {
+                        resultado = promedio2 / 0.001;
+                        resultadoInput.value = resultado > 0 ? redondearNumero(resultado) : '0**';
+                        return;
+                    }
+                } else if (dE2) {
+                    if (dE3) {
+                        resultado = promedio2 / 0.01;
+                        resultadoInput.value = resultado > 0 ? redondearNumero(resultado) : '0**';
+                        return;
+                    } else if (dE4) {
+                        resultado = promedio2 / 0.001;
+                        resultadoInput.value = resultado > 0 ? redondearNumero(resultado) : '0**';
+                        return;
+                    }
+                } else if (dE3) {
+                    if (dE4) {
+                        resultado = promedio2 / 0.001;
+                        resultadoInput.value = resultado > 0 ? redondearNumero(resultado) : '0**';
+                        return;
+                    }
+                } else if (dE4) {
+                    resultado = '0**';
+                    resultadoInput.value = resultado;
+                    return;
+                }
+            } else if (medicionValue === 'Vivas' || medicionValue === 'Blancos' || medicionValue === 'Inertes') {
+                if (dE1) {
+                    if (dE2) {
+                        resultado = (promedio2 / 0.1) * vm;
+                        resultadoInput.value = resultado > 0 ? redondearNumero(resultado) : '0**';
+                        return;
+                    } else if (dE3) {
+                        resultado = (promedio2 / 0.01) * vm;
+                        resultadoInput.value = resultado > 0 ? redondearNumero(resultado) : '0**';
+                        return;
+                    } else if (dE4) {
+                        resultado = (promedio2 / 0.001) * vm;
+                        resultadoInput.value = resultado > 0 ? redondearNumero(resultado) : '0**';
+                        return;
+                    }
+                } else if (dE2) {
+                    if (dE3) {
+                        resultado = (promedio2 / 0.01) * vm;
+                        resultadoInput.value = resultado > 0 ? redondearNumero(resultado) : '0**';
+                        return;
+                    } else if (dE4) {
+                        resultado = (promedio2 / 0.001) * vm;
+                        resultadoInput.value = resultado > 0 ? redondearNumero(resultado) : '0**';
+                        return;
+                    }
+                } else if (dE3) {
+                    if (dE4) {
+                        resultado = (promedio2 / 0.001) * vm;
+                        resultadoInput.value = resultado > 0 ? redondearNumero(resultado) : '0**';
+                        return;
+                    }
+                    return;
+                } else if (dE4) {
+                    resultado = '0**';
+                    resultadoInput.value = resultado;
+                    return;
+                }
+            }
+        }
+        /////////////////////////////////////////
+        //           Promedio numero 3         //
+        /////////////////////////////////////////
+        if (promedio3 >= 5 && promedio3 <= 250 || promedio3 > promedio1 && promedio3 > promedio2) {
+            if (medicionValue === 'Alimentos' || medicionValue === 'Aguas') {
+                if (dE1) {
+                    if (dE2) {
+                        if (dE3) {
+                            resultado = promedio3 / 0.01;
+                            resultadoInput.value = resultado > 0 ? redondearNumero(resultado) : '0**';
+                            return;
+                        } else if (dE4) {
+                            resultado = promedio3 / 0.001;
+                            resultadoInput.value = resultado > 0 ? redondearNumero(resultado) : '0**';
+                            return;
+                        } else {
+                            resultado = '0**';
+                            resultadoInput.value = resultado;
+                            return;
+                        }
+                    }
+                } else if (dE2) {
+                    if (dE3) {
+                        if (dE4) {
+                            resultado = promedio3 / 0.001;
+                            resultadoInput.value = resultado > 0 ? redondearNumero(resultado) : '0**';
+                            return;
+                        } else {
+                            resultado = '0**';
+                            resultadoInput.value = resultado;
+                            return;
+                        }
+                    }
+                } else {
+                    resultado = '0**';
+                    resultadoInput.value = resultado;
+                    return;
+                }
+            } else if (medicionValue === 'Vivas' || medicionValue === 'Blancos' || medicionValue === 'Inertes') {
+                if (dE1) {
+                    if (dE2) {
+                        if (dE3) {
+                            resultado = (promedio3 / 0.01) * vm;
+                            resultadoInput.value = resultado > 0 ? (resultado) : '0**';
+                            return;
+                        } else if (dE4) {
+                            resultado = (promedio3 / 0.001) * vm;
+                            resultadoInput.value = resultado > 0 ? (resultado) : '0**';
+                            return;
+                        } else {
+                            resultado = '0**';
+                            resultadoInput.value = resultado;
+                            return;
+                        }
+                    }
+                } else if (dE2) {
+                    if (dE3) {
+                        if (dE4) {
+                            resultado = (promedio3 / 0.001) * vm;
+                            resultadoInput.value = resultado > 0 ? (resultado) : '0**';
+                            return;
+                        } else {
+                            resultado = '0**';
+                            resultadoInput.value = resultado;
+                            return;
+                        }
+                    }
+                } else {
+                    resultado = '0**';
+                    resultadoInput.value = resultado;
+                    return;
+                }
+            }
+        }
 
+    }
 
     function formatearResultado(valor) {
         if (valor > 1000) {
@@ -660,51 +904,83 @@ document.addEventListener('DOMContentLoaded', function () {
         diferenciaInput.style.color = esAceptable ? "green" : "red";
     }
 
-    function redondearNumero(num) {
-        // Convertimos el número en una cadena para separar los dígitos
-        //let numStr = valor.toString();
-        let numStr = Array.from(str, num => `[${num}]`);
+    // function redondearNumero(num) {
+    //     // Convertimos el número en una cadena para separar los dígitos
+    //     //let numStr = valor.toString();
+    //     let numStr = Array.from(str, num => `[${num}]`);
 
-        // Caso cuando el número tiene más de 2 cifras
-        if (numStr.length > 2) {
-            let cientos = parseInt(numStr.charAt(0)); // Primer dígito (centenas)
-            let decenas = parseInt(numStr.charAt(1)); // Segundo dígito (decenas)
-            let unidades = parseInt(numStr.charAt(2)); // Tercer dígito (unidades)
+    //     // Caso cuando el número tiene más de 2 cifras
+    //     if (numStr.length > 2) {
+    //         let cientos = parseInt(numStr.charAt(0)); // Primer dígito (centenas)
+    //         let decenas = parseInt(numStr.charAt(1)); // Segundo dígito (decenas)
+    //         let unidades = parseInt(numStr.charAt(2)); // Tercer dígito (unidades)
 
-            if (unidades > 5) {
-                decenas += 1; // Aumentamos el segundo dígito
-                unidades = 0; // El tercer dígito se pone a 0
+    //         if (unidades > 5) {
+    //             decenas += 1; // Aumentamos el segundo dígito
+    //             unidades = 0; // El tercer dígito se pone a 0
 
-                if (decenas === 10) {
-                    decenas = 0; // Si el segundo dígito es 9, lo reseteamos
-                    cientos += 1; // Aumentamos el primer dígito
-                }
-            }
+    //             if (decenas === 10) {
+    //                 decenas = 0; // Si el segundo dígito es 9, lo reseteamos
+    //                 cientos += 1; // Aumentamos el primer dígito
+    //             }
+    //         }
 
-            // Comprobamos si el primer dígito es 10, lo corregimos
-            if (cientos >= 10) {
-                cientos = 9;
-            }
+    //         // Comprobamos si el primer dígito es 10, lo corregimos
+    //         if (cientos >= 10) {
+    //             cientos = 9;
+    //         }
 
-            // Volvemos a formar el número con los tres dígitos
-            return parseInt(`${cientos}${decenas}${unidades}`);
-        }
-        // Caso cuando el número tiene 2 cifras
-        else if (numStr.length === 2) {
-            let decenas = parseInt(numStr.charAt(0)); // Primer dígito (decenas)
-            let unidades = parseInt(numStr.charAt(1)); // Segundo dígito (unidades)
+    //         // Volvemos a formar el número con los tres dígitos
+    //         return parseInt(`${cientos}${decenas}${unidades}`);
+    //     }
+    //     // Caso cuando el número tiene 2 cifras
+    //     else if (numStr.length === 2) {
+    //         let decenas = parseInt(numStr.charAt(0)); // Primer dígito (decenas)
+    //         let unidades = parseInt(numStr.charAt(1)); // Segundo dígito (unidades)
 
-            if (unidades > 5) {
-                decenas += 1; // Aumentamos el primer dígito
-                unidades = 0; // El segundo dígito se pone a 0
+    //         if (unidades > 5) {
+    //             decenas += 1; // Aumentamos el primer dígito
+    //             unidades = 0; // El segundo dígito se pone a 0
+    //         } else {
+    //             unidades = 0; // El segundo dígito se pone a 0 si es menor o igual a 5
+    //         }
+
+    //         return parseInt(`${decenas}${unidades}`);
+    //     }
+    //     // Si es un número de una sola cifra, simplemente lo retornamos como está
+    //     return num;
+    // }
+    function redondearNumero(numero) {
+        // Convertir el número a string para manipular dígitos
+        const numStr = Math.floor(numero).toString(); // Usamos Math.floor para evitar decimales
+        let resultado;
+
+        if (numStr.length <= 2) {
+            // Si tiene 1 o 2 dígitos, no se modifica
+            return parseInt(numStr, 10);
+        } else {
+            // Tomar los primeros 3 dígitos
+            const primerosTres = numStr.slice(0, 3);
+            const tercerDigito = parseInt(primerosTres[2], 10);
+
+            // Redondear basado en el tercer dígito
+            if (tercerDigito >= 5) {
+                // Redondear hacia arriba (ej: 125 → 130)
+                const primerosDos = parseInt(primerosTres.slice(0, 2), 10);
+                resultado = (primerosDos + 1) * 10;
             } else {
-                unidades = 0; // El segundo dígito se pone a 0 si es menor o igual a 5
+                // Redondear hacia abajo (ej: 123 → 120)
+                resultado = parseInt(primerosTres.slice(0, 2), 10) * 10;
             }
 
-            return parseInt(`${decenas}${unidades}`);
+            // Si el número original tenía más de 3 dígitos, agregar ceros
+            if (numStr.length > 3) {
+                const ceros = '0'.repeat(numStr.length - 3);
+                resultado = parseInt(resultado.toString() + ceros, 10);
+            }
         }
-        // Si es un número de una sola cifra, simplemente lo retornamos como está
-        return num;
+
+        return resultado;
     }
 
     // Función para mostrar modal de volumen

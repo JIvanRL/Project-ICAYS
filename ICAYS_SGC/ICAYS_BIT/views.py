@@ -11,7 +11,7 @@ from .models import ClaveMuestraCbap, ControlCalidad, Dilucion, DilucionesEmplea
 from .forms import (
     DilucionesEmpleadasForm, DirectODilucionForm, DilucionForm,
     ControlCalidadForm, VerificacionBalanzaForm, DatosCampoCbapForm,
-    ClaveMuestraCbapForm, ResultadoCbapForm, tableBlanco
+    ClaveMuestraCbapForm, ResultadoCbapForm, tableBlanco, ejemplosFormulas
 )
 import logging
 logger = logging.getLogger(__name__)
@@ -295,6 +295,28 @@ def registrar_bitacora(request):
                     veri_balanza = veri_balanza_form.save(commit=False)
                     veri_balanza.id_cbap_vb = bita_cbap_instance
                     veri_balanza.save()
+                
+                # === 7. CREAR EJEMPLOS DE FÓRMULAS ===
+
+                for i in range(1, 5):
+                    # Verificar si el ejemplo tiene datos antes de procesarlo
+                    if (request.POST.get(f'dato1_ejemplo_{i}') or 
+                        request.POST.get(f'dato2_ejemplo_{i}') or 
+                        request.POST.get(f'dato3_ejemplo_{i}') or 
+                        request.POST.get(f'resultdo_ejemplo_{i}') or 
+                        request.POST.get(f'clave_muestra_ejemplo_{i}')):
+                        
+                        # Crear el ejemplo de fórmula
+                        ejemplo = ejemplosFormulas(
+                            dato1_ejemplo=request.POST.get(f'dato1_ejemplo_{i}', ''),
+                            dato2_ejemplo=request.POST.get(f'dato2_ejemplo_{i}', ''),
+                            dato3_ejemplo=request.POST.get(f'dato3_ejemplo_{i}', ''),
+                            resultdo_ejemplo=request.POST.get(f'resultdo_ejemplo_{i}', ''),
+                            clave_muestra_ejemplo=request.POST.get(f'clave_muestra_ejemplo_{i}', ''),
+                            nombre_bita_cbap=bita_cbap_instance
+                        )
+                        ejemplo.save()
+                        logger.debug(f"Ejemplo de fórmula {i} guardado correctamente con ID: {ejemplo.id_ejemplos}")
 
                 # Establecer el estado de la bitácora según la acción
                 if accion == 'guardar':
@@ -370,6 +392,7 @@ def registrar_bitacora(request):
             'datos_campo_form': DatosCampoCbapForm(),
             'clave_muestra_form': ClaveMuestraCbapForm(),
             'blanco_form': tableBlanco(),  # Formulario para el registro único de blanco
+            'ejemplos_formulas_form': ejemplosFormulas(),  # Formulario para ejemplos de fórmulas
         }
         return render(request, 'registerBita.html', context)
 
@@ -443,9 +466,9 @@ def obtener_usuarios_json(request):#Obtener todos los usuarios
 #Vista para ver las bitacoras guardadas#
 ########################################
 @login_required
-@role_required('Analista de Laboratorio')
 def ver_bitacora(request, bitacora_id):
     try:
+        # Obtener la bitácora con todas sus relaciones
         bitacora = bita_cbap.objects.select_related(
             'id_dc_cbap',
             'firma_user'
@@ -456,14 +479,19 @@ def ver_bitacora(request, bitacora_id):
             'control_calidades',
             'ClaveMuestra',
             'verificaciones_balanza',
-            'resultado'
-        ).get(id_cbap=bitacora_id, firma_user=request.user)
+            'resultado',
+            'muestras_blancos',
+            'nombre_bita_cbap'  # Este es el related_name correcto para ejemplosFormulas
+        ).get(id_cbap=bitacora_id)
         
         # Obtener el registro de blanco para esta bitácora
         try:
             blanco = tableBlanco.objects.get(nombre_bita_cbap=bitacora)
         except tableBlanco.DoesNotExist:
             blanco = None
+
+        # Obtener los ejemplos de fórmulas relacionados con esta bitácora
+        ejemplos_formulas = bitacora.nombre_bita_cbap.all()
 
         filas_datos = []
         
@@ -493,13 +521,14 @@ def ver_bitacora(request, bitacora_id):
             'usuario': bitacora.firma_user,
             'controles_calidad': bitacora.control_calidades.all(),
             'verificaciones_balanza': bitacora.verificaciones_balanza.all(),
-            'blanco': blanco,  # Añadir el registro de blanco al contexto
+            'blanco': blanco,
+            'ejemplos_formulas': ejemplos_formulas,  # Pasar los ejemplos de fórmulas al contexto
         }
 
         return render(request, 'detalles_bitacoras.html', context)
     
     except bita_cbap.DoesNotExist:
-        messages.error(request, 'La bitácora no existe.')
+        messages.error(request, 'La bitácora no existe o no tienes permiso para verla.')
         return redirect('microalimentos:lista_bitacoras')
 ##########################################
 #Vista para ver las bitacoras en revisión#
@@ -527,6 +556,8 @@ def ver_bitacora_revision(request, bitacora_id):
             blanco = tableBlanco.objects.get(nombre_bita_cbap=bitacora)
         except tableBlanco.DoesNotExist:
             blanco = None
+        # Obtener los ejemplos de fórmulas relacionados con esta bitácora
+        ejemplos_formulas = bitacora.nombre_bita_cbap.all()
         
         # Verificar que el usuario actual sea el creador de la bitácora
         if bitacora.firma_user != request.user:
@@ -670,6 +701,7 @@ def ver_bitacora_revision(request, bitacora_id):
             'fecha_lectura_cbap': fecha_lectura_cbap,
             'hora_lectura_cbap': hora_lectura_cbap,
             'observaciones_cbap': observaciones_cbap,
+            'ejemplos_formulas': ejemplos_formulas,  # Pasar los ejemplos de fórmulas al contexto
             'debug': True  # Habilitar depuración en la plantilla
         }
 
@@ -720,6 +752,8 @@ def ver_bitacora_autorizada(request, bitacora_id):
         except tableBlanco.DoesNotExist:
             blanco = None
 
+        # Obtener los ejemplos de fórmulas relacionados con esta bitácora
+        ejemplos_formulas = bitacora.nombre_bita_cbap.all()
         # Obtener el registro de Bitcoras_Cbap correspondiente
         # Intentamos obtener el registro más reciente
         registro = Bitcoras_Cbap.objects.select_related(
@@ -799,6 +833,7 @@ def ver_bitacora_autorizada(request, bitacora_id):
             'mes': mes,  # Añadir el mes al contexto
             'nombre_mes': nombres_meses[mes-1] if mes and mes >= 1 and mes <= 12 else '',  # Nombre del mes
             'blanco': blanco,  # Añadir el blanco al contexto
+            'ejemplos_formulas': ejemplos_formulas,  # Pasar los ejemplos de fórmulas al contexto
             'debug': True  # Habilitar depuración en la plantilla
         }
 

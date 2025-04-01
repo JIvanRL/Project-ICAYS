@@ -379,67 +379,74 @@
                                                             Ver cumplimiento de controles de calidad en:
                                                         </h5>
                                     
-                                                        <!-- Primera fila de inputs -->
-                                                            <div class="row g-3 mb-3">
-                                                                {% for control in controles_calidad %}
-                                                                    {% if forloop.counter <= 2 %}
-                                                                        <!-- Bitácora/Tomo {{ forloop.counter }} -->
-                                                                        <div class="col-12 col-md-6 col-lg-3">
-                                                                            <div class="input-group input-group-sm">                                                               
-                                                                                <input type="text" 
-                                                                                    class="form-control" 
-                                                                                    name="nombre_laf_{{ forloop.counter }}" 
-                                                                                    value="{{ control.nombre_laf|default:'-' }}" 
-                                                                                    readonly>
-                                                                                <input type="date" 
-                                                                                    class="form-control" 
-                                                                                    name="fecha_1cc_{{ forloop.counter }}" 
-                                                                                    value="{% if control.fecha_1cc %}{{ control.fecha_1cc|date:'Y-m-d' }}{% endif %}"
-                                                                                    placeholder="Mes">
-                                                                            </div>
-                                                                        </div>
-                                                                        <!-- Página {{ forloop.counter }} -->
-                                                                        <div class="col-12 col-md-6 col-lg-3">
-                                                                            <input type="text" 
-                                                                                name="page_1cc_{{ forloop.counter }}" 
-                                                                                value="{{ control.page_1cc|default:'-' }}"
-                                                                                class="form-control form-control-sm" 
-                                                                                placeholder="Página">
-                                                                        </div>
-                                                                    {% endif %}
-                                                                {% endfor %}
-                                                            </div>
+                                                        <!-- Primera fila de inputs con etiquetas flotantes -->
+<div class="row g-3 mb-3">
+    {% for control in controles_calidad %}
+        {% if forloop.counter <= 2 %}
+            <!-- Bitácora/Tomo {{ forloop.counter }} -->
+            <div class="col-12 col-md-6 col-lg-3">
+                <div class="form-floating">
+                    <div class="input-group input-group-sm">
+                        <div class="form-floating">
+                            <input type="text" class="form-control" id="nombre_laf_{{ forloop.counter }}"
+                                name="nombre_laf_{{ forloop.counter }}" value="{{ control.nombre_laf|default:'---' }}" readonly>
+                            <label for="nombre_laf_{{ forloop.counter }}">Bitácora</label>
+                        </div>
+                        <div class="form-floating">
+                            <input type="date" class="form-control" id="fecha_1cc_{{ forloop.counter }}"
+                                name="fecha_1cc_{{ forloop.counter }}" 
+                                value="{% if control.fecha_1cc %}{{ control.fecha_1cc|date:'Y-m-d' }}{% endif %}" required>
+                            <label for="fecha_1cc_{{ forloop.counter }}">Fecha</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Página {{ forloop.counter }} -->
+            <div class="col-12 col-md-6 col-lg-3">
+                <div class="form-floating">
+                    <input type="text" id="page_1cc_{{ forloop.counter }}" name="page_1cc_{{ forloop.counter }}" 
+                        value="{{ control.page_1cc|default:'' }}" class="form-control" required>
+                    <label for="page_1cc_{{ forloop.counter }}">Página </label>
+                </div>
+            </div>
+        {% endif %}
+    {% endfor %}
+</div>
 
-                                                            <!-- Segunda fila de inputs -->
-                                                            <div class="row g-3 mb-3">
-                                                                {% for control in controles_calidad %}
-                                                                    {% if forloop.counter > 2 and forloop.counter <= 4 %}
-                                                                        <!-- Bitácora/Tomo {{ forloop.counter }} -->
-                                                                        <div class="col-12 col-md-6 col-lg-3">
-                                                                            <div class="input-group input-group-sm">                                                               
-                                                                                <input type="text" 
-                                                                                    class="form-control" 
-                                                                                    name="nombre_laf_{{ forloop.counter }}" 
-                                                                                    value="{{ control.nombre_laf|default:'-' }}" 
-                                                                                    readonly>
-                                                                                <input type="date" 
-                                                                                    class="form-control" 
-                                                                                    name="fecha_1cc_{{ forloop.counter }}" 
-                                                                                    value="{% if control.fecha_1cc %}{{ control.fecha_1cc|date:'Y-m-d' }}{% endif %}"
-                                                                                    placeholder="Mes">
-                                                                            </div>
-                                                                        </div>
-                                                                        <!-- Página {{ forloop.counter }} -->
-                                                                        <div class="col-12 col-md-6 col-lg-3">
-                                                                            <input type="text" 
-                                                                                name="page_1cc_{{ forloop.counter }}" 
-                                                                                value="{{ control.page_1cc|default:'-' }}"
-                                                                                class="form-control form-control-sm" 
-                                                                                placeholder="Página">
-                                                                        </div>
-                                                                    {% endif %}
-                                                                {% endfor %}
-                                                            </div>
+<!-- Segunda fila de inputs con etiquetas flotantes -->
+<div class="row g-3 mb-3">
+    {% for control in controles_calidad %}
+        {% if forloop.counter > 2 and forloop.counter <= 4 %}
+            <!-- Bitácora/Tomo {{ forloop.counter }} -->
+            <div class="col-12 col-md-6 col-lg-3">
+                <div class="form-floating">
+                    <div class="input-group input-group-sm">
+                        <div class="form-floating">
+                            <input type="text" class="form-control" id="nombre_laf_{{ forloop.counter }}"
+                                name="nombre_laf_{{ forloop.counter }}" value="{{ control.nombre_laf|default:'---' }}" readonly>
+                            <label for="nombre_laf_{{ forloop.counter }}">Bitácora</label>
+                        </div>
+                        <div class="form-floating">
+                            <input type="date" class="form-control" id="fecha_1cc_{{ forloop.counter }}"
+                                name="fecha_1cc_{{ forloop.counter }}" 
+                                value="{% if control.fecha_1cc %}{{ control.fecha_1cc|date:'Y-m-d' }}{% endif %}" required>
+                            <label for="fecha_1cc_{{ forloop.counter }}">Fecha</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Página {{ forloop.counter }} -->
+            <div class="col-12 col-md-6 col-lg-3">
+                <div class="form-floating">
+                    <input type="text" id="page_1cc_{{ forloop.counter }}" name="page_1cc_{{ forloop.counter }}" 
+                        value="{{ control.page_1cc|default:'' }}" class="form-control" required>
+                    <label for="page_1cc_{{ forloop.counter }}">Página </label>
+                </div>
+            </div>
+        {% endif %}
+    {% endfor %}
+</div>
+
 
 
                                     
@@ -631,73 +638,139 @@
                                             </div>
                                         </td>
                                         
-                                        <td class="align-middle">
-                                            <!-- Content for calculo de resultado -->
-                                            <div class="d-flex flex-column gap-1">
-                                                <p class="fs-9 mb-0">Promedio de lectura ÷ Dilución empleada = Resultado</p>
-                                                <div class="d-flex gap-1">
-                                                    <input type="number" id="num1" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;">
-                                                    <span class="fs-9">÷</span>
-                                                    <input type="number" id="num2" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;">
-                                                    <span class="fs-9">=</span>
-                                                    <label class="fs-9" id="result" style="font-size: 12px;">R</label>
-                                                </div>
-                                                <div class="d-flex gap-1 p-1">
-                                                    <p class="fs-9 mb-0">Clave muestra:</p>
-                                                    <input type="text" class="form-control form-control-sm" style="width: 80px; height: 25px; font-size: 0.75rem;">
-                                                </div>
-                                            </div>
-                                        </td>
-                                                                            
-                                                                            <td class="align-middle">
-                                            <!-- Content for calculo de resultado -->
-                                            <div class="d-flex flex-column gap-1">
-                                                <p class="fs-9 mb-0">Ejemplo de cálculo de resultado de superficies vivas e inertes:</p>
-                                                <p class="fs-9 mb-0">(promedio de la lectura ÷ Dilución empleadas) x Volumen de medio de transporte = resultado</p>
-                                                <div class="d-flex gap-1">
-                                                    (<input type="text" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;">
-                                                    <span class="fs-9">÷</span>
-                                                    <input type="text" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;">) x
-                                                    <input type="text" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;">
-                                                    <span class="fs-9">=</span>
-                                                    <label class="fs-9" style="font-size: 12px;">R</label>
-                                                </div>
-                                                <div class="d-flex gap-1 p-1">
-                                                    <p class="fs-9 mb-0">Clave muestra:</p>
-                                                    <input type="text" class="form-control form-control-sm" style="width: 80px; height: 25px; font-size: 0.75rem;">
-                                                </div>
-                                            </div>
-                                        </td>
-                                                                            
-                                                                                              <td class="align-middle">
-                                            <!-- Content for calculo de resultado -->
-                                            <div class="d-flex flex-column gap-1">
-                                                <p class="fs-9 mb-0">Ejemplo de cálculo diferencia entre duplicados</p>
-                                                <div class="formula-container">
-                                                    <p class="formula-text flex-column mb-0">
-                                                       
-                                                            <span class="formula-part">(placa1 - placa2) ÷ Promedio × 100 = ≤5%</span>
-                                                        
-                                                                  
-                                                    </p>
-                                                  </div>
-                                                
-                                                <div class="d-flex gap-1">
-                                                    <input type="text" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;">
-                                                    <span class="fs-9">-</span>
-                                                    <input type="text" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;">
-                                                    <span class="fs-9">÷</span>
-                                                    <input type="text" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;">
-                                                    
-                                                    <span class="fs-9">x 100 =</span>
-                                                    <label class="fs-9" style="font-size: 12px;">R</label>
-                                                </div>
-                                                <div class="d-flex gap-1 p-1">
-                                                    <p class="fs-9 mb-0">Clave muestra:</p>
-                                                    <input type="text" class="form-control form-control-sm" style="width: 80px; height: 25px; font-size: 0.75rem;">
-                                                </div>
-                                            </div>
-                                        </td>
+                                        <!-- Sección para mostrar los ejemplos de fórmulas -->
+{% if ejemplos_formulas.0 %}
+<!-- Primera fórmula - Promedio de lectura ÷ Dilución empleada = Resultado -->
+<td class="align-middle">
+    <div class="d-flex flex-column gap-1">
+        <p class="fs-9 mb-0">Promedio de lectura ÷ Dilución empleada = Resultado</p>
+        <div class="d-flex gap-1">
+            <input type="text" id="num1" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;" value="{{ ejemplos_formulas.0.dato1_ejemplo|default:'---' }}">
+            <span class="fs-9">÷</span>
+            <input type="text" id="num2" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;" value="{{ ejemplos_formulas.0.dato2_ejemplo|default:'---' }}">
+            <span class="fs-9">=</span>
+            <label class="fs-9" id="result" style="font-size: 12px;">{{ ejemplos_formulas.0.resultdo_ejemplo|default:'---' }}</label>
+        </div>
+        <div class="d-flex gap-1 p-1">
+            <p class="fs-9 mb-0">Clave muestra:</p>
+            <input type="text" class="form-control form-control-sm" style="width: 80px; height: 25px; font-size: 0.75rem;" value="{{ ejemplos_formulas.0.clave_muestra_ejemplo|default:'---' }}">
+        </div>
+    </div>
+</td>
+{% else %}
+<!-- Primera fórmula predeterminada -->
+<td class="align-middle">
+    <div class="d-flex flex-column gap-1">
+        <p class="fs-9 mb-0">Promedio de lectura ÷ Dilución empleada = Resultado</p>
+        <div class="d-flex gap-1">
+            <input type="text" id="num1" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;" value="---">
+            <span class="fs-9">÷</span>
+            <input type="text" id="num2" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;" value="---">
+            <span class="fs-9">=</span>
+            <label class="fs-9" id="result" style="font-size: 12px;">---</label>
+        </div>
+        <div class="d-flex gap-1 p-1">
+            <p class="fs-9 mb-0">Clave muestra:</p>
+            <input type="text" class="form-control form-control-sm" style="width: 80px; height: 25px; font-size: 0.75rem;" value="---">
+        </div>
+    </div>
+</td>
+{% endif %}
+
+{% if ejemplos_formulas.1 %}
+<!-- Segunda fórmula - Cálculo de resultado de superficies vivas e inertes -->
+<td class="align-middle">
+    <div class="d-flex flex-column gap-1">
+        <p class="fs-9 mb-0">Ejemplo de cálculo de resultado de superficies vivas e inertes:</p>
+        <p class="fs-9 mb-0">(promedio de la lectura ÷ Dilución empleadas) x Volumen de medio de transporte = resultado</p>
+        <div class="d-flex gap-1">
+            (<input type="text" id="num3" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;" value="{{ ejemplos_formulas.1.dato1_ejemplo|default:'---' }}">
+            <span class="fs-9">÷</span>
+            <input type="text" id="num4" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;" value="{{ ejemplos_formulas.1.dato2_ejemplo|default:'---' }}">)
+            <span class="fs-9">×</span>
+            <input type="text" id="num5" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;" value="{{ ejemplos_formulas.1.dato3_ejemplo|default:'---' }}">
+            <span class="fs-9">=</span>
+            <label class="fs-9" id="result2" style="font-size: 12px;">{{ ejemplos_formulas.1.resultdo_ejemplo|default:'---' }}</label>
+        </div>
+        <div class="d-flex gap-1 p-1">
+            <p class="fs-9 mb-0">Clave muestra:</p>
+            <input type="text" class="form-control form-control-sm" style="width: 80px; height: 25px; font-size: 0.75rem;" value="{{ ejemplos_formulas.1.clave_muestra_ejemplo|default:'---' }}">
+        </div>
+    </div>
+</td>
+{% else %}
+<!-- Segunda fórmula predeterminada -->
+<td class="align-middle">
+    <div class="d-flex flex-column gap-1">
+        <p class="fs-9 mb-0">Ejemplo de cálculo de resultado de superficies vivas e inertes:</p>
+        <p class="fs-9 mb-0">(promedio de la lectura ÷ Dilución empleadas) x Volumen de medio de transporte = resultado</p>
+        <div class="d-flex gap-1">
+            (<input type="text" id="num3" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;" value="---">
+            <span class="fs-9">÷</span>
+            <input type="text" id="num4" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;" value="---">) x
+            <input type="text" id="num5" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;" value="---">
+            <span class="fs-9">=</span>
+            <label class="fs-9" id="result2" style="font-size: 12px;">---</label>
+        </div>
+        <div class="d-flex gap-1 p-1">
+            <p class="fs-9 mb-0">Clave muestra:</p>
+            <input type="text" class="form-control form-control-sm" style="width: 80px; height: 25px; font-size: 0.75rem;" value="---">
+        </div>
+    </div>
+</td>
+{% endif %}
+
+{% if ejemplos_formulas.2 %}
+<!-- Tercera fórmula - Cálculo diferencia entre duplicados -->
+<td class="align-middle">
+    <div class="d-flex flex-column gap-1">
+        <p class="fs-9 mb-0">Ejemplo de cálculo diferencia entre duplicados</p>
+        <div class="formula-container">
+            <p class="formula-text flex-column mb-0">
+                <span class="formula-part">(placa1 - placa2) ÷ Promedio × 100 = ≤5%</span>
+            </p>
+        </div>
+        <div class="d-flex gap-1">
+            <input type="text" id="num6" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;" value="{{ ejemplos_formulas.2.dato1_ejemplo|default:'---' }}">
+            <span class="fs-9">-</span>
+            <input type="text" id="num7" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;" value="{{ ejemplos_formulas.2.dato2_ejemplo|default:'---' }}">
+            <span class="fs-9">÷</span>
+            <input type="text" id="num8" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;" value="{{ ejemplos_formulas.2.dato3_ejemplo|default:'---' }}">
+            <span class="fs-9">x 100 =</span>
+            <label class="fs-9" id="result3" style="font-size: 12px;">{{ ejemplos_formulas.2.resultdo_ejemplo|default:'---' }}</label>
+        </div>
+        <div class="d-flex gap-1 p-1">
+            <p class="fs-9 mb-0">Clave muestra:</p>
+            <input type="text" class="form-control form-control-sm" style="width: 80px; height: 25px; font-size: 0.75rem;" value="{{ ejemplos_formulas.2.clave_muestra_ejemplo|default:'---' }}">
+        </div>
+    </div>
+</td>
+{% else %}
+<!-- Tercera fórmula predeterminada -->
+<td class="align-middle">
+    <div class="d-flex flex-column gap-1">
+        <p class="fs-9 mb-0">Ejemplo de cálculo diferencia entre duplicados</p>
+        <div class="formula-container">
+            <p class="formula-text flex-column mb-0">
+                <span class="formula-part">(placa1 - placa2) ÷ Promedio × 100 = ≤5%</span>
+            </p>
+        </div>
+        <div class="d-flex gap-1">
+            <input type="text" id="num6" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;" value="---">
+            <span class="fs-9">-</span>
+            <input type="text" id="num7" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;" value="---">
+            <span class="fs-9">÷</span>
+            <input type="text" id="num8" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;" value="---">
+            <span class="fs-9">x 100 =</span>
+            <label class="fs-9" id="result3" style="font-size: 12px;">---</label>
+        </div>
+        <div class="d-flex gap-1 p-1">
+            <p class="fs-9 mb-0">Clave muestra:</p>
+            <input type="text" class="form-control form-control-sm" style="width: 80px; height: 25px; font-size: 0.75rem;" value="---">
+        </div>
+    </div>
+</td>
+{% endif %}
                                         <td>
                                             <div class="d-flex flex-column align-items-center">
                                                 {% if bitacora.firma_user.signature_user %}

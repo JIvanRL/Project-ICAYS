@@ -116,6 +116,8 @@ def ver_bitacora(request, bitacora_id):
         diluciones_directas = bitacora.dilucion_directa.all()
         diluciones = bitacora.dilucion.all()
         resultados = bitacora.resultado.all()
+        # Obtener los ejemplos de fórmulas relacionados con esta bitácora
+        ejemplos_formulas = bitacora.nombre_bita_cbap.all()
 
         # Iterar sobre los registros y agregarlos a filas_datos
         for i in range(max(len(clave_muestras), len(diluciones_empleadas), len(diluciones_directas), len(diluciones), len(resultados))):
@@ -137,6 +139,7 @@ def ver_bitacora(request, bitacora_id):
             'controles_calidad': bitacora.control_calidades.all(),
             'verificaciones_balanza': bitacora.verificaciones_balanza.all(),
             'registro': bitacora_registro,  # Incluir el registro de Bitcoras_Cbap
+            'ejemplos_formulas': ejemplos_formulas,  # Pasar los ejemplos de fórmulas al contexto
             'blanco': blanco,  # Añadir el blanco al contexto
         }
 
@@ -214,6 +217,8 @@ def ver_bitacora_revisada(request, bitacora_id):
             logger.debug(f"No se encontró registro de blanco para la bitácora {bitacora_id}")
             blanco = None
 
+        # Obtener los ejemplos de fórmulas relacionados con esta bitácora
+        ejemplos_formulas = bitacora.nombre_bita_cbap.all()
         filas_datos = []
         
         # Obtener todos los registros relacionados con la bitácora
@@ -245,6 +250,7 @@ def ver_bitacora_revisada(request, bitacora_id):
             'bitacora_cbap': bitacora_cbap,  # Pasar bitacora_cbap con el nombre correcto
             'registro': bitacora_cbap,  # Mantener registro para compatibilidad
             'blanco': blanco,  # Añadir el blanco al contexto
+            'ejemplos_formulas': ejemplos_formulas,  # Pasar los ejemplos de fórmulas al contexto
             'debug': True  # Habilitar depuración en la plantilla
         }
 

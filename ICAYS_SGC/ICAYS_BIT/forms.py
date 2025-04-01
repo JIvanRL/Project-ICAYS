@@ -1,7 +1,7 @@
 from django import forms
 from .models import (
     DilucionesEmpleadas, Direct_o_Dilucion, Dilucion,
-    ControlCalidad, VerificacionBalanza, bita_cbap, DatosCampoCbap, ClaveMuestraCbap, Resultado, Bitcoras_Cbap, tableBlanco
+    ControlCalidad, VerificacionBalanza, bita_cbap, DatosCampoCbap, ClaveMuestraCbap, Resultado, Bitcoras_Cbap, tableBlanco, ejemplosFormulas
 )
 
 from .models import DilucionesEmpleadas
@@ -113,3 +113,9 @@ class BlancosForm(forms.ModelForm):
     class Meta:
         model = tableBlanco
         fields = ['cantidad_blanco', 'placa_blanco', 'resultado_blanco']
+        
+class EjemplosForm(forms.ModelForm):
+    
+    class Meta: 
+        model = ejemplosFormulas
+        fields = ['dato1_ejemplo', 'dato2_ejemplo', 'dato3_ejemplo', 'resultdo_ejemplo', 'clave_muestra_ejemplo']

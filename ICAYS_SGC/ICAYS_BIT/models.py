@@ -387,3 +387,21 @@ class tableBlanco(models.Model):
     )
     class Meta:
         db_table = 'blancos_cbap'
+
+class ejemplosFormulas(models.Model):
+    id_ejemplos = models.AutoField(primary_key=True, db_column='id_ejemplos')
+    dato1_ejemplo = models.CharField(null=True, max_length=50, default='---', blank=True, db_column='dato1_ejemplo')
+    dato2_ejemplo = models.CharField(null=True, max_length=50, default='---', blank=True, db_column='dato2_ejemplo')
+    dato3_ejemplo = models.CharField(null=True, max_length=50, default='---', blank=True, db_column='dato3_ejemplo')
+    resultdo_ejemplo = models.CharField(null=True, max_length=50, default='---', blank=True, db_column='resultdo_ejemplo')
+    clave_muestra_ejemplo = models.CharField(null=True, max_length=50, default='---', blank=True, db_column='clave_muestra_ejemplo')
+     # Relación con nombre usuario de users
+    nombre_bita_cbap = models.ForeignKey(
+        bita_cbap,
+        on_delete=models.SET_NULL,
+        null=True,
+        db_column='nombre_bita_cbap_ejemplos',
+        related_name='nombre_bita_cbap'
+    )
+    class Meta:
+        db_table = 'ejemplos_cbap'
