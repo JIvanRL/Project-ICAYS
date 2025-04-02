@@ -24,10 +24,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-q*ryf%qrfk#%$*rvq=&ki(0@r2fj-kgiub*xud-0&dyj1-bncn'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 
-ALLOWED_HOSTS = ['34.207.123.61', '*']
+ALLOWED_HOSTS = ['34.207.123.61']
 
 
 # Application definition
@@ -45,6 +45,9 @@ INSTALLED_APPS = [
     'jdirecto',
     'channels',
 ]
+
+
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -101,7 +104,7 @@ LOGIN_URL = 'login'  # Nombre de la URL de la vista de login
 LOGIN_REDIRECT_URL = 'micriobiologyll'  # URL a la que redirigir después del login
 LOGOUT_REDIRECT_URL = 'login'
 CSRF_TRUSTED_ORIGINS = [
-    'http://localhost:8000/',  # Agrega la URL de tu entorno de desarrollo
+    'http://34.207.123.61',  # Agrega la URL de tu entorno de desarrollo
 ]
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
