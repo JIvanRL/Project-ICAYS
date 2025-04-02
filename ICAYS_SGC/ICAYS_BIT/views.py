@@ -334,21 +334,21 @@ def registrar_bitacora(request):
                         'bitacora_id': bita_cbap_instance.id_cbap,
                         'redirect_url': reverse('microalimentos:registrar_bitacora')
                     })
-                elif accion == 'enviar':
-                    # Obtener datos adicionales para el envío
-                    usuario_destino_id = request.POST.get('usuario_destino')
-                    password = request.POST.get('password')
-                    
-                    # Validar contraseña
-                    user = authenticate(request, username=request.user.username, password=password)
-                    if user is None or not user.is_active:
-                        # Si la contraseña es incorrecta, devolver error y NO continuar con el proceso
-                        return JsonResponse({
-                            'success': False,
-                            'message': "Contraseña incorrecta"
-                        }, status=403)
-                    
-                    # Reemplazar con este código:
+                if accion == 'guardar':
+                     # Crear registro en Bitcoras_Cbap con estado 'guardada'
+                    Bitcoras_Cbap.objects.create(
+                        name_user_cbap=request.user,  # El usuario actual (analista) es tanto creador como destinatario
+                        nombre_bita_cbap=bita_cbap_instance,
+                        estado='guardada',
+                        nombre_user_destino=f"{request.user.first_name} {request.user.last_name}"  # Guardar como texto
+                    )
+
+                    return JsonResponse({
+                        'success': True,
+                        'message': "Bitácora guardada correctamente",
+                        'bitacora_id': bita_cbap_instance.id_cbap,
+                        'redirect_url': reverse('microalimentos:registrar_bitacora')
+                    })
                 elif accion == 'enviar':
                     # Obtener datos adicionales para el envío
                     usuario_destino_id = request.POST.get('usuario_destino')
@@ -377,52 +377,46 @@ def registrar_bitacora(request):
                             }, status=403)
                         
                         logger.info(f"Autenticación exitosa para usuario: {request.user.username}")
+                        
+                        # Obtener el usuario destino
+                        try:
+                            usuario_destino = CustomUser.objects.get(id_user=usuario_destino_id)
+                        except CustomUser.DoesNotExist:
+                            return JsonResponse({
+                                'success': False,
+                                'error': 'Usuario destino no encontrado'
+                            }, status=404)
+                        
+                        # Crear registro en Bitcoras_Cbap con estado 'enviada'
+                        Bitcoras_Cbap.objects.create(
+                            name_user_cbap=request.user,  # El usuario actual (analista/creador)
+                            nombre_bita_cbap=bita_cbap_instance,
+                            estado='enviada',
+                            fecha_envio=timezone.now(),
+                            nombre_user_destino=f"{usuario_destino.first_name} {usuario_destino.last_name}"  # El nombre del destinatario (jefe)
+                        )
+                        logger.info(f"Bitácora {bita_cbap_instance.id_cbap} creada y enviada exitosamente a {usuario_destino}")
+                        
+                        return JsonResponse({
+                            'success': True,
+                            'message': 'Bitácora creada y enviada correctamente',
+                            'redirect_url': reverse('microalimentos:lista_bitacoras')
+                        })
+                        
                     except Exception as e:
-                        logger.error(f"Error en autenticación: {str(e)}")
+                        logger.error(f"Error en autenticación o envío: {str(e)}")
                         import traceback
                         logger.error(traceback.format_exc())
                         return JsonResponse({
                             'success': False,
-                            'message': f"Error en autenticación: {str(e)}"
+                            'message': f"Error en autenticación o envío: {str(e)}"
                         }, status=500)
-
-                elif accion == 'enviar':
-                   # Obtener datos adicionales para el envío
-                    usuario_destino_id = request.POST.get('usuario_destino')
-                    password = request.POST.get('password')
-                    
-                    # Validar contraseña
-                    user = authenticate(request, username=request.user.username, password=password)
-                    if user is None or not user.is_active:
-                        return JsonResponse({
-                            'success': False,
-                            'message': "Contraseña incorrecta"
-                        }, status=403)
-                    
-                    # Obtener el usuario destino
-                    try:
-                        usuario_destino = CustomUser.objects.get(id_user=usuario_destino_id)
-                    except CustomUser.DoesNotExist:
-                        return JsonResponse({
-                            'success': False,
-                            'error': 'Usuario destino no encontrado'
-                        }, status=404)
-                    
-                    # Crear registro en Bitcoras_Cbap con estado 'enviada'
-                    Bitcoras_Cbap.objects.create(
-                        name_user_cbap=request.user,  # El usuario actual (analista/creador)
-                        nombre_bita_cbap=bita_cbap_instance,
-                        estado='enviada',
-                        fecha_envio=timezone.now(),
-                        nombre_user_destino=f"{usuario_destino.first_name} {usuario_destino.last_name}"  # El nombre del destinatario (jefe)
-                    )
-                    logger.info(f"Bitácora {bita_cbap_instance.id_cbap} creada y enviada exitosamente a {usuario_destino}")
-                    
+                else:
+                    # Manejar acciones desconocidas
                     return JsonResponse({
-                        'success': True,
-                        'message': 'Bitácora creada y enviada correctamente',
-                        'redirect_url': reverse('microalimentos:lista_bitacoras')
-                    })
+                        'success': False,
+                        'error': f"Acción desconocida: {accion}"
+                    }, status=400)
 
         except Exception as e:
             logger.error(f"Error al procesar la bitácora: {str(e)}")

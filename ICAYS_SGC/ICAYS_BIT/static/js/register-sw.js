@@ -1,15 +1,13 @@
 // Script para registrar el Service Worker
 
 // En register-sw.js
+// En tu archivo register-sw.js
 document.addEventListener('DOMContentLoaded', function() {
-  console.log('Script inicializado correctamente');
-  
-  if ('serviceWorker' in navigator && 'PushManager' in window) {
-    console.log('Service Worker y Push son soportados');
-    
-    // Registrar el Service Worker con ámbito raíz
+ // Este código debe estar en tu archivo principal de JavaScript
+if ('serviceWorker' in navigator && 'PushManager' in window) {
+  window.addEventListener('load', () => {
     navigator.serviceWorker.register('/service-worker.js', { scope: '/' })
-      .then(function(registration) {
+      .then(registration => {
         console.log('Service Worker registrado con éxito:', registration);
         
         // Verificar si ya tenemos permiso para notificaciones
@@ -17,18 +15,20 @@ document.addEventListener('DOMContentLoaded', function() {
           console.log('Ya tenemos permiso para notificaciones');
           subscribeToPushNotifications(registration);
         } else if (Notification.permission !== 'denied') {
-          // Mostrar botón para solicitar permiso
-          showRequestPermissionButton();
+          // Solicitar permiso
+          Notification.requestPermission().then(permission => {
+            if (permission === 'granted') {
+              console.log('Permiso para notificaciones concedido');
+              subscribeToPushNotifications(registration);
+            }
+          });
         }
       })
-      .catch(function(error) {
+      .catch(error => {
         console.error('Error al registrar el Service Worker:', error);
       });
-  } else {
-    console.warn('Push messaging no es soportado');
-    // Mostrar mensaje de que las notificaciones no son soportadas
-    showNotSupportedMessage();
-  }
+  });
+}
 });
 
 // Función para mostrar botón de solicitud de permiso
@@ -139,6 +139,8 @@ function requestNotificationPermission() {
 
 // Función para suscribirse a notificaciones push
 function subscribeToPushNotifications(registration) {
+  console.log('Intentando suscribirse a notificaciones push...');
+  
   // Obtener la clave pública del servidor
   fetch('/api/push/public-key/')
     .then(response => {
@@ -148,36 +150,53 @@ function subscribeToPushNotifications(registration) {
       return response.json();
     })
     .then(data => {
+      console.log('Clave pública obtenida:', data);
+      
       if (!data.publicKey) {
-        throw new Error('No se recibió la clave pública');
+        throw new Error('No se recibió una clave pública válida');
       }
       
-      const applicationServerKey = urlBase64ToUint8Array(data.publicKey);
+      const publicKey = data.publicKey;
       
-      // Verificar si ya existe una suscripción
-      return registration.pushManager.getSubscription()
-        .then(subscription => {
-          if (subscription) {
-            console.log('Ya existe una suscripción');
-            return subscription;
-          }
-          
-          // Crear nueva suscripción
-          return registration.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: applicationServerKey
-          });
+      // Convertir la clave pública a Uint8Array
+      const applicationServerKey = urlBase64ToUint8Array(publicKey);
+      
+      console.log('Intentando suscribirse con la clave:', publicKey);
+      
+      // Suscribirse a las notificaciones push
+      return registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: applicationServerKey
+      });
+    })
+    .then(subscription => {
+      console.log('Suscripción creada:', subscription);
+      
+      // Enviar la suscripción al servidor
+      return fetch('/api/push/subscribe/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({
+          subscription: subscription.toJSON()
         })
-        .then(subscription => {
-          // Enviar la suscripción al servidor
-          return sendSubscriptionToServer(subscription);
-        });
+      });
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Error al guardar la suscripción');
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log('Suscripción guardada correctamente:', data);
     })
     .catch(error => {
       console.error('Error al suscribirse a notificaciones push:', error);
     });
 }
-
 // Función para enviar la suscripción al servidor
 function sendSubscriptionToServer(subscription) {
   const csrfToken = getCookie('csrftoken');
@@ -210,30 +229,30 @@ function sendSubscriptionToServer(subscription) {
 function urlBase64ToUint8Array(base64String) {
   const padding = '='.repeat((4 - base64String.length % 4) % 4);
   const base64 = (base64String + padding)
-    .replace(/\-/g, '+')
-    .replace(/_/g, '/');
-
+      .replace(/-/g, '+')
+      .replace(/_/g, '/');
+  
   const rawData = window.atob(base64);
   const outputArray = new Uint8Array(rawData.length);
-
+  
   for (let i = 0; i < rawData.length; ++i) {
-    outputArray[i] = rawData.charCodeAt(i);
+      outputArray[i] = rawData.charCodeAt(i);
   }
   return outputArray;
 }
 
-// Función para obtener cookies (para CSRF token)
+// Función auxiliar para obtener cookies
 function getCookie(name) {
   let cookieValue = null;
   if (document.cookie && document.cookie !== '') {
-    const cookies = document.cookie.split(';');
-    for (let i = 0; i < cookies.length; i++) {
-      const cookie = cookies[i].trim();
-      if (cookie.substring(0, name.length + 1) === (name + '=')) {
-        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-        break;
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+              cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+              break;
+          }
       }
-    }
   }
   return cookieValue;
 }

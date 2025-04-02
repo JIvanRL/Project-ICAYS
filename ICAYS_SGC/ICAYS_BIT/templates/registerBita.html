@@ -255,7 +255,7 @@
                                                 <div class="d-flex align-items-center mx-2">
                                                     <span class="mx-2">Tomo</span>
                                                     <input type="text" class="form-control form-control-sm mx-2" style="width: 80px;" name="tomo_verficacion_vb">
-                                                    <span class="mx-2">página</span>
+                                                    <span class="mx-2">Página</span>
                                                     <input type="text" class="form-control form-control-sm mx-2" style="width: 80px;" name="pagina_verficacion_vb">
                                                 </div>
                                             </div>
@@ -472,11 +472,11 @@
                                 </div>
                             </div>
                         </div>
-                    </div>                 
+                    </div>                                     
             </div>
         </div>
     </div>
-    </div>
+</div>
            
         <div class="table-container">
             <!-- Agregar este input hidden justo antes o después de la tabla -->
@@ -567,9 +567,9 @@
                                     <th>Ejemplo de calculo de resultado</th>
                                     <th>Ejemplo de calculo de resultado de superficies vivas e inertes</th>
                                     <th>Ejemplo de calculo diferencia entre duplicados</th>
-                                    <th class="w-8">Elabora</th>
-                                    <th class="w-8">Revisa</th>
-                                    <th class="w-8">Autoriza</th>
+                                    <th class="w-8">Elaboró</th>
+                                    <th class="w-8">Revisó</th>
+                                    <th class="w-8">Autorizó</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -744,17 +744,17 @@
                                     <div class="card-body">
                                         <div class="row">
                                             <div class="col-4 text-center">
-                                                <small class="text-muted">Elabora</small>
+                                                <small class="text-muted">Elaboró</small>
                                                 <hr class="my-1">
                                                 <small>Firma</small>
                                             </div>
                                             <div class="col-4 text-center">
-                                                <small class="text-muted">Revisa</small>
+                                                <small class="text-muted">Revisó</small>
                                                 <hr class="my-1">
                                                 <small>Firma</small>
                                             </div>
                                             <div class="col-4 text-center">
-                                                <small class="text-muted">Autoriza</small>
+                                                <small class="text-muted">Autorizó</small>
                                                 <hr class="my-1">
                                                 <small>Firma</small>
                                             </div>
@@ -892,5 +892,6 @@
 {% block extra_js %}
     <script type="module" src="{% static 'js/events-bita131.js' %}"></script>
     <script src="{% static 'js/functions.js' %}"></script>
+    <script src="{% static 'js/form-validation.js' %}"></script>
     
 {% endblock %}

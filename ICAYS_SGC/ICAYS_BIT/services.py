@@ -212,3 +212,59 @@ class PushNotificationService:
                     subscription.delete()
         
         return success_count > 0
+    
+from .push_views import send_push_notification
+
+def notify_user(user, message, related_ejemplo=None, url=None):
+    """
+    Envía una notificación a un usuario por todos los canales disponibles
+    """
+    # 1. Crear notificación en la base de datos
+    from .models import Notification
+    notification = Notification.objects.create(
+        recipient=user,
+        message=message,
+        related_ejemplo=related_ejemplo
+    )
+    
+    # 2. Enviar notificación push si está configurado
+    push_result = send_push_notification(
+        user=user,
+        title="ICAYS Notificación",
+        body=message,
+        url=url
+    )
+    
+    # 3. Enviar notificación por WebSocket si está configurado
+    try:
+        from channels.layers import get_channel_layer
+        from asgiref.sync import async_to_sync
+        
+        channel_layer = get_channel_layer()
+        if channel_layer:
+            notification_data = {
+                'type': 'notification_message',
+                'notification_id': notification.id_notification,
+                'message': notification.message,
+                'created_at': notification.created_at.isoformat(),
+                'is_read': notification.is_read
+            }
+            
+            if related_ejemplo:
+                notification_data['ejemplo_id'] = related_ejemplo.id_ejemplos
+            
+            if url:
+                notification_data['url'] = url
+            
+            # Enviar al grupo del usuario
+            async_to_sync(channel_layer.group_send)(
+                f'notifications_{user.id}',
+                notification_data
+            )
+    except Exception as e:
+        print(f"Error al enviar notificación por WebSocket: {e}")
+    
+    return {
+        'notification': notification,
+        'push_result': push_result
+    }

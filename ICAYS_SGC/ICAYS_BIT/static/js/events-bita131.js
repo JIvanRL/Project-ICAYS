@@ -562,7 +562,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // }
     function ResultadoCalculo(fila) {
         const resultadoInput = fila.querySelector('[name^="resultado_r_"]');
-        let r1 = 0, r2 = 0, resultado = 0, VMH = 0;
+        let r1 = 0, r2 = 0, r3 = 0, resultado = 0, VMH = 0;
         if (!resultadoInput) return;
 
         // Obtener la medición seleccionada
@@ -608,10 +608,211 @@ document.addEventListener('DOMContentLoaded', function () {
             vm = parseFloat(fila.dataset.vm); // Usar Vm almacenado
         }
 
-        /////////////////////////////////////////
-        //           Promedio numero 1        //
-        /////////////////////////////////////////
-        if (promedio1 >= 5 && promedio1 <= 250 || promedio1 > promedio2 && promedio1 > promedio3) {
+
+        if (promedio1 >= 5 && promedio1 <= 250 && promedio2 >= 5 && promedio2 <= 250 && promedio3 >= 5 && promedio1 <= 250) {
+            if (medicionValue === 'Alimentos' || medicionValue === 'Aguas') {
+                if (dE1 && dE2 && dE3) {
+                    r1 = promedio1 / 1;
+                    r2 = promedio2 / 0.1;
+                    r3 = promedio3 / 0.01;
+                    resultado = (r1 + r2 + r3) / 3;
+                    resultadoInput.value = resultado > 0 ? redondearNumero(resultado) : '0**';
+                    return;
+                } else if (dE1 && dE2 && dE4) {
+                    r1 = promedio1 / 1;
+                    r2 = promedio2 / 0.1;
+                    r3 = promedio3 / 0.001;
+                    resultado = (r1 + r2 + r3) / 3;
+                    resultadoInput.value = resultado > 0 ? redondearNumero(resultado) : '0**';
+                    return;
+                } else if (dE1 && dE3 && dE4) {
+                    r1 = promedio1 / 1;
+                    r2 = promedio2 / 0.01;
+                    r3 = promedio3 / 0.001;
+                    resultado = (r1 + r2 + r3) / 3;
+                    resultadoInput.value = resultado > 0 ? redondearNumero(resultado) : '0**';
+                    return;
+                } else if (dE2 && dE3 && dE4) {
+                    r1 = promedio1 / 0.1;
+                    r2 = promedio2 / 0.01;
+                    r3 = promedio3 / 0.001;
+                    resultado = (r1 + r2 + r3) / 3;
+                    resultadoInput.value = resultado > 0 ? redondearNumero(resultado) : '0**';
+                    return;
+                }
+            } else if (medicionValue === 'Vivas' || medicionValue === 'Blancos' || medicionValue === 'Inertes') {
+                if (dE1 && dE2 && dE3) {
+                    r1 = (promedio1 / 1) * vm;
+                    r2 = (promedio2 / 0.1) * vm;
+                    r3 = (promedio3 / 0.01) * vm;
+                    resultado = (r1 + r2 + r3) / 3;
+                    resultadoInput.value = resultado > 0 ? redondearNumero(resultado) : '0**';
+                    return;
+                } else if (dE1 && dE2 && dE4) {
+                    r1 = (promedio1 / 1) * vm;
+                    r2 = (promedio2 / 0.1) * vm;
+                    r3 = (promedio3 / 0.001) * vm;
+                    resultado = (r1 + r2 + r3) / 3;
+                    resultadoInput.value = resultado > 0 ? redondearNumero(resultado) : '0**';
+                    return;
+                } else if (dE1 && dE3 && dE4) {
+                    r1 = (promedio1 / 1) * vm;
+                    r2 = (promedio2 / 0.01) * vm;
+                    r3 = (promedio3 / 0.001) * vm;
+                    resultado = (r1 + r2 + r3) / 3;
+                    resultadoInput.value = resultado > 0 ? redondearNumero(resultado) : '0**';
+                    return;
+                } else if (dE2 && dE3 && dE4) {
+                    r1 = (promedio1 / 0.1) * vm;
+                    r2 = (promedio2 / 0.01) * vm;
+                    r3 = (promedio3 / 0.001) * vm;
+                    resultado = (r1 + r2 + r3) / 3;
+                    resultadoInput.value = resultado > 0 ? redondearNumero(resultado) : '0**';
+                    return;
+                }
+            }
+        }   ///////////////////// Dos promedios (promedio 1 y 2)///////////////////////////////
+        else if (promedio1 >= 5 && promedio1 <= 250 && promedio2 >= 5 && promedio2 <= 250) {
+            if (medicionValue === 'Alimentos' || medicionValue === 'Aguas') {
+                if (dE1 && dE2) {
+                    r1 = promedio1 / 1;
+                    r2 = promedio2 / 0.1;
+                    resultado = (r1 + r2) / 2;
+                    resultadoInput.value = resultado > 0 ? redondearNumero(resultado) : '0**';
+                    return;
+                } else if (dE1 && dE3) {
+                    r1 = promedio1 / 1;
+                    r2 = promedio2 / 0.01;
+                    resultado = (r1 + r2) / 2;
+                    resultadoInput.value = resultado > 0 ? redondearNumero(resultado) : '0**';
+                    return;
+                } else if (dE2 && dE3) {
+                    r1 = promedio1 / 0.1;
+                    r2 = promedio2 / 0.01;
+                    resultado = (r1 + r2) / 2;
+                    resultadoInput.value = resultado > 0 ? redondearNumero(resultado) : '0**';
+                    return;
+                } else if (dE3 && dE4) {
+                    r1 = promedio1 / 0.01;
+                    r2 = promedio2 / 0.001;
+                    resultado = (r1 + r2) / 2;
+                    resultadoInput.value = resultado > 0 ? redondearNumero(resultado) : '0**';
+                    return;
+                }
+            } else if (medicionValue === 'Vivas' || medicionValue === 'Blancos' || medicionValue === 'Inertes') {
+                if (dE1 && dE2) {
+                    r1 = promedio1 / 1 * vm;
+                    r2 = promedio2 / 0.1 * vm;
+                    resultado = (r1 + r2) / 2;
+                    resultadoInput.value = resultado > 0 ? redondearNumero(resultado) : '0**';
+                    return;
+                } else if (dE1 && dE3) {
+                    r1 = promedio1 / 1 * vm;
+                    r2 = promedio2 / 0.01 * vm;
+                    resultado = (r1 + r2) / 2;
+                    resultadoInput.value = resultado > 0 ? redondearNumero(resultado) : '0**';
+                    return;
+                } else if (dE2 && dE3) {
+                    r1 = promedio1 / 0.1 * vm;
+                    r2 = promedio2 / 0.01 * vm;
+                    resultado = (r1 + r2) / 2;
+                    resultadoInput.value = resultado > 0 ? redondearNumero(resultado) : '0**';
+                    return;
+                } else if (dE3 && dE4) {
+                    r1 = promedio1 / 0.01 * vm;
+                    r2 = promedio2 / 0.001 * vm;
+                    resultado = (r1 + r2) / 2;
+                    resultadoInput.value = resultado > 0 ? redondearNumero(resultado) : '0**';
+                    return;
+                }
+            } ///////////////////// Dos promedios (1 y 3) /////////////////////////////////
+        } else if (promedio1 >= 5 && promedio1 <= 250 && promedio3 >= 5 && promedio3 <= 250) {
+            if (medicionValue === 'Alimentos' || medicionValue === 'Aguas') {
+                if (dE1 && dE2 && dE3) {
+                    r1 = promedio1 / 1;
+                    r2 = promedio3 / 0.01;
+                    resultado = (r1 + r2) / 2;
+                    resultadoInput.value = resultado > 0 ? redondearNumero(resultado) : '0**';
+                    return;
+                } else if (dE1 && dE3 && dE4) {
+                    r1 = promedio1 / 1;
+                    r2 = promedio3 / 0.001;
+                    resultado = (r1 + r2) / 2;
+                    resultadoInput.value = resultado > 0 ? redondearNumero(resultado) : '0**';
+                    return;
+                } else if (dE2 && dE3 && dE4) {
+                    r1 = promedio1 / 0.1;
+                    r2 = promedio3 / 0.001;
+                    resultado = (r1 + r2) / 2;
+                    resultadoInput.value = resultado > 0 ? redondearNumero(resultado) : '0**';
+                    return;
+                }
+            } else if (medicionValue === 'Vivas' || medicionValue === 'Blancos' || medicionValue === 'Inertes') {
+                if (dE1 && dE2 && dE3) {
+                    r1 = promedio1 / 1 * vm;
+                    r2 = promedio3 / 0.01 * vm;
+                    resultado = (r1 + r2) / 2;
+                    resultadoInput.value = resultado > 0 ? redondearNumero(resultado) : '0**';
+                    return;
+                } else if (dE1 && dE3 && dE4) {
+                    r1 = promedio1 / 1 * vm;
+                    r2 = promedio3 / 0.001 * vm;
+                    resultado = (r1 + r2) / 2;
+                    resultadoInput.value = resultado > 0 ? redondearNumero(resultado) : '0**';
+                    return;
+                } else if (dE2 && dE3 && dE4) {
+                    r1 = promedio1 / 0.1 * vm;
+                    r2 = promedio3 / 0.001 * vm;
+                    resultado = (r1 + r2) / 2;
+                    resultadoInput.value = resultado > 0 ? redondearNumero(resultado) : '0**';
+                    return;
+                }
+            }
+            //////////////////////////Dos promedios (2 y 3)//////////////////////////
+        } else if (promedio2 >= 5 && promedio2 <= 250 && promedio3 >= 5 && promedio3 <= 250) {
+            if (medicionValue === 'Alimentos' || medicionValue === 'Aguas') {
+                if (dE1 && dE2 && dE3) {
+                    r1 = promedio2 / 0.1;
+                    r2 = promedio3 / 0.01;
+                    resultado = (r1 + r2) / 2;
+                    resultadoInput.value = resultado > 0 ? redondearNumero(resultado) : '0**';
+                    return;
+                } else if (dE1 && dE3 && dE4) {
+                    r1 = promedio2 / 0.01;
+                    r2 = promedio3 / 0.001;
+                    resultado = (r1 + r2) / 2;
+                    resultadoInput.value = resultado > 0 ? redondearNumero(resultado) : '0**';
+                    return;
+                } else if (dE2 && dE3 && dE4) {
+                    r1 = promedio2 / 0.01;
+                    r2 = promedio3 / 0.001;
+                    resultado = (r1 + r2) / 2;
+                    resultadoInput.value = resultado > 0 ? redondearNumero(resultado) : '0**';
+                    return;
+                }
+            } else if (medicionValue === 'Vivas' || medicionValue === 'Blancos' || medicionValue === 'Inertes') {
+                if (dE1 && dE2 && dE3) {
+                    r1 = promedio2 / 0.1 * vm;
+                    r2 = promedio3 / 0.01 * vm;
+                    resultado = (r1 + r2) / 2;
+                    resultadoInput.value = resultado > 0 ? redondearNumero(resultado) : '0**';
+                    return;
+                } else if (dE1 && dE3 && dE4) {
+                    r1 = promedio2 / 0.01 * vm;
+                    r2 = promedio3 / 0.001 * vm;
+                    resultado = (r1 + r2) / 2;
+                    resultadoInput.value = resultado > 0 ? redondearNumero(resultado) : '0**';
+                    return;
+                } else if (dE2 && dE3 && dE4) {
+                    r1 = promedio1 / 0.01 * vm;
+                    r2 = promedio3 / 0.001 * vm;
+                    resultado = (r1 + r2) / 2;
+                    resultadoInput.value = resultado > 0 ? redondearNumero(resultado) : '0**';
+                    return;
+                }
+            }
+            //////////////////////////Promedio numero 1 //////////////////////////
+        } else if (promedio1 >= 5 && promedio1 <= 250 || promedio1 > promedio2 && promedio1 > promedio3) {
             if (medicionValue === 'Alimentos' || medicionValue === 'Aguas') {
                 if (dE1) {
                     resultado = promedio1 / 1;
@@ -762,7 +963,19 @@ document.addEventListener('DOMContentLoaded', function () {
                             return;
                         }
                     }
-                } else {
+                }else if(dE3) 
+                    {
+                        resultado = promedio3 / 0.01;
+                        resultadoInput.value = resultado > 0 ? redondearNumero(resultado) : '0**';
+                        return;
+                    }
+                    else if(dE4) 
+                        {
+                            resultado = promedio3 / 0.001;
+                            resultadoInput.value = resultado > 0 ? redondearNumero(resultado) : '0**';
+                            return;
+                        }
+                else {
                     resultado = '0**';
                     resultadoInput.value = resultado;
                     return;

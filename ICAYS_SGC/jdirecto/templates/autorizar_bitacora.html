@@ -136,7 +136,7 @@
                                         <div class="row g-2">
                                             <div class="col-12 col-md-4">
                                                 <div class="form-floating">
-                                                    <input type="text" class="form-control form-control-sm" id="letra_analista_cbap" name="letra_analista_cbap" value="{{bitacora.letra_analista_cbap}}" placeholder="Letra Analista" >
+                                                    <input type="text" class="form-control form-control-sm" id="letra_analista_cbap" name="letra_analista_cbap" value="{{bitacora.letra_analista_cbap|default:'---' }}" placeholder="Letra Analista" >
                                                     <label for="letra_analista_cbap">Letra Analista</label>
                                                 </div>
                                             </div>
@@ -155,7 +155,7 @@
                                         </div> -->
                                             <div class="col-12 col-md-4">
                                                 <div class="form-floating">
-                                                    <input type="text" class="form-control form-control-sm" id="pagina_muestra_cbap" name="pagina_muestra_cbap" value="{{bitacora.pagina_muestra_cbap}}" placeholder="Página" >
+                                                    <input type="text" class="form-control form-control-sm" id="pagina_muestra_cbap" name="pagina_muestra_cbap" value="{{bitacora.pagina_muestra_cbap|default:'---'}}" placeholder="Página" >
                                                     <label for="pagina_muestra_cbap">Página</label>
                                                 </div>
                                             </div>
@@ -215,13 +215,13 @@
                                             </div>
                                             <div class="col-12 col-md-3">
                                                 <div class="form-floating">
-                                                    <input type="text" name="pagina_fosfato_cbap" class="form-control form-control-sm" id="pagina_fosfato_cbap" value="{{bitacora.pagina_fosfato_cbap}}" placeholder="Página">
+                                                    <input type="text" name="pagina_fosfato_cbap" class="form-control form-control-sm" id="pagina_fosfato_cbap" value="{{bitacora.pagina_fosfato_cbap|default:'---' }}" placeholder="Página">
                                                     <label for="pagina_fosfato_cbap">Página</label>
                                                 </div>
                                             </div>
                                             <div class="col-12 col-md-3">
                                                 <div class="form-floating">
-                                                    <input type="text" name="numero_fosfato_cbap" class="form-control form-control-sm" id="numero_fosfato_cbap" value="{{bitacora.numero_fosfato_cbap}}" placeholder="Número">
+                                                    <input type="text" name="numero_fosfato_cbap" class="form-control form-control-sm" id="numero_fosfato_cbap" value="{{bitacora.numero_fosfato_cbap|default:'---' }}" placeholder="Número">
                                                     <label for="numero_fosfato_cbap">Número</label>
                                                 </div>
                                             </div>
@@ -236,13 +236,13 @@
                                             </div>
                                             <div class="col-12 col-md-3">
                                                 <div class="form-floating">
-                                                    <input type="text" name="pagina_agar_cbap" class="form-control form-control-sm" id="pagina_agar_cbap" value="{{bitacora.pagina_agar_cbap}}" placeholder="Página">
+                                                    <input type="text" name="pagina_agar_cbap" class="form-control form-control-sm" id="pagina_agar_cbap" value="{{bitacora.pagina_agar_cbap|default:'---' }}" placeholder="Página">
                                                     <label for="pagina_agar_cbap">Página</label>
                                                 </div>
                                             </div>
                                             <div class="col-12 col-md-3">
                                                 <div class="form-floating">
-                                                    <input type="text" name="numero_agar_cbap" class="form-control form-control-sm" id="numero_agar_cbap" value="{{bitacora.numero_agar_cbap}}" placeholder="Número">
+                                                    <input type="text" name="numero_agar_cbap" class="form-control form-control-sm" id="numero_agar_cbap" value="{{bitacora.numero_agar_cbap|default:'---' }}" placeholder="Número">
                                                     <label for="numero_agar_cbap">Número</label>
                                                 </div>
                                             </div>
@@ -269,7 +269,7 @@
                             <div class="d-flex align-items-center mx-2">
                                 <span class="mx-2">Tomo</span>
                                 <input type="text" class="form-control form-control-sm mx-2" style="width: 80px;" name="tomo_verficacion_vb" value="{% if verificaciones_balanza %}{{ verificaciones_balanza.0.tomo_verficacion_vb|default:'---' }}{% endif %}">
-                                <span class="mx-2">página</span>
+                                <span class="mx-2">Página</span>
                                 <input type="text" class="form-control form-control-sm mx-2" style="width: 80px;" name="pagina_verficacion_vb" value="{% if verificaciones_balanza %}{{ verificaciones_balanza.0.pagina_verficacion_vb|default:'---' }}{% endif %}">
                             </div>
                         </div>
@@ -420,7 +420,7 @@
             <div class="col-12 col-md-6 col-lg-3">
                 <div class="form-floating">
                     <input type="text" id="page_1cc_{{ forloop.counter }}" name="page_1cc_{{ forloop.counter }}" 
-                        value="{{ control.page_1cc|default:'' }}" class="form-control" required>
+                        value="{{ control.page_1cc|default:'---' }}" class="form-control" required>
                     <label for="page_1cc_{{ forloop.counter }}">Página </label>
                 </div>
             </div>
@@ -454,7 +454,7 @@
             <div class="col-12 col-md-6 col-lg-3">
                 <div class="form-floating">
                     <input type="text" id="page_1cc_{{ forloop.counter }}" name="page_1cc_{{ forloop.counter }}" 
-                        value="{{ control.page_1cc|default:'' }}" class="form-control" required>
+                        value="{{ control.page_1cc|default:'---' }}" class="form-control" required>
                     <label for="page_1cc_{{ forloop.counter }}">Página </label>
                 </div>
             </div>
@@ -644,9 +644,9 @@
                                         <th>Ejemplo de calculo de resultado</th>
                                         <th>Ejemplo de canculo de resultado de superficies vivas e inertes</th>
                                         <th>Ejemplo de calculo diferencia entre duplicados</th>
-                                        <th style="width: 8%;">Elabora</th>
-                                        <th style="width: 8%;">Revisa</th>
-                                        <th style="width: 8%;">Autoriza</th>
+                                        <th style="width: 8%;">Elaboró</th>
+                                        <th style="width: 8%;">Revisó</th>
+                                        <th style="width: 8%;">Autorizó</th>
                                     </tr>
                                 </thead>
                                 <tbody>

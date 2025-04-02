@@ -4,7 +4,8 @@ const urlsToCache = [
   '/',
   '/static/css/notifications.css',
   '/static/js/notifications.js',
-  '/static/sounds/notification.mp3'
+  '/static/sounds/notification.mp3',
+  '/static/images/ICAYS_1.png'
 ];
 
 // Evento de instalación - cachear recursos estáticos
@@ -42,15 +43,21 @@ self.addEventListener('activate', event => {
   );
 });
 
-// Evento push - recibir notificaciones push
 self.addEventListener('push', event => {
-  console.log('[Service Worker] Push recibido');
+  console.log('[Service Worker] Push recibido', event);
   
   let notificationData = {};
   
   try {
-    notificationData = event.data.json();
+    if (event.data) {
+      console.log('[Service Worker] Datos recibidos:', event.data.text());
+      notificationData = event.data.json();
+      console.log('[Service Worker] Datos parseados:', notificationData);
+    } else {
+      console.log('[Service Worker] No hay datos en el evento push');
+    }
   } catch (e) {
+    console.error('[Service Worker] Error al parsear datos:', e);
     notificationData = {
       title: 'ICAYS Notificación',
       body: event.data ? event.data.text() : 'Nueva notificación',
@@ -77,8 +84,16 @@ self.addEventListener('push', event => {
     ]
   };
   
+  console.log('[Service Worker] Mostrando notificación:', title, options);
+  
   event.waitUntil(
     self.registration.showNotification(title, options)
+      .then(() => {
+        console.log('[Service Worker] Notificación mostrada con éxito');
+      })
+      .catch(error => {
+        console.error('[Service Worker] Error al mostrar notificación:', error);
+      })
   );
 });
 

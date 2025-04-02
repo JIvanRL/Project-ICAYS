@@ -1,87 +1,37 @@
 import json
-import base64
-import os
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
 
-# Importar pywebpush para enviar notificaciones push
+# Obtener claves VAPID de settings.py
+VAPID_PRIVATE_KEY = getattr(settings, 'VAPID_PRIVATE_KEY', None)
+VAPID_PUBLIC_KEY = getattr(settings, 'VAPID_PUBLIC_KEY', None)
+VAPID_CLAIMS = getattr(settings, 'VAPID_CLAIMS', {
+    "sub": "mailto:joseivanriveralopez81@gmail.com"
+})
+
+# Verificar si pywebpush está instalado
 try:
     from pywebpush import webpush, WebPushException
     PUSH_ENABLED = True
+    print("pywebpush está instalado. Las notificaciones push están disponibles.")
 except ImportError:
     PUSH_ENABLED = False
     print("pywebpush no está instalado. Las notificaciones push no estarán disponibles.")
     print("Instala pywebpush con: pip install pywebpush")
 
-# Claves VAPID para Web Push
-# En producción, estas claves deben estar en settings.py y generarse una sola vez
-VAPID_PRIVATE_KEY = getattr(settings, 'VAPID_PRIVATE_KEY', None)
-VAPID_PUBLIC_KEY = getattr(settings, 'VAPID_PUBLIC_KEY', None)
-VAPID_CLAIMS = getattr(settings, 'VAPID_CLAIMS', {
-    "sub": "mailto:webmaster@icays.com"
-})
-
-# Generar claves VAPID si no existen
-def generate_vapid_keys():
-    if not PUSH_ENABLED:
-        return None, None
-    
-    try:
-        # Método alternativo para generar claves VAPID
-        from cryptography.hazmat.primitives.asymmetric import ec
-        from cryptography.hazmat.primitives import serialization
-        
-        # Generar clave privada
-        private_key = ec.generate_private_key(
-            curve=ec.SECP256R1()
-        )
-        
-        # Obtener clave pública
-        public_key = private_key.public_key()
-        
-        # Serializar clave privada
-        private_pem = private_key.private_bytes(
-            encoding=serialization.Encoding.PEM,
-            format=serialization.PrivateFormat.PKCS8,
-            encryption_algorithm=serialization.NoEncryption()
-        )
-        
-        # Serializar clave pública
-        public_pem = public_key.public_bytes(
-            encoding=serialization.Encoding.PEM,
-            format=serialization.PublicFormat.SubjectPublicKeyInfo
-        )
-        
-        # Convertir a base64 para uso en Web Push
-        private_key_str = base64.urlsafe_b64encode(private_pem).decode('utf-8')
-        public_key_str = base64.urlsafe_b64encode(public_pem).decode('utf-8')
-        
-        return private_key_str, public_key_str
-    except Exception as e:
-        print(f"Error al generar claves VAPID: {e}")
-        return None, None
-
-# Si no hay claves VAPID configuradas, generarlas
-if not VAPID_PRIVATE_KEY or not VAPID_PUBLIC_KEY:
-    VAPID_PRIVATE_KEY, VAPID_PUBLIC_KEY = generate_vapid_keys()
-    if VAPID_PRIVATE_KEY and VAPID_PUBLIC_KEY:
-        print("Claves VAPID generadas. Añade estas claves a tu settings.py:")
-        print(f"VAPID_PRIVATE_KEY = '{VAPID_PRIVATE_KEY}'")
-        print(f"VAPID_PUBLIC_KEY = '{VAPID_PUBLIC_KEY}'")
-    else:
-        print("No se pudieron generar las claves VAPID. Las notificaciones push no funcionarán correctamente.")
-
 def get_public_key(request):
     """
     Devuelve la clave pública VAPID para notificaciones push
     """
-    if not PUSH_ENABLED or not VAPID_PUBLIC_KEY:
+    if not VAPID_PUBLIC_KEY:
+        print("Error: VAPID_PUBLIC_KEY no está configurada en settings.py")
         return JsonResponse({
             'error': 'Las notificaciones push no están configuradas en el servidor'
         }, status=501)
     
+    print(f"Devolviendo clave pública VAPID: {VAPID_PUBLIC_KEY}")
     return JsonResponse({
         'publicKey': VAPID_PUBLIC_KEY
     })
@@ -93,6 +43,7 @@ def subscribe(request):
     Guarda una nueva suscripción push para el usuario actual
     """
     if not PUSH_ENABLED:
+        print("Error: pywebpush no está instalado")
         return JsonResponse({
             'error': 'Las notificaciones push no están configuradas en el servidor'
         }, status=501)
@@ -108,6 +59,7 @@ def subscribe(request):
         auth = keys.get('auth')
         
         if not endpoint or not p256dh or not auth:
+            print(f"Error: Datos de suscripción incompletos: {subscription_data}")
             return JsonResponse({
                 'error': 'Datos de suscripción incompletos'
             }, status=400)
@@ -125,6 +77,7 @@ def subscribe(request):
             }
         )
         
+        print(f"Suscripción {'creada' if created else 'actualizada'} para {request.user.username}: {endpoint}")
         return JsonResponse({
             'success': True,
             'created': created,
@@ -132,6 +85,7 @@ def subscribe(request):
         })
     
     except Exception as e:
+        print(f"Error al guardar suscripción: {str(e)}")
         return JsonResponse({
             'error': str(e)
         }, status=500)
@@ -176,18 +130,7 @@ def unsubscribe(request):
 
 def send_push_notification(user, title, body, url=None, tag=None, data=None):
     """
-    Envía una notificación push a todas las suscripciones del usuario
-    
-    Args:
-        user: Usuario al que enviar la notificación
-        title: Título de la notificación
-        body: Cuerpo de la notificación
-        url: URL opcional a la que redirigir al hacer clic
-        tag: Etiqueta opcional para agrupar notificaciones
-        data: Datos adicionales para la notificación
-    
-    Returns:
-        dict: Resultado del envío con éxitos y errores
+    Envía una notificación push a un usuario
     """
     if not PUSH_ENABLED or not VAPID_PRIVATE_KEY:
         print("Las notificaciones push no están configuradas")
@@ -196,12 +139,21 @@ def send_push_notification(user, title, body, url=None, tag=None, data=None):
     # Importar el modelo aquí para evitar importaciones circulares
     from .models import PushSubscription
     
+    # Obtener todas las suscripciones del usuario
+    subscriptions = PushSubscription.objects.filter(user=user)
+    
+    if not subscriptions:
+        print(f"No hay suscripciones para el usuario {user.username}")
+        return {'success': False, 'error': 'No subscriptions found'}
+    
     # Preparar datos de la notificación
     payload = {
         'title': title,
         'body': body,
         'icon': '/static/img/logo.png',
+        'badge': '/static/img/badge.png',
         'tag': tag or 'default',
+        'requireInteraction': True,
         'data': data or {}
     }
     
@@ -212,9 +164,9 @@ def send_push_notification(user, title, body, url=None, tag=None, data=None):
     # Convertir payload a JSON
     payload_json = json.dumps(payload)
     
-    # Obtener todas las suscripciones del usuario
-    subscriptions = PushSubscription.objects.filter(user=user)
+    print(f"Enviando notificación push a {user.username} con payload: {payload}")
     
+    # Enviar notificación a cada suscripción del usuario
     results = {
         'total': len(subscriptions),
         'success': 0,
@@ -233,6 +185,8 @@ def send_push_notification(user, title, body, url=None, tag=None, data=None):
                 }
             }
             
+            print(f"Enviando a endpoint: {subscription.endpoint}")
+            
             webpush(
                 subscription_info=subscription_info,
                 data=payload_json,
@@ -240,18 +194,24 @@ def send_push_notification(user, title, body, url=None, tag=None, data=None):
                 vapid_claims=VAPID_CLAIMS
             )
             
+            print(f"Notificación enviada correctamente a {subscription.endpoint}")
             results['success'] += 1
         
         except WebPushException as e:
+            print(f"Error al enviar notificación push: {e}")
+            
             # Si la suscripción ya no es válida, eliminarla
             if e.response and e.response.status_code in [404, 410]:
+                print(f"Eliminando suscripción inválida: {subscription.endpoint}")
                 subscription.delete()
             
             results['failed'] += 1
             results['errors'].append(str(e))
         
         except Exception as e:
+            print(f"Error inesperado al enviar notificación push: {e}")
             results['failed'] += 1
             results['errors'].append(str(e))
     
+    print(f"Resultados del envío: {results}")
     return results
