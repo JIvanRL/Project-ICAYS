@@ -27,7 +27,7 @@ SECRET_KEY = 'django-insecure-q*ryf%qrfk#%$*rvq=&ki(0@r2fj-kgiub*xud-0&dyj1-bncn
 DEBUG = True
 
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['34.207.123.61', '*']
 
 
 # Application definition
@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'ICAYS_BIT',
     'calidad',
     'jdirecto',
+    'channels',
 ]
 
 MIDDLEWARE = [
@@ -74,7 +75,21 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'ICAYS_SGC.wsgi.application'
+# Configuración de Channels
+ASGI_APPLICATION = 'ICAYS_SGC.asgi.application'
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],
+        },
+    },
+}
+VAPID_PRIVATE_KEY = 'LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JR0hBZ0VBTUJNR0J5cUdTTTQ5QWdFR0NDcUdTTTQ5QXdFSEJHMHdhd0lCQVFRZ1E3eHZySkhJL0wrWEMxNWEKRVArNmZtckJscldiTjNPczZyY25Gd3hOa3YyaFJBTkNBQVFCL213VjVmN09xTHNhUFN5YmZsTXR2Q1pieGFicgpQME5pVTJHWVlCWnBhTExwMlhDZlZ1d29lQUNINyt1TmI5NzBEU0dFYStUZmVXMGQ1bis5S3VmRwotLS0tLUVORCBQUklWQVRFIEtFWS0tLS0tCg=='  # Se generará automáticamente
+VAPID_PUBLIC_KEY = 'LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZrd0V3WUhLb1pJemowQ0FRWUlLb1pJemowREFRY0RRZ0FFQWY1c0ZlWCt6cWk3R2owc20zNVRMYndtVzhXbQo2ejlEWWxOaG1HQVdhV2l5NmRsd24xYnNLSGdBaCsvcmpXL2U5QTBoaEd2azMzbHRIZVovdlNybnhnPT0KLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg=='   # Se generará automáticamente
+VAPID_CLAIMS = {
+    "sub": "mailto:webmaster@icays.com"  # Cambia esto por tu correo electrónico
+}
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 # Configuración del modelo de usuario personalizado
@@ -100,8 +115,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'db_bits',  # Nombre de la base de datos que creaste en phpMyAdmin
-        'USER': 'root',             # Usuario de MySQL (por defecto es 'root' en XAMPP)
-        'PASSWORD': '',             # Contraseña de MySQL (por defecto está vacía en XAMPP)
+        'USER': 'icays',             # Usuario de MySQL (por defecto es 'root' en XAMPP)
+        'PASSWORD': 'admin144@',             # Contraseña de MySQL (por defecto está vacía en XAMPP)
         'HOST': 'localhost',       # Host de la base de datos
         'PORT': '3306',            # Puerto de MySQL (por defecto es 3306)
         'OPTIONS': {

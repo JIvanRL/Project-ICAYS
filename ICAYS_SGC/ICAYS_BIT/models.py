@@ -405,3 +405,53 @@ class ejemplosFormulas(models.Model):
     )
     class Meta:
         db_table = 'ejemplos_cbap'
+
+# ICAYS_SGC/ICAYS_BIT/models.py
+# Añadir esto a tu archivo models.py
+
+class Notification(models.Model):
+    id_notification = models.AutoField(primary_key=True, db_column='id_notification')
+    message = models.CharField(max_length=255, db_column='message')
+    is_read = models.BooleanField(default=False, db_column='is_read')
+    created_at = models.DateTimeField(auto_now_add=True, db_column='created_at')
+    recipient = models.ForeignKey(
+        'CustomUser',  # Asumiendo que este es tu modelo de usuario
+        on_delete=models.CASCADE,
+        related_name='notifications',
+        db_column='recipient'
+    )
+    related_ejemplo = models.ForeignKey(
+        ejemplosFormulas,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='notifications',
+        db_column='related_ejemplo'
+    )
+    
+    class Meta:
+        db_table = 'notifications'
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"Notification {self.id_notification} for {self.recipient}"
+class PushSubscription(models.Model):
+    id_subscription = models.AutoField(primary_key=True, db_column='id_subscription')
+    user = models.ForeignKey(
+        'CustomUser',
+        on_delete=models.CASCADE,
+        related_name='push_subscriptions',
+        db_column='user'
+    )
+    endpoint = models.TextField(db_column='endpoint')
+    p256dh = models.TextField(db_column='p256dh')  # Clave pública
+    auth = models.TextField(db_column='auth')  # Clave de autenticación
+    created_at = models.DateTimeField(auto_now_add=True, db_column='created_at')
+    updated_at = models.DateTimeField(auto_now=True, db_column='updated_at')
+    
+    class Meta:
+        db_table = 'push_subscriptions'
+        unique_together = ('user', 'endpoint')
+    
+    def __str__(self):
+        return f"Push Subscription for {self.user.username} ({self.endpoint[:30]}...)"

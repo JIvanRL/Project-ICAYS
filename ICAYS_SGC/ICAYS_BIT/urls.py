@@ -1,5 +1,5 @@
 from django.urls import path
-from . import views
+from . import views, push_views
 
 app_name = 'microalimentos'
 
@@ -34,5 +34,13 @@ urlpatterns = [
     path('historial-anios/', views.historial_bitacoras_por_anio, name='historial_bitacoras_por_anio'),
      # Vista para historial de bitácoras por mes
     path('historial-meses/<int:anio>/', views.historial_bitacoras_por_mes, name='historial_bitacoras_por_mes'),
+    # Endpoints de notificaciones
+    path('api/notifications/', views.get_notifications, name='get_notifications'),
+    path('api/notifications/<int:notification_id>/read/', views.mark_notification_read, name='mark_notification_read'),
+    path('api/notifications/mark-all-read/', views.mark_all_read, name='mark_all_read'),
+    path('api/push/public-key/', push_views.get_public_key, name='get_public_key'),
+    path('api/push/subscribe/', push_views.subscribe, name='push_subscribe'),
+    path('api/push/unsubscribe/', push_views.unsubscribe, name='push_unsubscribe'),
+    
 ]
 

@@ -2,6 +2,7 @@
 {% load static %}
 {% block content %}
 <input type="hidden" id="usuario_id_actual" value="{{ request.user.id_user }}">
+
 <div class="main-container">
     <!-- Fila superior con 3 botones -->
     <div class="top-row">
@@ -39,11 +40,17 @@
             <div class="icon-text" style="font-size: 18px; color: black;">Bitácoras autorizadas</div>
         </div>
     </div>
+    {% if user.is_authenticated %}
+<input type="hidden" id="user-id" value="{{ user.id_user }}">
+{% endif %}
 </div>
+
 {% endblock %}
 
 {% block extra_js %}
     <script src="{% static 'js/redirect.js' %}"></script>
     <script src="{% static 'js/functions.js' %}"></script>
     <script src="{% static 'js/periodo-fechas.js' %}"></script>
+    <script src="{% static 'js/register-sw.js' %}"></script>
+    <script src="{% static 'js/notifications.js' %}"></script>
 {% endblock %}

@@ -334,7 +334,58 @@ def registrar_bitacora(request):
                         'bitacora_id': bita_cbap_instance.id_cbap,
                         'redirect_url': reverse('microalimentos:registrar_bitacora')
                     })
-                
+                elif accion == 'enviar':
+                    # Obtener datos adicionales para el envío
+                    usuario_destino_id = request.POST.get('usuario_destino')
+                    password = request.POST.get('password')
+                    
+                    # Validar contraseña
+                    user = authenticate(request, username=request.user.username, password=password)
+                    if user is None or not user.is_active:
+                        # Si la contraseña es incorrecta, devolver error y NO continuar con el proceso
+                        return JsonResponse({
+                            'success': False,
+                            'message': "Contraseña incorrecta"
+                        }, status=403)
+                    
+                    # Reemplazar con este código:
+                elif accion == 'enviar':
+                    # Obtener datos adicionales para el envío
+                    usuario_destino_id = request.POST.get('usuario_destino')
+                    password = request.POST.get('password')
+                    
+                    # Validar contraseña - Usar try/except para capturar errores
+                    try:
+                        # Imprimir información de depuración
+                        logger.debug(f"Intentando autenticar usuario: {request.user.username}")
+                        
+                        # Usar authenticate con username y password (sin el parámetro request)
+                        user = authenticate(username=request.user.username, password=password)
+                        
+                        if user is None:
+                            logger.warning(f"Autenticación fallida para usuario: {request.user.username}")
+                            return JsonResponse({
+                                'success': False,
+                                'message': "Contraseña incorrecta"
+                            }, status=403)
+                        
+                        if not user.is_active:
+                            logger.warning(f"Usuario inactivo: {request.user.username}")
+                            return JsonResponse({
+                                'success': False,
+                                'message': "Usuario inactivo"
+                            }, status=403)
+                        
+                        logger.info(f"Autenticación exitosa para usuario: {request.user.username}")
+                    except Exception as e:
+                        logger.error(f"Error en autenticación: {str(e)}")
+                        import traceback
+                        logger.error(traceback.format_exc())
+                        return JsonResponse({
+                            'success': False,
+                            'message': f"Error en autenticación: {str(e)}"
+                        }, status=500)
+
                 elif accion == 'enviar':
                    # Obtener datos adicionales para el envío
                     usuario_destino_id = request.POST.get('usuario_destino')
@@ -1722,3 +1773,135 @@ def lista_bitacoras_por_periodo(request, año, mes):
             'error': str(e)
         }
         return render(request, 'lista_bitacoras_autorizadas.html', context)
+
+
+# ICAYS_SGC/ICAYS_BIT/views.py
+# Añadir estas vistas a tu archivo views.py
+
+from django.views.decorators.http import require_http_methods
+from .models import Notification
+
+@login_required
+def get_notifications(request):
+    """
+    Obtener todas las notificaciones para el usuario actual
+    """
+    notifications = Notification.objects.filter(recipient=request.user).order_by('-created_at')
+    
+    # Convertir a lista de diccionarios para respuesta JSON
+    notification_list = []
+    for notification in notifications:
+        notification_data = {
+            'id': notification.id_notification,
+            'message': notification.message,
+            'created_at': notification.created_at.isoformat(),
+            'is_read': notification.is_read
+        }
+        
+        if notification.related_ejemplo:
+            notification_data['ejemplo_id'] = notification.related_ejemplo.id_ejemplos
+            notification_data['ejemplo_clave'] = notification.related_ejemplo.clave_muestra_ejemplo
+        
+        notification_list.append(notification_data)
+    
+    return JsonResponse({'notifications': notification_list})
+
+@login_required
+@require_http_methods(["POST"])
+def mark_notification_read(request, notification_id):
+    """
+    Marcar una notificación como leída
+    """
+    try:
+        notification = Notification.objects.get(id_notification=notification_id, recipient=request.user)
+        notification.is_read = True
+        notification.save()
+        return JsonResponse({'success': True})
+    except Notification.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Notificación no encontrada'}, status=404)
+
+@login_required
+@require_http_methods(["POST"])
+def mark_all_read(request):
+    """
+    Marcar todas las notificaciones como leídas para el usuario actual
+    """
+    Notification.objects.filter(recipient=request.user, is_read=False).update(is_read=True)
+    return JsonResponse({'success': True})
+from django.http import HttpResponse, JsonResponse
+from django.views.decorators.http import require_http_methods
+from django.views.decorators.cache import cache_control
+import os
+from django.conf import settings
+from .models import Notification
+
+@login_required
+def get_notifications(request):
+    """
+    Obtener todas las notificaciones para el usuario actual
+    """
+    notifications = Notification.objects.filter(recipient=request.user).order_by('-created_at')[:20]  # Limitar a las 20 más recientes
+    
+    # Convertir a lista de diccionarios para respuesta JSON
+    notification_list = []
+    for notification in notifications:
+        notification_data = {
+            'id': notification.id_notification,
+            'message': notification.message,
+            'created_at': notification.created_at.isoformat(),
+            'is_read': notification.is_read
+        }
+        
+        if notification.related_ejemplo:
+            notification_data['ejemplo_id'] = notification.related_ejemplo.id_ejemplos
+        
+        # Añadir URL si existe en los datos
+        try:
+            from django.urls import reverse, NoReverseMatch
+            if notification.related_ejemplo and notification.related_ejemplo.nombre_bita_cbap:
+                notification_data['url'] = reverse('microalimentos:detalles_bitacoras', args=[notification.related_ejemplo.nombre_bita_cbap.id_cbap])
+        except (AttributeError, NoReverseMatch):
+            pass
+        
+        notification_list.append(notification_data)
+    
+    return JsonResponse({'notifications': notification_list})
+
+@login_required
+@require_http_methods(["POST"])
+def mark_notification_read(request, notification_id):
+    """
+    Marcar una notificación como leída
+    """
+    try:
+        notification = Notification.objects.get(id_notification=notification_id, recipient=request.user)
+        notification.is_read = True
+        notification.save()
+        return JsonResponse({'success': True})
+    except Notification.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Notificación no encontrada'}, status=404)
+
+@login_required
+@require_http_methods(["POST"])
+def mark_all_read(request):
+    """
+    Marcar todas las notificaciones como leídas para el usuario actual
+    """
+    count = Notification.objects.filter(recipient=request.user, is_read=False).update(is_read=True)
+    return JsonResponse({'success': True, 'count': count})
+
+@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+def service_worker(request):
+    """
+    Sirve el archivo service-worker.js desde la raíz del sitio
+    """
+    # Ruta al archivo service-worker.js en tus archivos estáticos
+    sw_path = os.path.join(settings.BASE_DIR, 'staticfiles', 'js', 'service-worker.js')
+    
+    # Leer el contenido del archivo
+    with open(sw_path, 'r') as f:
+        content = f.read()
+    
+    # Devolver el contenido con el tipo MIME correcto
+    response = HttpResponse(content, content_type='application/javascript')
+    return response

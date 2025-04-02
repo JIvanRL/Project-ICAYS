@@ -59,10 +59,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     cantidadInput.value = 'placa';
                     break;
                 case 'Inertes':
-                    cantidadInput.value = '1 mil';
+                    cantidadInput.value = '1 ml';
                     break;
                 case 'Vivas':
-                    cantidadInput.value = '1 mil';
+                    cantidadInput.value = '1 ml';
                     break;
             }
         }

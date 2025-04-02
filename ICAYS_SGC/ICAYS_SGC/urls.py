@@ -16,6 +16,9 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
+from ICAYS_BIT.push_views import get_public_key
+from ICAYS_BIT.views import service_worker  # Importar directamente la vista del service worker
+
 
 urlpatterns = [
     path('', include('login.urls')),
@@ -23,4 +26,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('jdirecto/', include('jdirecto.urls')),
     path('calidad/', include('calidad.urls')),
+
+    path('api/push/public-key/', get_public_key, name='get_public_key'),
+    # Ruta para el service worker en la raíz del sitio
+    path('service-worker.js', service_worker, name='service_worker'),
 ]
