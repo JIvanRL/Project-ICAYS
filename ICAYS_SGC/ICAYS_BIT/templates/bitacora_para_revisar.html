@@ -14,6 +14,7 @@
                 <button class="icon-container button-style custom-button mb-2" type="button" data-url="{% url 'microalimentos:lista_bitacoras_revision' %}">Regresar</button>
             </div>
             
+            
             <div class="d-flex align-items-center p-3">
                 <!-- Contenedor de botones alineado a la izquierda -->
                 <div class="d-flex gap-3">
@@ -111,42 +112,59 @@
                             </div>
                     
                             <!-- Segunda tarjeta -->
-                            <div class="col-md-4 mb-3">
-                                <div class="card h-100 shadow-sm"> <!-- Añadí sombra y altura fija -->
+                            <div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4 col-xxl-4 mb-3">
+                                <div class="card h-100 shadow-sm">
                                     <div class="card-body">
                                         <!-- Título "Registro de muestras LAF-50" -->
                                         <div class="row mb-3">
                                             <div class="col-12 text-center">
-                                                <h5 class="card-title">Registro de muestras LAF-50</h5> <!-- Usé h5 para el título -->
+                                                <span class="mx-2">Registro de muestras: <a href="">LAF-50</a></span>
                                             </div>
                                         </div>
-                    
+                            
                                         <!-- Letra Analista, Tomo y Página -->
                                         <div class="row g-2">
-                                            <div class="col-12 col-md-4">
+                                            <div class="col-12">
                                                 <div class="form-floating">
-                                                    <input type="text" class="form-control form-control-sm" id="letra_analista_cbap" name="letra_analista_cbap" value="{{bitacora.letra_analista_cbap|default:'---' }}" placeholder="Letra Analista" >
+                                                    <input type="text" class="form-control form-control-sm" id="letra_analista_cbap" name="letra_analista_cbap" value="{{bitacora.letra_analista_cbap}}" placeholder="Letra Analista" required>
                                                     <label for="letra_analista_cbap">Letra Analista</label>
                                                 </div>
-                                            </div>
-                                            <!-- <div class="col-12 col-md-4">   
+                                            </div>                                     
+                                            
+                                            <div class="col-12 mb-3">
                                                 <div class="form-floating">
-                                                    <input type="date" 
-                                                           class="form-control form-control-sm" 
-                                                           id="mes_muestra_cbap" 
-                                                           name="mes_muestra_cbap" 
-                                                           value="{{ bitacora.mes_muestra_cbap }}" 
-                                                           min="2000-01-01" 
-                                                           max="{% now 'Y-m-d' %}"  
-                                                           placeholder="Mes">
-                                                    <label for="mes_muestra_cbap">Mes</label>
-                                                </div>
-                                        </div> -->
-                                            <div class="col-12 col-md-4">
-                                                <div class="form-floating">
-                                                    <input type="text" class="form-control form-control-sm" id="pagina_muestra_cbap" name="pagina_muestra_cbap" value="{{bitacora.pagina_muestra_cbap|default:'---' }}" placeholder="Página" >
+                                                    <input type="text" class="form-control form-control-sm" id="pagina_muestra_cbap" name="pagina_muestra_cbap" value="{{bitacora.pagina_muestra_cbap}}" placeholder="Página" required>
                                                     <label for="pagina_muestra_cbap">Página</label>
                                                 </div>
+                                            </div>
+                                            
+                                            <div class="col-12">
+                                                <label for="mes_muestra_cbap">Tomo:</label>
+                                            </div>
+                                            
+                                            <div class="col-12 col-sm-12 col-md-12 col-lg-6">
+                                                <select class="form-select" id="mes_muestra_cbap" name="mes_muestra_cbap" style="width: 100%;">
+                                                    <option disabled>Mes</option>
+                                                    <option value="Enero" {% if bitacora.mes_muestra_cbap == 'Enero' %}selected{% endif %}>Enero</option>
+                                                    <option value="Febrero" {% if bitacora.mes_muestra_cbap == 'Febrero' %}selected{% endif %}>Febrero</option>
+                                                    <option value="Marzo" {% if bitacora.mes_muestra_cbap == 'Marzo' %}selected{% endif %}>Marzo</option>
+                                                    <option value="Abril" {% if bitacora.mes_muestra_cbap == 'Abril' %}selected{% endif %}>Abril</option>
+                                                    <option value="Mayo" {% if bitacora.mes_muestra_cbap == 'Mayo' %}selected{% endif %}>Mayo</option>
+                                                    <option value="Junio" {% if bitacora.mes_muestra_cbap == 'Junio' %}selected{% endif %}>Junio</option>
+                                                    <option value="Julio" {% if bitacora.mes_muestra_cbap == 'Julio' %}selected{% endif %}>Julio</option>
+                                                    <option value="Agosto" {% if bitacora.mes_muestra_cbap == 'Agosto' %}selected{% endif %}>Agosto</option>
+                                                    <option value="Septiembre" {% if bitacora.mes_muestra_cbap == 'Septiembre' %}selected{% endif %}>Septiembre</option>
+                                                    <option value="Octubre" {% if bitacora.mes_muestra_cbap == 'Octubre' %}selected{% endif %}>Octubre</option>
+                                                    <option value="Noviembre" {% if bitacora.mes_muestra_cbap == 'Noviembre' %}selected{% endif %}>Noviembre</option>
+                                                    <option value="Diciembre" {% if bitacora.mes_muestra_cbap == 'Diciembre' %}selected{% endif %}>Diciembre</option>
+                                                </select>
+                                            </div>
+                                            
+                                            <div class="col-12 col-sm-12 col-md-12 col-lg-6">
+                                                <select class="form-select d-inline anio-select tm" id="año_muestra_cbap" name="año_muestra_cbap" style="width: 100%;" data-selected-year="{{ bitacora.año_muestra_cbap}}">
+                                                    <option disabled>Año</option>
+                                                    <!-- Las opciones de años se agregan dinámicamente con JavaScript -->
+                                                </select>
                                             </div>
                                         </div>
                                     </div>
@@ -157,29 +175,44 @@
                                     <div class="card-body">
                                         <div class="row g-2"> <!-- Reducir el espacio entre filas -->
                                             <h2 class="card-title">Fecha y hora de lecturas</h2>
-                                            <!-- Fecha, Hora, Procedimiento y Equipo de incubación -->
+                                            {% if lecturas %}
+                                            <!-- Primera lectura -->
                                             <div class="col-12 col-md-6">
                                                 <div class="form-floating">
-                                                    <input type="date" class="form-control form-control-sm" id="fecha_lectura_cbap" name="fecha_lectura_cbap" value="{{ bitacora.fecha_lectura_cbap|date:'Y-m-d' }}" 
-                                                    min="2000-01-01" 
-                                                    max="{% now 'Y-m-d' %}" placeholder="Fecha">
+                                                    <input type="date" class="form-control form-control-sm" id="fecha_lectura_1" name="fecha_lectura_1" 
+                                                        value="{% if lecturas.0.fecha_lectura_1 %}{{ lecturas.0.fecha_lectura_1|date:'Y-m-d' }}{% endif %}" 
+                                                        min="2000-01-01" max="{% now 'Y-m-d' %}" placeholder="Fecha" readonly>
+                                                    <label for="fecha_lectura_1">Fecha de lectura 1</label>
+                                                </div>
+                                            </div>
+                                            <!-- Segunda lectura -->
+                                            <div class="col-12 col-md-6">
+                                                <div class="form-floating">
+                                                    <input type="date" class="form-control form-control-sm" id="fecha_lectura_2" name="fecha_lectura_2" 
+                                                        value="{% if lecturas.0.fecha_lectura_2 %}{{ lecturas.0.fecha_lectura_2|date:'Y-m-d' }}{% endif %}" 
+                                                        min="2000-01-01" max="{% now 'Y-m-d' %}" placeholder="Fecha" readonly>
+                                                    <label for="fecha_lectura_2">Fecha de lectura 2</label>
                                                 </div>
                                             </div>
                                             <div class="col-12 col-md-6 center">
                                                 <div class="form-floating">
-                                                    <input type="time" class="form-control form-control-sm" id="hora_lectura_cbap" name="hora_lectura_cbap" value="{% if bitacora.hora_lectura_cbap %}{{ bitacora.hora_lectura_cbap|time:'H:i' }}{% endif %}" placeholder="Hora">
+                                                    <input type="time" class="form-control form-control-sm" id="hora_lectura_1" name="hora_lectura_1" 
+                                                        value="{% if lecturas.0.hora_lectura_1 %}{{ lecturas.0.hora_lectura_1|time:'H:i' }}{% endif %}" 
+                                                        placeholder="Hora" readonly>
+                                                    <label for="hora_lectura_1">Hora de lectura 1</label>
                                                 </div>
                                             </div>
-                                            <div class="col-12 col-md-6">
-                                                <div class="form-floating">
-                                                    <input type="date" class="form-control form-control-sm" id="floatingInput" placeholder="Fecha">
-                                                </div>
-                                            </div>
+                                    
                                             <div class="col-12 col-md-6 center">
                                                 <div class="form-floating">
-                                                    <input type="time" class="form-control form-control-sm" id="floatingSiembra" placeholder="Hora">
+                                                    <input type="time" class="form-control form-control-sm" id="hora_lectura_2" name="hora_lectura_2" 
+                                                        value="{% if lecturas.0.hora_lectura_2 %}{{ lecturas.0.hora_lectura_2|time:'H:i' }}{% endif %}" 
+                                                        placeholder="Hora" readonly>
+                                                    <label for="hora_lectura_2">Hora de lectura 2</label>
                                                 </div>
                                             </div>
+                                                                                        
+                                            {% endif %}
                                         </div>
                                     </div>
                                 </div>
@@ -256,8 +289,10 @@
                         <div class="d-flex align-items-center flex-wrap justify-content-center">
                             <span class="mx-2">Ver verificación mensual de la balanza en: <a href="">LAF-42</a></span>
                             <div class="d-flex align-items-center mx-2">
-                                <span class="mx-2">Tomo</span>
-                                <input type="text" class="form-control form-control-sm mx-2" style="width: 80px;" name="tomo_verficacion_vb" value="{% if verificaciones_balanza %}{{ verificaciones_balanza.0.tomo_verficacion_vb|default:'---' }}{% endif %}">
+                                <span class="mx-2">Mes</span>
+                                <input type="text" class="form-control form-control-sm mx-2" style="width: 80px;" name="mes_verficacion_vb" value="{% if verificaciones_balanza %}{{ verificaciones_balanza.0.mes_verficacion_vb|default:'---' }}{% endif %}">
+                                <span class="mx-2">Año</span>
+                                <input type="text" class="form-control form-control-sm mx-2" style="width: 80px;" name="anio_verficacion_vb" value="{% if verificaciones_balanza %}{{ verificaciones_balanza.0.anio_verficacion_vb|default:'---' }}{% endif %}">
                                 <span class="mx-2">Página</span>
                                 <input type="text" class="form-control form-control-sm mx-2" style="width: 80px;" name="pagina_verficacion_vb" value="{% if verificaciones_balanza %}{{ verificaciones_balanza.0.pagina_verficacion_vb|default:'---' }}{% endif %}">
                             </div>
@@ -388,7 +423,7 @@
     {% for control in controles_calidad %}
         {% if forloop.counter <= 2 %}
             <!-- Bitácora/Tomo {{ forloop.counter }} -->
-            <div class="col-12 col-md-6 col-lg-3">
+            <div class="col-12 col-md-6 col-lg-6">
                 <div class="form-floating">
                     <div class="input-group input-group-sm">
                         <div class="form-floating">
@@ -397,22 +432,25 @@
                             <label for="nombre_laf_{{ forloop.counter }}">Bitácora</label>
                         </div>
                         <div class="form-floating">
-                            <input type="date" class="form-control" id="fecha_1cc_{{ forloop.counter }}"
-                                name="fecha_1cc_{{ forloop.counter }}" 
-                                value="{% if control.fecha_1cc %}{{ control.fecha_1cc|date:'Y-m-d' }}{% endif %}" required>
-                            <label for="fecha_1cc_{{ forloop.counter }}">Fecha</label>
+                            <input type="text" class="form-control" id="mes_1cc_{{ forloop.counter }}"
+                                name="mes_1cc_{{ forloop.counter }}" 
+                                value="{% if control.mes_1cc|default:'---' %}{{ control.mes_1cc }}{% endif %}" required>
+                            <label for="mes_1cc{{ forloop.counter }}">Mes</label>
+                        </div>
+                        <div class="form-floating">
+                            <input type="text" class="form-control" id="anio_1cc_{{ forloop.counter }}"
+                                name="anio_1cc_{{ forloop.counter }}" 
+                                value="{% if control.anio_1cc|default:'---' %}{{ control.anio_1cc }}{% endif %}" required>
+                            <label for="anio_1cc{{ forloop.counter }}">Año</label>
+                        </div>
+                        <div class="form-floating">
+                            <input type="text" id="page_1cc_{{ forloop.counter }}" name="page_1cc_{{ forloop.counter }}" 
+                                value="{{ control.page_1cc|default:'---' }}" class="form-control" required>
+                            <label for="page_1cc_{{ forloop.counter }}">Página </label>
                         </div>
                     </div>
                 </div>
-            </div>
-            <!-- Página {{ forloop.counter }} -->
-            <div class="col-12 col-md-6 col-lg-3">
-                <div class="form-floating">
-                    <input type="text" id="page_1cc_{{ forloop.counter }}" name="page_1cc_{{ forloop.counter }}" 
-                        value="{{ control.page_1cc|default:'---' }}" class="form-control" required>
-                    <label for="page_1cc_{{ forloop.counter }}">Página </label>
-                </div>
-            </div>
+            </div>            
         {% endif %}
     {% endfor %}
 </div>
@@ -422,7 +460,7 @@
     {% for control in controles_calidad %}
         {% if forloop.counter > 2 and forloop.counter <= 4 %}
             <!-- Bitácora/Tomo {{ forloop.counter }} -->
-            <div class="col-12 col-md-6 col-lg-3">
+            <div class="col-12 col-md-6 col-lg-6">
                 <div class="form-floating">
                     <div class="input-group input-group-sm">
                         <div class="form-floating">
@@ -431,22 +469,26 @@
                             <label for="nombre_laf_{{ forloop.counter }}">Bitácora</label>
                         </div>
                         <div class="form-floating">
-                            <input type="date" class="form-control" id="fecha_1cc_{{ forloop.counter }}"
-                                name="fecha_1cc_{{ forloop.counter }}" 
-                                value="{% if control.fecha_1cc %}{{ control.fecha_1cc|date:'Y-m-d' }}{% endif %}" required>
-                            <label for="fecha_1cc_{{ forloop.counter }}">Fecha</label>
+                            <input type="text" class="form-control" id="mes_1cc_{{ forloop.counter }}"
+                                name="mes_1cc_{{ forloop.counter }}" 
+                                value="{% if control.mes_1cc|default:'---' %}{{ control.mes_1cc }}{% endif %}" required>
+                            <label for="mes_1cc_{{ forloop.counter }}">Mes</label>
+                        </div>
+                        <div class="form-floating">
+                            <input type="text" class="form-control" id="anio_1cc_{{ forloop.counter }}"
+                                name="anio_1cc_{{ forloop.counter }}" 
+                                value="{% if control.anio_1cc|default:'---' %}{{ control.anio_1cc }}{% endif %}" required>
+                            <label for="anio_1cc{{ forloop.counter }}">Año</label>
+                        </div>
+                        <div class="form-floating">
+                            <input type="text" id="page_1cc_{{ forloop.counter }}" name="page_1cc_{{ forloop.counter }}" 
+                                value="{{ control.page_1cc|default:'---' }}" class="form-control" required>
+                            <label for="page_1cc_{{ forloop.counter }}">Página </label>
                         </div>
                     </div>
                 </div>
             </div>
-            <!-- Página {{ forloop.counter }} -->
-            <div class="col-12 col-md-6 col-lg-3">
-                <div class="form-floating">
-                    <input type="text" id="page_1cc_{{ forloop.counter }}" name="page_1cc_{{ forloop.counter }}" 
-                        value="{{ control.page_1cc|default:'---' }}" class="form-control" required>
-                    <label for="page_1cc_{{ forloop.counter }}">Página </label>
-                </div>
-            </div>
+            
         {% endif %}
     {% endfor %}
 </div>
@@ -936,11 +978,11 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div> 
+     
+    </form>
     
-        </form>
     
-    </div>
 </body>
 {% endblock content %}
 {% block extra_js %}
@@ -948,5 +990,6 @@
     
     <script src="{% static 'js/functions.js' %}"></script>
     <script src="{% static 'js/block-revisar-form.js' %}"></script>
+    <script src="{% static 'js/tomos.js' %}"></script>
 
 {% endblock %}

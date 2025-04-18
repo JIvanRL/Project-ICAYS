@@ -41,6 +41,27 @@ function DetallesBitaRevision(bitacoraId) {
         alert('Error al acceder a la bitácora');
     }
 }
+function DetallesBitaRechazadas(bitacoraId) {
+    if (!bitacoraId) {
+        // Intentar obtener el ID desde el campo oculto si no se proporcionó como parámetro
+        const bitacoraIdElement = document.getElementById('bitacora_id');
+        if (bitacoraIdElement) {
+            bitacoraId = bitacoraIdElement.value;
+        }
+        
+        if (!bitacoraId) {
+            alert('No se proporcionó ID de bitácora');
+            return;
+        }
+    }
+
+    try {
+        window.location.href = `/microbiologia/detallesBitaRechazada/${bitacoraId}/`;
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error al acceder a la bitácora');
+    }
+}
 function DetallesBitaAutorizadas(bitacoraId) {
     if (!bitacoraId) {
         // Intentar obtener el ID desde el campo oculto si no se proporcionó como parámetro
@@ -305,6 +326,41 @@ function actualizarContadores() {
         },
         error: function(xhr, status, error) {
             console.error('Error al contar revisada:', {
+                status: status,
+                error: error,
+                response: xhr.responseText
+            });
+            // Intentar parsear la respuesta JSON
+            try {
+                const errorData = JSON.parse(xhr.responseText);
+                console.error('Mensaje de error del servidor:', errorData);
+            } catch (e) {
+                console.error('No se pudo parsear la respuesta del servidor');
+            }
+        }
+    });
+     // Contar bitácoras guardadas para el usuario actual
+     $.ajax({
+        url: `/microbiologia/contar-bitacoras/rechazada/${usuarioId}/`,
+        type: 'GET',
+        dataType: 'json',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        success: function(data) {
+            console.log('Respuesta guardadas para usuario actual:', data);
+            if (data.cantidad !== undefined) {
+                const contadorElement = document.getElementById('contador-rechazadas');
+                if (contadorElement) {
+                    contadorElement.textContent = data.cantidad;
+                } else {
+                    console.error('Elemento contador-guardadas no encontrado');
+                }
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error al contar guardadas:', {
                 status: status,
                 error: error,
                 response: xhr.responseText

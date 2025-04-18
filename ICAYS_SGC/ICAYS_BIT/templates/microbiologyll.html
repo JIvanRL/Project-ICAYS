@@ -30,7 +30,11 @@
     </div>  
 
     <div class="bottom-row">
-        <div class="icon-container button-style" data-bs-toggle="modal" data-bs-target="#modalBitacorasRechazadas">
+        <div class="icon-container button-style position-relative" data-url="{% url 'microalimentos:lista_bitacoras_rechazadas' %}">
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded bg-danger shadow-sm fs-4 p-2">
+                <span id="contador-rechazadas">0</span>
+                <span class="visually-hidden">bitácoras rechazadas</span>
+            </span>
             <img src="{% static 'iconos/rechazado.png' %}" class="img-fluid" alt="Bitácoras rechazadas">
             <div class="icon-text" style="font-size: 18px; color: black;">Bitácoras rechazadas</div>
         </div>

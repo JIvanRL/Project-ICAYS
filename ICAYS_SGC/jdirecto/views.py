@@ -1,3 +1,4 @@
+import json
 from django.utils import timezone  # Importación correcta para timezone.now()
 import logging  # Importación correcta de logging
 from django.contrib import messages  # Importación correcta de messages
@@ -7,7 +8,10 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from login.views import role_required
-from ICAYS_BIT.models import Bitcoras_Cbap, CustomUser, bita_cbap, tableBlanco
+from ICAYS_BIT.models import Bitcoras_Cbap, CustomUser, bita_cbap, tableBlanco, ObservacionCampo
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from functools import wraps
 logger = logging.getLogger(__name__)  # Configurar el logger correctamente
@@ -118,6 +122,8 @@ def ver_bitacora(request, bitacora_id):
         resultados = bitacora.resultado.all()
         # Obtener los ejemplos de fórmulas relacionados con esta bitácora
         ejemplos_formulas = bitacora.nombre_bita_cbap.all()
+         # Obtener explícitamente las lecturas relacionadas con esta bitácora
+        lecturas = bitacora.lecturas.all()
 
         # Iterar sobre los registros y agregarlos a filas_datos
         for i in range(max(len(clave_muestras), len(diluciones_empleadas), len(diluciones_directas), len(diluciones), len(resultados))):
@@ -141,6 +147,7 @@ def ver_bitacora(request, bitacora_id):
             'registro': bitacora_registro,  # Incluir el registro de Bitcoras_Cbap
             'ejemplos_formulas': ejemplos_formulas,  # Pasar los ejemplos de fórmulas al contexto
             'blanco': blanco,  # Añadir el blanco al contexto
+            'lecturas': lecturas,  # Pasar las lecturas al contexto
         }
 
         logger.debug(f"Renderizando vista de bitácora {bitacora_id} para usuario {request.user}")
@@ -219,6 +226,8 @@ def ver_bitacora_revisada(request, bitacora_id):
 
         # Obtener los ejemplos de fórmulas relacionados con esta bitácora
         ejemplos_formulas = bitacora.nombre_bita_cbap.all()
+         # Obtener explícitamente las lecturas relacionadas con esta bitácora
+        lecturas = bitacora.lecturas.all()
         filas_datos = []
         
         # Obtener todos los registros relacionados con la bitácora
@@ -251,6 +260,7 @@ def ver_bitacora_revisada(request, bitacora_id):
             'registro': bitacora_cbap,  # Mantener registro para compatibilidad
             'blanco': blanco,  # Añadir el blanco al contexto
             'ejemplos_formulas': ejemplos_formulas,  # Pasar los ejemplos de fórmulas al contexto
+            'lecturas': lecturas,  # Pasar las lecturas al contexto
             'debug': True  # Habilitar depuración en la plantilla
         }
 
@@ -383,21 +393,22 @@ def cambiar_estado(request, bitacora_id):
         messages.error(request, "Debe especificar una acción")
         return redirect('jdirecto:lista_bitacoras_pendientes')
     
-    # Verificar la contraseña del usuario
-    password = request.POST.get('password')
-    if not password:
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return JsonResponse({'success': False, 'error': 'Debe proporcionar su contraseña'}, status=400)
-        messages.error(request, "Debe proporcionar su contraseña")
-        return redirect('jdirecto:lista_bitacoras_pendientes')
-    
-    # Validar contraseña usando authenticate
-    user = authenticate(request, username=request.user.username, password=password)
-    if user is None or not user.is_active:
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return JsonResponse({'success': False, 'error': 'Contraseña incorrecta'}, status=403)
-        messages.error(request, "Contraseña incorrecta")
-        return redirect('jdirecto:lista_bitacoras_pendientes')
+    # Verificar la contraseña del usuario solo para acciones que no sean 'rechazar'
+    if accion != 'rechazar':
+        password = request.POST.get('password')
+        if not password:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': False, 'error': 'Debe proporcionar su contraseña'}, status=400)
+            messages.error(request, "Debe proporcionar su contraseña")
+            return redirect('jdirecto:lista_bitacoras_pendientes')
+        
+        # Validar contraseña usando authenticate
+        user = authenticate(request, username=request.user.username, password=password)
+        if user is None or not user.is_active:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': False, 'error': 'Contraseña incorrecta'}, status=403)
+            messages.error(request, "Contraseña incorrecta")
+            return redirect('jdirecto:lista_bitacoras_pendientes')
     
     try:
         # Obtener la bitácora principal
@@ -440,9 +451,6 @@ def cambiar_estado(request, bitacora_id):
             messages.error(request, f"No se encontró una bitácora en estado '{estado_actual}'")
             return redirect('jdirecto:lista_bitacoras_pendientes')
         
-        # Obtener observaciones (opcional)
-        observaciones = request.POST.get('observaciones', '')
-        
         # Lógica específica según la acción
         if accion == 'revisar':
             # Si estamos cambiando a 'revisada', se requiere un usuario destino
@@ -479,6 +487,28 @@ def cambiar_estado(request, bitacora_id):
             bitacora_actual.nombre_user_destino = f"{analista_creador.first_name} {analista_creador.last_name}"
             logger.debug(f"Bitácora autorizada será enviada al analista creador: {bitacora_actual.nombre_user_destino}")
         
+        elif accion == 'rechazar':
+            # Si estamos rechazando, necesitamos un usuario destino
+            usuario_destino_id = request.POST.get('usuario_destino')
+            
+            # Validar que se haya seleccionado un usuario destino
+            if not usuario_destino_id:
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({'success': False, 'error': 'Debe seleccionar un usuario destino'}, status=400)
+                messages.error(request, "Debe seleccionar un usuario destino")
+                return redirect('jdirecto:ver_bitacora', bitacora_id=bitacora_id)
+            
+            try:
+                # Obtener el usuario destino
+                usuario_destino = CustomUser.objects.get(id_user=usuario_destino_id)
+                # Actualizar el nombre del usuario destino
+                bitacora_actual.nombre_user_destino = f"{usuario_destino.first_name} {usuario_destino.last_name}"
+            except CustomUser.DoesNotExist:
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({'success': False, 'error': 'El usuario destino seleccionado no existe'}, status=400)
+                messages.error(request, "El usuario destino seleccionado no existe")
+                return redirect('jdirecto:ver_bitacora', bitacora_id=bitacora_id)
+        
         # Lógica específica según la acción
         if accion == 'revisar':
             # Guardar la firma del revisor y la fecha de revisión
@@ -489,12 +519,10 @@ def cambiar_estado(request, bitacora_id):
             bitacora_actual.firma_autorizador = request.user
             bitacora_actual.fecha_autorizacion = timezone.now()
         
-        # Modificar el registro existente
+        # Modificar el estado de la bitácora
         bitacora_actual.estado = nuevo_estado
         
-        if observaciones:
-            bitacora_actual.observaciones_cbap_estado = observaciones
-            
+        # Guardar los cambios en la bitácora
         bitacora_actual.save()
         
         # Registrar la acción en el log
@@ -508,7 +536,7 @@ def cambiar_estado(request, bitacora_id):
             redirect_url = reverse('jdirecto:lista_bitacoras_pendientes')
         elif accion == 'autorizar':
             redirect_url = reverse('jdirecto:lista_bitacoras_revisadas')
-        else:
+        else:  # rechazar
             redirect_url = reverse('jdirecto:lista_bitacoras_pendientes')
         
         # Devolver respuesta según el tipo de solicitud
@@ -536,6 +564,186 @@ def cambiar_estado(request, bitacora_id):
         messages.error(request, f"Error al cambiar el estado de la bitácora: {str(e)}")
         return redirect('jdirecto:lista_bitacoras_pendientes')
 
+
+# Agregar esta vista al archivo views.py
+
+@login_required
+@csrf_exempt
+@require_POST
+def guardar_campos_observaciones(request):
+    """
+    Vista para guardar un campo seleccionado y su observación.
+    El jefe directo marca la observación, pero el analista será quien edite.
+    """
+    try:
+        # Verificar si los datos vienen como JSON en el cuerpo o como form-data
+        if request.content_type and 'application/json' in request.content_type:
+            # Datos en formato JSON
+            try:
+                data = json.loads(request.body)
+            except json.JSONDecodeError as e:
+                logger.error(f"Error al decodificar JSON: {str(e)}, contenido: {request.body[:100]}")
+                return JsonResponse({
+                    'success': False,
+                    'message': f'Error al decodificar JSON: {str(e)}'
+                }, status=400)
+        else:
+            # Datos en formato form-data
+            data = request.POST
+        
+        # Obtener datos del request
+        bitacora_id = data.get('bitacora_id')
+        campo_id = data.get('campo_id')
+        campo_nombre = data.get('campo_nombre', 'Campo sin nombre')
+        valor_original = data.get('valor_original', '')
+        campo_tipo = data.get('campo_tipo', 'desconocido')
+        observacion = data.get('observacion', '')
+        
+        # Obtener el ID del analista (destinatario que editará el campo)
+        analista_id = data.get('analista_id')
+        
+        # Validar datos requeridos
+        if not all([bitacora_id, campo_id]):
+            return JsonResponse({
+                'success': False,
+                'message': 'Faltan datos requeridos: bitacora_id y campo_id son obligatorios'
+            }, status=400)
+        
+        # Validar que exista la bitácora
+        try:
+            bitacora = Bitcoras_Cbap.objects.get(nombre_bita_cbap__id_cbap=bitacora_id)
+            
+            # Si no se proporcionó analista_id, intentar obtenerlo de la bitácora
+            if not analista_id and bitacora.nombre_bita_cbap and bitacora.nombre_bita_cbap.firma_user:
+                analista_id = bitacora.nombre_bita_cbap.firma_user.id_user
+                
+        except Bitcoras_Cbap.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'message': 'Bitácora no encontrada'
+            }, status=404)
+        
+        # Buscar al analista si se proporcionó su ID
+        analista = None
+        if analista_id:
+            try:
+                analista = CustomUser.objects.get(id_user=analista_id)
+            except CustomUser.DoesNotExist:
+                logger.warning(f"Analista con ID {analista_id} no encontrado")
+        
+        # Verificar si ya existe una observación para este campo
+        try:
+            observacion_existente = ObservacionCampo.objects.get(
+                bitacora=bitacora,
+                campo_id=campo_id
+            )
+            
+            # Si ya existe, solo actualizamos la observación, manteniendo el valor_original
+            observacion_existente.observacion = observacion
+            observacion_existente.campo_nombre = campo_nombre
+            observacion_existente.campo_tipo = campo_tipo
+            observacion_existente.observacion_por = request.user
+            observacion_existente.estado = 'pendiente'
+            observacion_existente.save()
+            
+            logger.info(f"Observación actualizada para campo {campo_id} en bitácora {bitacora_id} por jefe directo {request.user}")
+            
+            campo_observacion = observacion_existente
+            created = False
+            
+        except ObservacionCampo.DoesNotExist:
+            # Crear nuevo registro del campo seleccionado
+            campo_observacion = ObservacionCampo.objects.create(
+                bitacora=bitacora,
+                campo_id=campo_id,
+                observacion=observacion,
+                valor_original=valor_original,  # Guardamos el valor original una sola vez
+                valor_actual=valor_original,    # Inicialmente, el valor actual es igual al original
+                campo_nombre=campo_nombre,
+                campo_tipo=campo_tipo,
+                observacion_por=request.user,   # El jefe directo que hace la observación
+                estado='pendiente',             # Estado inicial: pendiente de edición
+                editado_por=None                # Inicialmente nadie ha editado el campo
+            )
+            
+            logger.info(f"Nuevo campo seleccionado guardado: {campo_id} para bitácora {bitacora_id} por jefe directo {request.user}")
+            created = True
+        
+        # Obtener todos los campos seleccionados para esta bitácora
+        campos_seleccionados = list(ObservacionCampo.objects.filter(
+            bitacora=bitacora
+        ).values_list('campo_id', flat=True))
+        
+        # Registrar en el log los campos seleccionados
+        logger.info(f"Campos seleccionados para bitácora {bitacora_id}: {','.join(campos_seleccionados)}")
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Campo guardado correctamente',
+            'campo_id': campo_id,
+            'created': created,
+            'id': campo_observacion.id_valor_editado,
+            'analista': analista.get_full_name() if analista else "No asignado"
+        })
+        
+    except Exception as e:
+        logger.error(f"Error al guardar campo seleccionado: {str(e)}")
+        import traceback
+        logger.error(traceback.format_exc())
+        return JsonResponse({
+            'success': False,
+            'message': f'Error al guardar el campo: {str(e)}'
+        }, status=500)
+
+@login_required
+def obtener_campos_observaciones(request, bitacora_id):
+    """
+    Vista para obtener los campos seleccionados y sus observaciones
+    directamente desde la tabla ObservacionCampo
+    """
+    try:
+        # Validar que exista la bitácora
+        try:
+            bitacora = Bitcoras_Cbap.objects.get(nombre_bita_cbap__id_cbap=bitacora_id)
+        except Bitcoras_Cbap.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'message': 'Bitácora no encontrada'
+            }, status=404)
+        
+        # Obtener las observaciones individuales de la tabla ObservacionCampo
+        observaciones_individuales = ObservacionCampo.objects.filter(bitacora=bitacora)
+        
+        # Serializar las observaciones individuales
+        observaciones_individuales_data = []
+        for obs in observaciones_individuales:
+            observaciones_individuales_data.append({
+                'id': obs.id_valor_editado,
+                'campo_id': obs.campo_id,
+                'campo_nombre': obs.campo_nombre,
+                'valor_original': obs.valor_original,
+                'valor_actual': obs.valor_actual if hasattr(obs, 'valor_actual') else obs.valor_original,
+                'campo_tipo': obs.campo_tipo,
+                'observacion': obs.observacion,
+                'fecha_edicion': obs.fecha_edicion.strftime('%Y-%m-%d %H:%M:%S') if obs.fecha_edicion else '',
+                'observacion_por': f"{obs.observacion_por.first_name} {obs.observacion_por.last_name}" if obs.observacion_por else '',
+                'estado': getattr(obs, 'estado', 'pendiente'),
+                'editado_por': f"{obs.editado_por.first_name} {obs.editado_por.last_name}" if hasattr(obs, 'editado_por') and obs.editado_por else ''
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'observaciones_individuales': observaciones_individuales_data
+        })
+        
+    except Exception as e:
+        logger.error(f"Error al obtener campos y observaciones: {str(e)}")
+        import traceback
+        logger.error(traceback.format_exc())
+        return JsonResponse({
+            'success': False,
+            'message': f'Error al obtener los datos: {str(e)}'
+        }, status=500)
 @login_required
 def api_usuarios(request):
     try:
@@ -570,3 +778,78 @@ def api_usuarios(request):
     except Exception as e:
         logger.error(f"Error en api_usuarios: {str(e)}")
         return JsonResponse({'error': str(e)}, status=500)
+
+@login_required
+@csrf_exempt
+@require_POST
+def eliminar_campo_observacion(request):
+    """
+    Vista para eliminar una observación de campo.
+    """
+    try:
+        # Verificar si los datos vienen como JSON en el cuerpo o como form-data
+        if request.content_type and 'application/json' in request.content_type:
+            try:
+                data = json.loads(request.body)
+            except json.JSONDecodeError as e:
+                logger.error(f"Error al decodificar JSON: {str(e)}, contenido: {request.body[:100]}")
+                return JsonResponse({
+                    'success': False,
+                    'message': f'Error al decodificar JSON: {str(e)}'
+                }, status=400)
+        else:
+            # Datos en formato form-data
+            data = request.POST
+        
+        # Obtener datos del request
+        bitacora_id = data.get('bitacora_id')
+        campo_id = data.get('campo_id')
+        
+        # Validar datos requeridos
+        if not all([bitacora_id, campo_id]):
+            return JsonResponse({
+                'success': False,
+                'message': 'Faltan datos requeridos: bitacora_id y campo_id son obligatorios'
+            }, status=400)
+        
+        # Validar que exista la bitácora
+        try:
+            bitacora = Bitcoras_Cbap.objects.get(nombre_bita_cbap__id_cbap=bitacora_id)
+        except Bitcoras_Cbap.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'message': 'Bitácora no encontrada'
+            }, status=404)
+        
+        # Buscar la observación
+        try:
+            observacion = ObservacionCampo.objects.get(
+                bitacora=bitacora,
+                campo_id=campo_id
+            )
+            
+            # Eliminar la observación
+            observacion.delete()
+            
+            logger.info(f"Observación eliminada para campo {campo_id} en bitácora {bitacora_id} por {request.user}")
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Observación eliminada correctamente'
+            })
+            
+        except ObservacionCampo.DoesNotExist:
+            # Si no existe la observación, consideramos que ya está "eliminada"
+            return JsonResponse({
+                'success': True,
+                'message': 'No se encontró la observación (ya eliminada o nunca existió)'
+            })
+        
+    except Exception as e:
+        logger.error(f"Error al eliminar observación: {str(e)}")
+        import traceback
+        logger.error(traceback.format_exc())
+        return JsonResponse({
+            'success': False,
+            'message': f'Error al eliminar la observación: {str(e)}'
+        }, status=500)

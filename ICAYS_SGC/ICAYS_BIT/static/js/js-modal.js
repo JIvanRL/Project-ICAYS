@@ -363,6 +363,7 @@ function guardarFormularioEditadoParaMas() {
         }
     });
 }
+
 function enviarFormularioGuardadaARevision() {
     console.log('Iniciando envío de formulario guardado...');
     
@@ -461,6 +462,141 @@ function enviarFormularioGuardadaARevision() {
                 }
             } catch (e) {
                 console.log('No se pudo parsear la respuesta de error');
+            }
+            
+            $('#error-message').text('Error al enviar la bitácora: ' + errorMsg).show();
+        }
+    });
+
+    return false;
+}
+
+function enviarFormularioEditadoARevision() {
+    console.log('Iniciando envío de formulario guardado...');
+    
+    // Verificar si la bitácora está vacía
+    if (esBitacoraVacia()) {
+        mostrarError('Esta bitácora está vacía. No se puede enviar una bitácora sin datos.');
+        return false;
+    }
+    
+    const bitacoraEstado = document.getElementById('bitacora_id');
+    const bitacoraId = bitacoraEstado ? bitacoraEstado.value : null;
+    if (!bitacoraId) {
+        console.error('No se pudo obtener el ID de la bitacora actual');
+        return;
+    }
+    console.log('ID de la bitacora actual:', bitacoraId);
+    
+    // Validar que se haya seleccionado un usuario destino y proporcionado una contraseña
+    const usuarioDestino = $('#usuario_destino').val();
+    const password = $('#password').val();
+    
+    if (!usuarioDestino) {
+        $('#error-message').text('Debe seleccionar un usuario destino').show();
+        return false;
+    }
+    
+    if (!password) {
+        $('#error-message').text('Debe ingresar su contraseña').show();
+        return false;
+    }
+    
+    // Obtener todos los datos del formulario principal
+    const formPrincipal = document.getElementById('form-principal');
+    if (!formPrincipal) {
+        console.error('No se encontró el formulario principal');
+        $('#error-message').text('Error: No se encontró el formulario principal').show();
+        return false;
+    }
+    
+    // Crear FormData con todos los datos del formulario
+    const formData = new FormData(formPrincipal);
+    
+    // Obtener datos de la tabla - IMPORTANTE: Esto faltaba en la función original
+    const datosTabla = recolectarDatosTabla();
+    
+    // Agregar datos adicionales necesarios para el envío
+    formData.append('accion', 'enviar');
+    formData.append('usuario_destino', usuarioDestino);
+    formData.append('password', password);
+    formData.append('csrfmiddlewaretoken', getCookie('csrftoken'));
+    
+    // Agregar los datos de la tabla al FormData - IMPORTANTE: Esto faltaba
+    Object.keys(datosTabla).forEach(key => {
+        formData.append(key, JSON.stringify(datosTabla[key]));
+    });
+    formData.append('num_filas', datosTabla.num_filas);
+
+    // Debug: Mostrar todos los datos que se van a enviar
+    console.log('Enviando formulario con los siguientes datos:');
+    for (let [key, value] of formData.entries()) {
+        if (key !== 'password') { // No mostrar la contraseña en la consola
+            console.log(`${key}: ${value}`);
+        }
+    }
+
+    // Mostrar indicador de carga si es necesario
+    $('#loading-indicator').show();
+
+    $.ajax({
+        url: `/microbiologia/modificar_bitacora_rechazada/${bitacoraId}/`,
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        success: function(response) {
+            console.log('Respuesta:', response);
+            
+            // Ocultar indicador de carga
+            $('#loading-indicator').hide();
+            
+            if (response.success) {
+                $('#firmar').modal('hide');
+                $('#mensajeExitoTexto').text(response.message || 'Bitácora enviada correctamente');
+                $('#mensajeExito').modal('show');
+                
+                // Redireccionar después de mostrar el mensaje
+                setTimeout(function() {
+                    window.location.href = response.redirect_url || '/microbiologia/lista_bitacoras_rechazadas/';
+                }, 2000);
+            } else {
+                const errorMsg = response.error || response.message || 'Error al enviar la bitácora';
+                $('#error-message').text(errorMsg).show();
+            }
+        },
+        error: function(xhr, status, error) {
+            // Ocultar indicador de carga
+            $('#loading-indicator').hide();
+            
+            console.error('Error al enviar:', {
+                status: xhr.status,
+                statusText: xhr.statusText,
+                responseText: xhr.responseText
+            });
+            
+            // Intentar extraer mensaje de error más detallado
+            let errorMsg = error;
+            try {
+                const errorResponse = JSON.parse(xhr.responseText);
+                if (errorResponse.error) {
+                    errorMsg = errorResponse.error;
+                } else if (errorResponse.message) {
+                    errorMsg = errorResponse.message;
+                }
+            } catch (e) {
+                console.log('No se pudo parsear la respuesta de error');
+                
+                // Si no se puede parsear, intentar extraer el mensaje de error del HTML
+                const htmlResponse = xhr.responseText;
+                const errorMatch = htmlResponse.match(/<pre class="exception_value">(.*?)<\/pre>/);
+                if (errorMatch && errorMatch[1]) {
+                    errorMsg = errorMatch[1];
+                }
             }
             
             $('#error-message').text('Error al enviar la bitácora: ' + errorMsg).show();
@@ -633,6 +769,7 @@ window.enviarFormularioGuardadaARevision = enviarFormularioGuardadaARevision;
 window.guardarFormularioEditado = guardarFormularioEditado;
 window.guardarFormularioEditadoParaMas = guardarFormularioEditadoParaMas;
 window.esBitacoraVacia = esBitacoraVacia;
+window.enviarFormularioEditadoARevision = enviarFormularioEditadoARevision;
 
 // Inicialización con jQuery
 $(document).ready(function() {

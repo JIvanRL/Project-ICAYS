@@ -1,3 +1,4 @@
+import json
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate
@@ -7,16 +8,21 @@ from django.contrib import messages
 from django.urls import reverse
 from django.db import transaction
 from django.http import JsonResponse
-from .models import ClaveMuestraCbap, ControlCalidad, Dilucion, DilucionesEmpleadas, Direct_o_Dilucion, Resultado, VerificacionBalanza, bita_cbap, Bitcoras_Cbap, CustomUser
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+from .models import ClaveMuestraCbap, ControlCalidad, Dilucion, DilucionesEmpleadas, Direct_o_Dilucion, Resultado, VerificacionBalanza, bita_cbap, Bitcoras_Cbap, CustomUser, ObservacionCampo
 from .forms import (
     DilucionesEmpleadasForm, DirectODilucionForm, DilucionForm,
     ControlCalidadForm, VerificacionBalanzaForm, DatosCampoCbapForm,
-    ClaveMuestraCbapForm, ResultadoCbapForm, tableBlanco, ejemplosFormulas
+    ClaveMuestraCbapForm, ResultadoCbapForm, tableBlanco, ejemplosFormulas, ObservacionesForm
 )
+from .models import Lecturas
 import logging
 logger = logging.getLogger(__name__)
 
-
+######################################
+# Vista para registrar bitácora CBAP #
+######################################
 @login_required
 def registrar_bitacora(request):
     logger.info(f"Iniciando registro de bitácora para usuario {request.user}")
@@ -62,28 +68,20 @@ def registrar_bitacora(request):
                 datos_campo = datos_campo_form.save()
 
                 # === 2. CREAR BITA_CBAP ===
-                # Procesar fechas y horas para bita_cbap
-                fecha_lectura = safe_date_time(request.POST.get('fecha_lectura_cbap'))
-                hora_lectura = safe_date_time(request.POST.get('hora_lectura_cbap'))
-                mes_muestra_cbap = safe_date_time(request.POST.get('mes_muestra_cbap'))
-
-                # Registrar para depuración
-                logger.debug(f"Fecha lectura: {fecha_lectura}, Hora lectura: {hora_lectura}")
-                
+                               
                 bita_cbap_instance = bita_cbap(
                     id_dc_cbap=datos_campo,
                     firma_user=request.user,
                     nombre_cbap=request.POST.get('nombre_cbap'),
                     pagina_cbap=request.POST.get('pagina_cbap'),
                     letra_analista_cbap=request.POST.get('letra_analista_cbap'),
-                    mes_muestra_cbap=mes_muestra_cbap,
+                    mes_muestra_cbap=request.POST.get('mes_muestra_cbap'),
+                    año_muestra_cbap=request.POST.get('año_muestra_cbap'),
                     pagina_muestra_cbap=request.POST.get('pagina_muestra_cbap'),
                     pagina_fosfato_cbap=request.POST.get('pagina_fosfato_cbap'),
                     numero_fosfato_cbap=request.POST.get('numero_fosfato_cbap'),
                     pagina_agar_cbap=request.POST.get('pagina_agar_cbap'),
                     numero_agar_cbap=request.POST.get('numero_agar_cbap'),
-                    fecha_lectura_cbap=fecha_lectura,
-                    hora_lectura_cbap=hora_lectura,
                     observaciones_cbap=request.POST.get('observaciones_cbap'),
                 )
                 bita_cbap_instance.save()
@@ -113,6 +111,33 @@ def registrar_bitacora(request):
                     return JsonResponse({
                         'success': False,
                         'error': f"Error al guardar blanco: {str(e)}"
+                    }, status=400)
+                # Obtener datos de lecturas
+                fecha_lectura_1 = request.POST.get('fecha_lectura_1')
+                hora_lectura_1 = request.POST.get('hora_lectura_1')
+                fecha_lectura_2 = request.POST.get('fecha_lectura_2')
+                hora_lectura_2 = request.POST.get('hora_lectura_2') 
+                
+                
+                logger.debug(f"Datos de lecturas: fecha_lectura_1={fecha_lectura_1}, hora_lectura_1={hora_lectura_1}, fecha_lectura_2={fecha_lectura_2}, hora_lectura_2={hora_lectura_2}")
+                
+                try:
+                    # Crear directamente el objeto Lecturas
+                    lecturas = Lecturas(
+                        fecha_lectura_1=fecha_lectura_1 if fecha_lectura_1 and fecha_lectura_1 != '---' else None,
+                        hora_lectura_1=hora_lectura_1 if hora_lectura_1 and hora_lectura_1 != '---' else None,
+                        fecha_lectura_2=fecha_lectura_2 if fecha_lectura_2 and fecha_lectura_2 != '---' else None,
+                        hora_lectura_2=hora_lectura_2 if hora_lectura_2 and hora_lectura_2 != '---' else None,
+                        
+                        nombre_bita_cbap=bita_cbap_instance
+                    )
+                    lecturas.save()
+                    logger.debug(f"Tabla lectura guardada correctamente con ID: {lecturas.id_lectura}")
+                except Exception as e:
+                    logger.error(f"Error al guardar la tabla lectura: {str(e)}")
+                    return JsonResponse({
+                        'success': False,
+                        'error': f"Error al guardar la tabla lectura: {str(e)}"
                     }, status=400)
 
                 # === 4. PROCESAR FILAS DINÁMICAS ===
@@ -237,17 +262,19 @@ def registrar_bitacora(request):
 
                 # === 5. CREAR CONTROL DE CALIDAD ===
                 for i in range(1, 5):
-                    # Procesar fecha para control de calidad
-                    fecha_cc = safe_date_time(request.POST.get(f'fecha_1cc_{i}'))
+                
                     
                     # Solo crear el control de calidad si hay datos significativos
                     nombre_laf = request.POST.get(f'nombre_laf_{i}', '')
+                    mes_1cc = request.POST.get(f'mes_1cc_{i}', '')
+                    anio_1cc = request.POST.get(f'anio_1cc_{i}', '')
                     page_1cc = request.POST.get(f'page_1cc_{i}', '')
                     
-                    if nombre_laf or fecha_cc or page_1cc:  # Solo procesar si hay al menos un dato
+                    if nombre_laf or mes_1cc or page_1cc:  # Solo procesar si hay al menos un dato
                         control_calidad_data = {
                             'nombre_laf': nombre_laf,
-                            'fecha_1cc': fecha_cc,  # Esto será None si está vacío
+                            'mes_1cc': mes_1cc,  # Esto será None si está vacío
+                            'anio_1cc': anio_1cc,  # Esto será None si está vacío
                             'page_1cc': page_1cc,
                             'id_cbap_cc': bita_cbap_instance,
                         }
@@ -281,7 +308,8 @@ def registrar_bitacora(request):
                         'emt_vb': safe_float(request.POST.get(f'emt_vb_{i}')),
                         'aceptacion_vb': request.POST.get(f'aceptacion_vb_{i}'),
                         'valor_pesado_muestra_vb': request.POST.get(f'valor_pesado_muestra_vb_{i}'),
-                        'tomo_verficacion_vb': request.POST.get(f' tomo_verficacion_vb_{i}'),
+                        'mes_verficacion_vb': request.POST.get(f'mes_verficacion_vb_{i}'),
+                        'anio_verficacion_vb': request.POST.get(f'anio_verficacion_vb_{i}'),
                         'pagina_verficacion_vb': request.POST.get(f'pagina_verficacion_vb_{i}'),
                         'id_cbap_vb': bita_cbap_instance,
                     }
@@ -458,6 +486,9 @@ def lista_bitacoras_guardadas(request):
         'tipo': 'guardada'
     })
 
+################################################################################
+# Vista para obtener las bitácoras enviadas o revisadas por el analista actual #
+################################################################################
 @login_required
 @role_required('Analista de Laboratorio')
 def lista_bitacoras_revision(request):
@@ -474,6 +505,26 @@ def lista_bitacoras_revision(request):
     })
 from .models import CustomUser
 
+######################################################################
+# Vista para obtener las bitácoras rechazadas por el analista actual #
+######################################################################
+@login_required
+@role_required('Analista de Laboratorio')
+def lista_bitacoras_rechazadas(request):
+    """Obtener las bitácoras rechazadas por el analista actual"""
+    nombre_completo = f"{request.user.first_name} {request.user.last_name}"
+    bitacoras = Bitcoras_Cbap.objects.select_related('nombre_bita_cbap').filter(
+        estado__in=['rechazada'],  # Filtrar por múltiples estados usando __in
+        name_user_cbap=request.user  # Filtrar por el usuario creador (analista)
+    ).order_by('-fecha_bita_cbap')
+    
+    return render(request, 'lista_bitacoras_rechazadas.html', {
+        'bitacoras': bitacoras,
+        'tipo': 'rechazada'
+    })
+##############################################
+# Vista para obtener usuarios en formato JSON#
+##############################################
 @login_required
 def obtener_usuarios_json(request):#Obtener todos los usuarios
     try:
@@ -526,8 +577,13 @@ def ver_bitacora(request, bitacora_id):
             'verificaciones_balanza',
             'resultado',
             'muestras_blancos',
-            'nombre_bita_cbap'  # Este es el related_name correcto para ejemplosFormulas
+            'nombre_bita_cbap',  # Este es el related_name correcto para ejemplosFormulas
+            'lecturas'
         ).get(id_cbap=bitacora_id)
+        
+        # Registrar información de depuración sobre las lecturas
+        lecturas = bitacora.lecturas.all()
+        logger.debug(f"Lecturas encontradas para bitácora {bitacora_id}: {lecturas.count()}")
         
         # Obtener el registro de blanco para esta bitácora
         try:
@@ -546,6 +602,7 @@ def ver_bitacora(request, bitacora_id):
         diluciones_directas = bitacora.dilucion_directa.all()
         diluciones = bitacora.dilucion.all()
         resultados = bitacora.resultado.all()
+        lectura = bitacora.lecturas.all()
 
         # Iterar sobre los registros y agregarlos a filas_datos
         for i in range(max(len(clave_muestras), len(diluciones_empleadas), len(diluciones_directas), len(diluciones), len(resultados))):
@@ -568,6 +625,7 @@ def ver_bitacora(request, bitacora_id):
             'verificaciones_balanza': bitacora.verificaciones_balanza.all(),
             'blanco': blanco,
             'ejemplos_formulas': ejemplos_formulas,  # Pasar los ejemplos de fórmulas al contexto
+            'lecturas': lectura,  # Pasar explícitamente las lecturas al contexto
         }
 
         return render(request, 'detalles_bitacoras.html', context)
@@ -593,7 +651,8 @@ def ver_bitacora_revision(request, bitacora_id):
             'control_calidades',
             'ClaveMuestra',
             'verificaciones_balanza',
-            'resultado'
+            'resultado',
+            'lecturas'  # Corregido: faltaba una coma y el nombre correcto debe ser 'lecturas'
         ).get(id_cbap=bitacora_id)
         
         # Obtener el registro de blanco para esta bitácora
@@ -603,6 +662,14 @@ def ver_bitacora_revision(request, bitacora_id):
             blanco = None
         # Obtener los ejemplos de fórmulas relacionados con esta bitácora
         ejemplos_formulas = bitacora.nombre_bita_cbap.all()
+        
+        # Obtener explícitamente las lecturas relacionadas con esta bitácora
+        lecturas = bitacora.lecturas.all()
+        
+        # Registrar información de depuración sobre las lecturas
+        logger.debug(f"Lecturas encontradas para bitácora {bitacora_id}: {lecturas.count()}")
+        for lectura in lecturas:
+            logger.debug(f"Lectura ID: {lectura.id_lectura}, Fecha 1: {lectura.fecha_lectura_1}, Hora 1: {lectura.hora_lectura_1}")
         
         # Verificar que el usuario actual sea el creador de la bitácora
         if bitacora.firma_user != request.user:
@@ -633,6 +700,298 @@ def ver_bitacora_revision(request, bitacora_id):
         logger.debug(f"Datos de bitácora: {bitacora.__dict__}")
         if datos_campo:
             logger.debug(f"Datos de campo: {datos_campo.__dict__}")
+        
+        # Obtener todos los registros relacionados con la bitácora
+        clave_muestras = list(bitacora.ClaveMuestra.all())
+        diluciones_empleadas = list(bitacora.dilucion_empleadas.all())
+        diluciones_directas = list(bitacora.dilucion_directa.all())
+        diluciones = list(bitacora.dilucion.all())
+        resultados = list(bitacora.resultado.all())
+        
+        
+        # Determinar el número máximo de filas
+        max_filas = max(
+            len(clave_muestras),
+            len(diluciones_empleadas),
+            len(diluciones_directas),
+            len(diluciones),
+            len(resultados),
+            1  # Asegurar al menos una fila
+        )
+        
+        # Crear filas_datos con todos los registros
+        filas_datos = []
+        for i in range(max_filas):
+            fila = {
+                'index': i,
+                'clave_muestra': clave_muestras[i] if i < len(clave_muestras) else None,
+                'diluciones': diluciones_empleadas[i] if i < len(diluciones_empleadas) else None,
+                'directa': diluciones_directas[i] if i < len(diluciones_directas) else None,
+                'dilucion': diluciones[i] if i < len(diluciones) else None,
+                'resultado': resultados[i] if i < len(resultados) else None
+            }
+            filas_datos.append(fila)
+
+        # Obtener controles de calidad y verificaciones de balanza
+        controles_calidad = list(bitacora.control_calidades.all())
+        verificaciones_balanza = list(bitacora.verificaciones_balanza.all())
+        
+        # Asegurarse de que hay 4 controles de calidad (completar con None si faltan)
+        while len(controles_calidad) < 4:
+            controles_calidad.append(None)
+            
+        # Asegurarse de que hay 2 verificaciones de balanza (completar con None si faltan)
+        while len(verificaciones_balanza) < 2:
+            verificaciones_balanza.append(None)
+
+        # Manejar valores de fechas y horas almacenados como texto
+        fecha_siembra = datos_campo.fecha_siembra_dc if datos_campo else ""
+        hora_siembra = datos_campo.hora_siembra_dc if datos_campo else ""
+        hora_incubacion = datos_campo.hora_incubacion_dc if datos_campo else ""
+        
+        # Limpiar valores predeterminados o nulos
+        if fecha_siembra == "---" or fecha_siembra is None:
+            fecha_siembra = ""
+        if hora_siembra == "---" or hora_siembra is None:
+            hora_siembra = ""
+        if hora_incubacion == "---" or hora_incubacion is None:
+            hora_incubacion = ""
+        
+        # Otros campos de datos_campo
+        procedimiento = datos_campo.procedimiento_dc if datos_campo and datos_campo.procedimiento_dc else ""
+        equipo_incubacion = datos_campo.equipo_incubacion_dc if datos_campo and datos_campo.equipo_incubacion_dc else ""
+        
+        # Otros campos de bitácora
+        nombre_cbap = bitacora.nombre_cbap or ""
+        pagina_cbap = bitacora.pagina_cbap or 0
+        letra_analista_cbap = bitacora.letra_analista_cbap or ""
+        mes_muestra_cbap = bitacora.mes_muestra_cbap or ""
+        pagina_muestra_cbap = bitacora.pagina_muestra_cbap or ""
+        pagina_fosfato_cbap = bitacora.pagina_fosfato_cbap or ""
+        numero_fosfato_cbap = bitacora.numero_fosfato_cbap or ""
+        pagina_agar_cbap = bitacora.pagina_agar_cbap or ""
+        numero_agar_cbap = bitacora.numero_agar_cbap or ""
+        observaciones_cbap = bitacora.observaciones_cbap or ""
+
+
+        context = {
+            'bitacora': bitacora,
+            'filas_datos': filas_datos,
+            'datos_campo': datos_campo,
+            'usuario': bitacora.firma_user,
+            'controles_calidad': controles_calidad,
+            'verificaciones_balanza': verificaciones_balanza,
+            'registro': registro,
+            'blanco': blanco,  # Añadir el blanco al contexto
+            # Agregar valores procesados al contexto
+            'fecha_siembra': fecha_siembra,
+            'hora_siembra': hora_siembra,
+            'hora_incubacion': hora_incubacion,
+            'procedimiento': procedimiento,
+            'equipo_incubacion': equipo_incubacion,
+            'nombre_cbap': nombre_cbap,
+            'pagina_cbap': pagina_cbap,
+            'letra_analista_cbap': letra_analista_cbap,
+            'mes_muestra_cbap': mes_muestra_cbap,
+            'pagina_muestra_cbap': pagina_muestra_cbap,
+            'pagina_fosfato_cbap': pagina_fosfato_cbap,
+            'numero_fosfato_cbap': numero_fosfato_cbap,
+            'pagina_agar_cbap': pagina_agar_cbap,
+            'numero_agar_cbap': numero_agar_cbap,
+            'observaciones_cbap': observaciones_cbap,
+            'ejemplos_formulas': ejemplos_formulas,  # Pasar los ejemplos de fórmulas al contexto
+            'lecturas': lecturas,  # Convertir a lista para asegurar que se pueda acceder por índice
+            
+        }
+
+        return render(request, 'bitacora_para_revisar.html', context)
+    
+    except bita_cbap.DoesNotExist:
+        messages.error(request, 'La bitácora no existe.')
+        return redirect('microalimentos:lista_bitacoras_revision')
+    except Exception as e:
+        logger.error(f"Error al ver bitácora en revisión: {str(e)}")
+        import traceback
+        logger.error(traceback.format_exc())
+        messages.error(request, f"Error al cargar la bitácora: {str(e)}")
+        return redirect('microalimentos:lista_bitacoras_revision')
+
+@login_required
+def obtener_campos_observaciones(request, bitacora_id):
+    """
+    Vista para obtener los campos seleccionados y sus observaciones
+    directamente desde la tabla ObservacionCampo
+    """
+    try:
+        # Validar que exista la bitácora
+        try:
+            bitacora = Bitcoras_Cbap.objects.get(nombre_bita_cbap__id_cbap=bitacora_id)
+        except Bitcoras_Cbap.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'message': 'Bitácora no encontrada'
+            }, status=404)
+        
+        # Obtener las observaciones individuales de la tabla ObservacionCampo
+        observaciones_individuales = ObservacionCampo.objects.filter(bitacora=bitacora)
+        
+        # Serializar las observaciones individuales
+        observaciones_individuales_data = []
+        for obs in observaciones_individuales:
+            observaciones_individuales_data.append({
+                'id': obs.id_valor_editado,
+                'campo_id': obs.campo_id,
+                'campo_nombre': obs.campo_nombre,
+                'valor_original': obs.valor_original if obs.valor_original != '---' else '',
+                'valor_actual': obs.valor_actual if obs.valor_actual else obs.valor_original,  # Si no hay valor actual, usar el original
+                'campo_tipo': obs.campo_tipo,
+                'observacion': obs.observacion,
+                'fecha_edicion': obs.fecha_edicion.strftime('%Y-%m-%d %H:%M:%S') if obs.fecha_edicion else '',
+                'editado_por': f"{obs.editado_por.first_name} {obs.editado_por.last_name}" if obs.editado_por else ''
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'observaciones_individuales': observaciones_individuales_data
+        })
+        
+    except Exception as e:
+        logger.error(f"Error al obtener campos y observaciones: {str(e)}")
+        import traceback
+        logger.error(traceback.format_exc())
+        return JsonResponse({
+            'success': False,
+            'message': f'Error al obtener los datos: {str(e)}'
+        }, status=500)
+
+#####################################
+# Vista para ver bitácora rechazada #
+#####################################
+@login_required
+@role_required('Analista de Laboratorio')
+def ver_bitacora_rechazada(request, bitacora_id):
+    try:
+        # Verificar si es una solicitud AJAX para obtener solo los datos
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            try:
+                # Obtener la bitácora principal
+                bitacora = bita_cbap.objects.get(id_cbap=bitacora_id)
+                
+                # Obtener el registro de Bitcoras_Cbap correspondiente
+                registro = Bitcoras_Cbap.objects.filter(
+                    nombre_bita_cbap=bitacora,
+                    estado='rechazada'
+                ).order_by('-fecha_bita_cbap').first()
+                
+                if not registro:
+                    return JsonResponse({'success': False, 'error': 'No se encontró una bitácora rechazada'}, status=404)
+                
+                # Obtener las observaciones de campos desde la tabla ObservacionCampo
+                observaciones_campos = ObservacionCampo.objects.filter(bitacora=registro)
+                
+                # Crear un diccionario con las observaciones
+                observaciones_dict = {}
+                campos_seleccionados = []
+                
+                for obs in observaciones_campos:
+                    # Guardar el ID del campo en la lista de campos seleccionados
+                    campos_seleccionados.append(obs.campo_id)
+                    
+                    # Guardar la observación en el diccionario
+                    observaciones_dict[obs.campo_id] = {
+                        'observacion': obs.observacion,
+                        'valor_original': obs.valor_original,
+                        'campo_nombre': obs.campo_nombre,
+                        'campo_tipo': obs.campo_tipo
+                    }
+                
+                # Registrar información para depuración
+                logger.debug(f"Bitácora encontrada: ID={registro.id_bita_cbap}, Estado={registro.estado}")
+                logger.debug(f"Observaciones desde ObservacionCampo: {len(observaciones_dict)} registros")
+                logger.debug(f"Campos seleccionados desde ObservacionCampo: {len(campos_seleccionados)} campos")
+                
+                return JsonResponse({
+                    'success': True,
+                    'estado': registro.estado,
+                    'observaciones': observaciones_dict,
+                    'campos_seleccionados': campos_seleccionados,
+                })
+            except Exception as e:
+                logger.error(f"Error al obtener datos AJAX: {str(e)}")
+                import traceback
+                logger.error(traceback.format_exc())
+                return JsonResponse({'success': False, 'error': f'Error al obtener datos: {str(e)}'}, status=500)
+        
+        # Si no es AJAX, continuar con el renderizado normal de la página
+        # Obtener la bitácora principal con todas sus relaciones
+        bitacora = bita_cbap.objects.select_related(
+            'id_dc_cbap',
+            'firma_user'
+        ).prefetch_related(
+            'dilucion_empleadas',
+            'dilucion_directa',
+            'dilucion',
+            'control_calidades',
+            'ClaveMuestra',
+            'verificaciones_balanza',
+            'resultado',
+            'lecturas'
+        ).get(id_cbap=bitacora_id)
+        
+        # Obtener el registro de blanco para esta bitácora
+        try:
+            blanco = tableBlanco.objects.get(nombre_bita_cbap=bitacora)
+        except tableBlanco.DoesNotExist:
+            blanco = None
+        
+        # Obtener los ejemplos de fórmulas relacionados con esta bitácora
+        ejemplos_formulas = bitacora.nombre_bita_cbap.all()
+        
+        # Obtener explícitamente las lecturas relacionadas con esta bitácora
+        lecturas = bitacora.lecturas.all()
+        
+        # Verificar que el usuario actual sea el creador de la bitácora
+        if bitacora.firma_user != request.user:
+            messages.error(request, "No tienes permiso para ver esta bitácora")
+            return redirect('microalimentos:lista_bitacoras_rechazadas')
+
+        # Obtener el registro de Bitcoras_Cbap correspondiente
+        registro = Bitcoras_Cbap.objects.filter(
+            nombre_bita_cbap=bitacora,
+            estado='rechazada'
+        ).order_by('-fecha_bita_cbap').first()
+        
+        if not registro:
+            logger.warning(f"No se encontró registro de Bitcoras_Cbap para la bitácora {bitacora_id}")
+            messages.error(request, "No se encontró un registro de bitácora rechazada")
+            return redirect('microalimentos:lista_bitacoras_rechazadas')
+        
+        # Obtener las observaciones de campos desde la tabla ObservacionCampo
+        observaciones_campos = ObservacionCampo.objects.filter(bitacora=registro)
+        
+        # Crear un diccionario con las observaciones
+        observaciones_dict = {}
+        campos_seleccionados = []
+        
+        for obs in observaciones_campos:
+            # Guardar el ID del campo en la lista de campos seleccionados
+            campos_seleccionados.append(obs.campo_id)
+            
+            # Guardar la observación en el diccionario
+            observaciones_dict[obs.campo_id] = {
+                'observacion': obs.observacion,
+                'valor_original': obs.valor_original,
+                'campo_nombre': obs.campo_nombre,
+                'campo_tipo': obs.campo_tipo
+            }
+        
+        # Registrar información de depuración
+        logger.debug(f"Registro encontrado: ID={registro.id_bita_cbap}, Estado={registro.estado}")
+        logger.debug(f"Observaciones desde ObservacionCampo: {len(observaciones_dict)} registros")
+        logger.debug(f"Campos seleccionados desde ObservacionCampo: {len(campos_seleccionados)} campos")
+
+        # Asegurarse de que los datos de campo estén disponibles
+        datos_campo = bitacora.id_dc_cbap
         
         # Obtener todos los registros relacionados con la bitácora
         clave_muestras = list(bitacora.ClaveMuestra.all())
@@ -688,15 +1047,6 @@ def ver_bitacora_revision(request, bitacora_id):
             hora_siembra = ""
         if hora_incubacion == "---" or hora_incubacion is None:
             hora_incubacion = ""
-            
-        # Manejar valores de fecha y hora de lectura
-        fecha_lectura_cbap = bitacora.fecha_lectura_cbap or ""
-        hora_lectura_cbap = bitacora.hora_lectura_cbap or ""
-        
-        if fecha_lectura_cbap == "---" or fecha_lectura_cbap is None:
-            fecha_lectura_cbap = ""
-        if hora_lectura_cbap == "---" or hora_lectura_cbap is None:
-            hora_lectura_cbap = ""
         
         # Otros campos de datos_campo
         procedimiento = datos_campo.procedimiento_dc if datos_campo and datos_campo.procedimiento_dc else ""
@@ -713,11 +1063,14 @@ def ver_bitacora_revision(request, bitacora_id):
         pagina_agar_cbap = bitacora.pagina_agar_cbap or ""
         numero_agar_cbap = bitacora.numero_agar_cbap or ""
         observaciones_cbap = bitacora.observaciones_cbap or ""
-        
-        # Registrar valores para depuración
-        logger.debug(f"Valores procesados: fecha_siembra={fecha_siembra}, hora_siembra={hora_siembra}, "
-                    f"hora_incubacion={hora_incubacion}, fecha_lectura={fecha_lectura_cbap}, "
-                    f"hora_lectura={hora_lectura_cbap}")
+
+        # Preparar el registro para el contexto
+        registro_dict = {
+            'id_bita_cbap': registro.id_bita_cbap,
+            'estado': registro.estado,
+            'observaciones': observaciones_dict,
+            'campos_seleccionados': campos_seleccionados
+        }
 
         context = {
             'bitacora': bitacora,
@@ -727,7 +1080,10 @@ def ver_bitacora_revision(request, bitacora_id):
             'controles_calidad': controles_calidad,
             'verificaciones_balanza': verificaciones_balanza,
             'registro': registro,
-            'blanco': blanco,  # Añadir el blanco al contexto
+            'registro_dict': registro_dict,  # Agregar el registro como diccionario
+            'observaciones_campos': observaciones_campos,  # Agregar las observaciones directamente
+            'campos_seleccionados': campos_seleccionados,  # Agregar los campos seleccionados como lista
+            'blanco': blanco,
             # Agregar valores procesados al contexto
             'fecha_siembra': fecha_siembra,
             'hora_siembra': hora_siembra,
@@ -743,24 +1099,25 @@ def ver_bitacora_revision(request, bitacora_id):
             'numero_fosfato_cbap': numero_fosfato_cbap,
             'pagina_agar_cbap': pagina_agar_cbap,
             'numero_agar_cbap': numero_agar_cbap,
-            'fecha_lectura_cbap': fecha_lectura_cbap,
-            'hora_lectura_cbap': hora_lectura_cbap,
             'observaciones_cbap': observaciones_cbap,
-            'ejemplos_formulas': ejemplos_formulas,  # Pasar los ejemplos de fórmulas al contexto
-            'debug': True  # Habilitar depuración en la plantilla
+            'ejemplos_formulas': ejemplos_formulas,
+            'lecturas': lecturas,
         }
 
-        return render(request, 'bitacora_para_revisar.html', context)
+        return render(request, 'bitacoras_rechazadas.html', context)
     
     except bita_cbap.DoesNotExist:
         messages.error(request, 'La bitácora no existe.')
-        return redirect('microalimentos:lista_bitacoras_revision')
+        return redirect('microalimentos:lista_bitacoras_rechazadas')
     except Exception as e:
-        logger.error(f"Error al ver bitácora en revisión: {str(e)}")
+        logger.error(f"Error al ver bitácora rechazada: {str(e)}")
         import traceback
         logger.error(traceback.format_exc())
         messages.error(request, f"Error al cargar la bitácora: {str(e)}")
-        return redirect('microalimentos:lista_bitacoras_revision')
+        return redirect('microalimentos:lista_bitacoras_rechazadas')
+##########################################
+#Vista para ver las bitacoras autorizadas#
+##########################################
 @login_required
 @role_required('Analista de Laboratorio')
 def ver_bitacora_autorizada(request, bitacora_id):
@@ -788,7 +1145,8 @@ def ver_bitacora_autorizada(request, bitacora_id):
             'control_calidades',
             'ClaveMuestra',
             'verificaciones_balanza',
-            'resultado'
+            'resultado',
+            'lecturas'  # Añadir lecturas a prefetch_related
         ).get(id_cbap=bitacora_id, firma_user=request.user)
 
         # Obtener el registro de blanco para esta bitácora
@@ -799,6 +1157,8 @@ def ver_bitacora_autorizada(request, bitacora_id):
 
         # Obtener los ejemplos de fórmulas relacionados con esta bitácora
         ejemplos_formulas = bitacora.nombre_bita_cbap.all()
+         # Obtener explícitamente las lecturas relacionadas con esta bitácora
+        lecturas = bitacora.lecturas.all()
         # Obtener el registro de Bitcoras_Cbap correspondiente
         # Intentamos obtener el registro más reciente
         registro = Bitcoras_Cbap.objects.select_related(
@@ -879,6 +1239,7 @@ def ver_bitacora_autorizada(request, bitacora_id):
             'nombre_mes': nombres_meses[mes-1] if mes and mes >= 1 and mes <= 12 else '',  # Nombre del mes
             'blanco': blanco,  # Añadir el blanco al contexto
             'ejemplos_formulas': ejemplos_formulas,  # Pasar los ejemplos de fórmulas al contexto
+            'lecturas': lecturas,  # Pasar explícitamente las lecturas al contexto
             'debug': True  # Habilitar depuración en la plantilla
         }
 
@@ -1085,6 +1446,11 @@ def modificar_bitacora(request, bitacora_id):
         blanco_existente = tableBlanco.objects.get(nombre_bita_cbap=bitacora)
     except tableBlanco.DoesNotExist:
         blanco_existente = None
+    # Obtener las lecturas existentes para esta bitácora
+    try:
+        lecturas_existentes = Lecturas.objects.get(nombre_bita_cbap=bitacora)
+    except Lecturas.DoesNotExist:
+        lecturas_existentes = None
     
     if request.method == 'POST':
         accion = request.POST.get('accion')  # Obtén la acción desde el formulario
@@ -1129,25 +1495,18 @@ def modificar_bitacora(request, bitacora_id):
                 datos_campo = datos_campo_form.save()
 
                 # === 2. ACTUALIZAR BITA_CBAP ===
-                # Procesar fechas y horas para bita_cbap
-                fecha_lectura = safe_date_time(request.POST.get('fecha_lectura_cbap'))
-                hora_lectura = safe_date_time(request.POST.get('hora_lectura_cbap'))
-                
-                # Registrar para depuración
-                logger.debug(f"Fecha lectura: {fecha_lectura}, Hora lectura: {hora_lectura}")
-                
+                                
                 # Actualizar los campos de la bitácora
                 bitacora.nombre_cbap = request.POST.get('nombre_cbap')
                 bitacora.pagina_cbap = request.POST.get('pagina_cbap')
                 bitacora.letra_analista_cbap = request.POST.get('letra_analista_cbap')
                 bitacora.mes_muestra_cbap = request.POST.get('mes_muestra_cbap')
+                bitacora.año_muestra_cbap = request.POST.get('año_muestra_cbap')
                 bitacora.pagina_muestra_cbap = request.POST.get('pagina_muestra_cbap')
                 bitacora.pagina_fosfato_cbap = request.POST.get('pagina_fosfato_cbap')
                 bitacora.numero_fosfato_cbap = request.POST.get('numero_fosfato_cbap')
                 bitacora.pagina_agar_cbap = request.POST.get('pagina_agar_cbap')
                 bitacora.numero_agar_cbap = request.POST.get('numero_agar_cbap')
-                bitacora.fecha_lectura_cbap = fecha_lectura
-                bitacora.hora_lectura_cbap = hora_lectura
                 bitacora.observaciones_cbap = request.POST.get('observaciones_cbap')
                 bitacora.save()
 
@@ -1190,7 +1549,46 @@ def modificar_bitacora(request, bitacora_id):
                 direct_o_dilucion_existentes = list(Direct_o_Dilucion.objects.filter(id_cbap_dD=bitacora))
                 dilucion_existentes = list(Dilucion.objects.filter(id_cbap_d=bitacora))
                 resultados_existentes = list(Resultado.objects.filter(id_cbap_r=bitacora))
+                # === 3.1 ACTUALIZAR LECTURAS ===
+                # Obtener datos de lecturas
+                fecha_lectura_1 = request.POST.get('fecha_lectura_1')
+                hora_lectura_1 = request.POST.get('hora_lectura_1')
+                fecha_lectura_2 = request.POST.get('fecha_lectura_2')
+                hora_lectura_2 = request.POST.get('hora_lectura_2')
+                #hora_lectura_3 = request.POST.get('hora_lectura_3')
+                #hora_lectura_4 = request.POST.get('hora_lectura_4')
                 
+                # Actualizar o crear el registro de lecturas
+                try:
+                    if lecturas_existentes:
+                        # Actualizar el registro existente
+                        lecturas_existentes.fecha_lectura_1 = fecha_lectura_1 if fecha_lectura_1 and fecha_lectura_1 != '---' else None
+                        lecturas_existentes.hora_lectura_1 = hora_lectura_1 if hora_lectura_1 and hora_lectura_1 != '---' else None
+                        lecturas_existentes.fecha_lectura_2 = fecha_lectura_2 if fecha_lectura_2 and fecha_lectura_2 != '---' else None
+                        lecturas_existentes.hora_lectura_2 = hora_lectura_2 if hora_lectura_2 and hora_lectura_2 != '---' else None
+                       # lecturas_existentes.hora_lectura_3 = hora_lectura_3 if hora_lectura_3 and hora_lectura_3 != '---' else None
+                        #lecturas_existentes.hora_lectura_4 = hora_lectura_4 if hora_lectura_4 and hora_lectura_4 != '---' else None
+                        lecturas_existentes.save()
+                        logger.debug(f"Lecturas actualizadas correctamente con ID: {lecturas_existentes.id_lectura}")
+                    else:
+                        # Crear un nuevo registro
+                        lecturas = Lecturas(
+                            fecha_lectura_1=fecha_lectura_1 if fecha_lectura_1 and fecha_lectura_1 != '---' else None,
+                            hora_lectura_1=hora_lectura_1 if hora_lectura_1 and hora_lectura_1 != '---' else None,
+                            fecha_lectura_2=fecha_lectura_2 if fecha_lectura_2 and fecha_lectura_2 != '---' else None,
+                            hora_lectura_2=hora_lectura_2 if hora_lectura_2 and hora_lectura_2 != '---' else None,
+                            #hora_lectura_3=hora_lectura_3 if hora_lectura_3 and hora_lectura_3 != '---' else None,
+                            #hora_lectura_4=hora_lectura_4 if hora_lectura_4 and hora_lectura_4 != '---' else None,
+                            nombre_bita_cbap=bitacora
+                        )
+                        lecturas.save()
+                        logger.debug(f"Nuevas lecturas creadas con ID: {lecturas.id_lectura}")
+                except Exception as e:
+                    logger.error(f"Error al actualizar/crear lecturas: {str(e)}")
+                    return JsonResponse({
+                        'success': False,
+                        'error': f"Error al actualizar/crear lecturas: {str(e)}"
+                    }, status=400)
                 # Procesar las filas del formulario
                 num_filas = int(request.POST.get('num_filas', 0))
                 filas_procesadas = 0
@@ -1330,12 +1728,12 @@ def modificar_bitacora(request, bitacora_id):
                 # === 5. ACTUALIZAR CONTROL DE CALIDAD ===
                 controles_calidad_existentes = list(ControlCalidad.objects.filter(id_cbap_cc=bitacora))
                 for i in range(1, 5):
-                    # Procesar fecha para control de calidad
-                    fecha_cc = safe_date_time(request.POST.get(f'fecha_1cc_{i}'))
+                    
                     
                     control_calidad_data = {
                         'nombre_laf': request.POST.get(f'nombre_laf_{i}', ''),
-                        'fecha_1cc': fecha_cc,
+                        'mes_1cc': request.POST.get(f'mes_1cc_{i}', ''),
+                        'anio_1cc': request.POST.get(f'anio_1cc_{i}', ''),                        
                         'page_1cc': request.POST.get(f'page_1cc_{i}', ''),
                     }
                     
@@ -1343,7 +1741,8 @@ def modificar_bitacora(request, bitacora_id):
                         # Actualizar registro existente
                         control_calidad = controles_calidad_existentes[i-1]
                         control_calidad.nombre_laf = control_calidad_data['nombre_laf']
-                        control_calidad.fecha_1cc = control_calidad_data['fecha_1cc']
+                        control_calidad.mes_1cc = control_calidad_data['mes_1cc']
+                        control_calidad.anio_1cc = control_calidad_data['anio_1cc']
                         control_calidad.page_1cc = control_calidad_data['page_1cc']
                         control_calidad.save()
                     else:
@@ -1351,7 +1750,8 @@ def modificar_bitacora(request, bitacora_id):
                         ControlCalidad.objects.create(
                             id_cbap_cc=bitacora,
                             nombre_laf=control_calidad_data['nombre_laf'],
-                            fecha_1cc=control_calidad_data['fecha_1cc'],
+                            mes_1cc=control_calidad_data['mes_1cc'],
+                            anio_1cc=control_calidad_data['anio_1cc'],
                             page_1cc=control_calidad_data['page_1cc']
                         )
 
@@ -1404,7 +1804,8 @@ def modificar_bitacora(request, bitacora_id):
                         
                         veri_balanza.aceptacion_vb = request.POST.get(f'aceptacion_vb_{i}', '') or veri_balanza.aceptacion_vb
                         veri_balanza.valor_pesado_muestra_vb = request.POST.get(f'valor_pesado_muestra_vb_{i}', '') or veri_balanza.valor_pesado_muestra_vb
-                        veri_balanza.tomo_verficacion_vb = request.POST.get(f'tomo_verficacion_vb_{i}', '') or veri_balanza.tomo_verficacion_vb
+                        veri_balanza.mes_verficacion_vb = request.POST.get(f'mes_verficacion_vb_{i}', '') or veri_balanza.mes_verficacion_vb
+                        veri_balanza.anio_verficacion_vb = request.POST.get(f'anio_verficacion_vb_{i}', '') or veri_balanza.anio_verficacion_vb
                         veri_balanza.pagina_verficacion_vb = request.POST.get(f'pagina_verficacion_vb_{i}', '') or veri_balanza.pagina_verficacion_vb
                         
                         veri_balanza.save()
@@ -1436,7 +1837,8 @@ def modificar_bitacora(request, bitacora_id):
                                 emt_vb=safe_float(request.POST.get(f'emt_vb_{i}')),
                                 aceptacion_vb=request.POST.get(f'aceptacion_vb_{i}', ''),
                                 valor_pesado_muestra_vb=request.POST.get(f'valor_pesado_muestra_vb_{i}', ''),
-                                tomo_verficacion_vb=request.POST.get(f'tomo_verficacion_vb_{i}', ''),
+                                mes_verficacion_vb=request.POST.get(f'mes_verficacion_vb_{i}', ''),
+                                anio_verficacion_vb=request.POST.get(f'anio_verficacion_vb_{i}', ''),
                                 pagina_verficacion_vb=request.POST.get(f'pagina_verficacion_vb_{i}', '')
                             )
 
@@ -1582,6 +1984,568 @@ def modificar_bitacora(request, bitacora_id):
             messages.error(request, f"Error al cargar datos para modificar bitácora: {str(e)}")
             return redirect('microalimentos:lista_bitacoras_guardadas')
 
+
+@login_required
+def modificar_bitacora_rechazada(request, bitacora_id):
+    # Obtener la bitácora existente
+    bitacora = get_object_or_404(bita_cbap, id_cbap=bitacora_id)
+    
+    # Verificar que el usuario actual sea el creador de la bitácora
+    if bitacora.firma_user != request.user:
+        messages.error(request, "No tienes permiso para modificar esta bitácora")
+        return redirect('microalimentos:lista_bitacoras_rechazadas')
+    
+    # Verificar que la bitácora esté en estado 'guardada'
+    ultimo_registro = Bitcoras_Cbap.objects.filter(
+        nombre_bita_cbap=bitacora
+    ).order_by('-fecha_bita_cbap').first()
+    
+    if not ultimo_registro or ultimo_registro.estado != 'rechazada':
+        messages.error(request, "Solo se pueden modificar bitácoras en estado 'rechazada'")
+        return redirect('microalimentos:lista_bitacoras_rechazadas')
+    
+    # Obtener el registro de blanco existente para esta bitácora
+    try:
+        blanco_existente = tableBlanco.objects.get(nombre_bita_cbap=bitacora)
+    except tableBlanco.DoesNotExist:
+        blanco_existente = None
+    # Obtener las lecturas existentes para esta bitácora
+    try:
+        lecturas_existentes = Lecturas.objects.get(nombre_bita_cbap=bitacora)
+    except Lecturas.DoesNotExist:
+        lecturas_existentes = None
+    
+    if request.method == 'POST':
+        accion = request.POST.get('accion')  # Obtén la acción desde el formulario
+        
+        try:
+            # Función auxiliar para convertir valores a float o None
+            def safe_float(value):
+                if value is None or value == '':
+                    return None
+                try:
+                    return float(value)
+                except (ValueError, TypeError):
+                    return None
+            
+            # Función auxiliar para manejar fechas y horas
+            def safe_date_time(value):
+                if value is None or value == '' or value == '---':
+                    return None
+                return value
+            
+            with transaction.atomic():
+                # === 1. ACTUALIZAR DATOS CAMPO ===
+                datos_campo = bitacora.id_dc_cbap
+                datos_campo_data = {
+                    'fecha_siembra_dc': safe_date_time(request.POST.get('fecha_siembra')),
+                    'hora_siembra_dc': safe_date_time(request.POST.get('hora_siembra')),
+                    'hora_incubacion_dc': safe_date_time(request.POST.get('hora_incubacion')),
+                    'procedimiento_dc': request.POST.get('procedimiento'),
+                    'equipo_incubacion_dc': request.POST.get('equipo_incubacion'),
+                }
+                
+                # Registrar para depuración
+                logger.debug(f"Datos de campo antes de validación: {datos_campo_data}")
+                
+                datos_campo_form = DatosCampoCbapForm(datos_campo_data, instance=datos_campo)
+                if not datos_campo_form.is_valid():
+                    logger.error(f"Error en formulario Datos de Campo: {datos_campo_form.errors.as_json()}")
+                    return JsonResponse({
+                        'success': False,
+                        'error': f"Error en formulario Datos de Campo: {datos_campo_form.errors.as_json()}"
+                    }, status=400)
+                datos_campo = datos_campo_form.save()
+
+                # === 2. ACTUALIZAR BITA_CBAP ===
+                                
+                # Actualizar los campos de la bitácora
+                bitacora.nombre_cbap = request.POST.get('nombre_cbap')
+                bitacora.pagina_cbap = request.POST.get('pagina_cbap')
+                bitacora.letra_analista_cbap = request.POST.get('letra_analista_cbap')
+                bitacora.mes_muestra_cbap = request.POST.get('mes_muestra_cbap')
+                bitacora.año_muestra_cbap = request.POST.get('año_muestra_cbap')
+                bitacora.pagina_muestra_cbap = request.POST.get('pagina_muestra_cbap')
+                bitacora.pagina_fosfato_cbap = request.POST.get('pagina_fosfato_cbap')
+                bitacora.numero_fosfato_cbap = request.POST.get('numero_fosfato_cbap')
+                bitacora.pagina_agar_cbap = request.POST.get('pagina_agar_cbap')
+                bitacora.numero_agar_cbap = request.POST.get('numero_agar_cbap')
+                bitacora.observaciones_cbap = request.POST.get('observaciones_cbap')
+                bitacora.save()
+
+                # === 3. ACTUALIZAR REGISTRO DE BLANCO ===
+                # Obtener datos del blanco
+                cantidad_blanco = request.POST.get('cantidad_blanco')
+                placa_blanco = request.POST.get('placa_blanco')
+                resultado_blanco = request.POST.get('resultado_blanco')
+                
+                # Actualizar o crear el registro de blanco
+                try:
+                    if blanco_existente:
+                        # Actualizar el registro existente
+                        blanco_existente.cantidad_blanco = cantidad_blanco if cantidad_blanco else '---'
+                        blanco_existente.placa_blanco = placa_blanco if placa_blanco else '---'
+                        blanco_existente.resultado_blanco = resultado_blanco
+                        blanco_existente.save()
+                        logger.debug(f"Blanco actualizado correctamente con ID: {blanco_existente.id_blanco}")
+                    else:
+                        # Crear un nuevo registro
+                        blanco = tableBlanco(
+                            cantidad_blanco=cantidad_blanco if cantidad_blanco else '---',
+                            placa_blanco=placa_blanco if placa_blanco else '---',
+                            resultado_blanco=resultado_blanco,
+                            nombre_bita_cbap=bitacora
+                        )
+                        blanco.save()
+                        logger.debug(f"Nuevo blanco creado con ID: {blanco.id_blanco}")
+                except Exception as e:
+                    logger.error(f"Error al actualizar/crear blanco: {str(e)}")
+                    return JsonResponse({
+                        'success': False,
+                        'error': f"Error al actualizar/crear blanco: {str(e)}"
+                    }, status=400)
+                
+                # === 4. ACTUALIZAR FILAS DINÁMICAS ===
+                # Obtener todas las filas existentes
+                claves_muestra_existentes = list(ClaveMuestraCbap.objects.filter(id_cbap_c_m=bitacora))
+                diluciones_empleadas_existentes = list(DilucionesEmpleadas.objects.filter(id_cbap_dE=bitacora))
+                direct_o_dilucion_existentes = list(Direct_o_Dilucion.objects.filter(id_cbap_dD=bitacora))
+                dilucion_existentes = list(Dilucion.objects.filter(id_cbap_d=bitacora))
+                resultados_existentes = list(Resultado.objects.filter(id_cbap_r=bitacora))
+                # === 3.1 ACTUALIZAR LECTURAS ===
+                # Obtener datos de lecturas
+                fecha_lectura_1 = request.POST.get('fecha_lectura_1')
+                hora_lectura_1 = request.POST.get('hora_lectura_1')
+                fecha_lectura_2 = request.POST.get('fecha_lectura_2')
+                hora_lectura_2 = request.POST.get('hora_lectura_2')
+                #hora_lectura_3 = request.POST.get('hora_lectura_3')
+                #hora_lectura_4 = request.POST.get('hora_lectura_4')
+                
+                # Actualizar o crear el registro de lecturas
+                try:
+                    if lecturas_existentes:
+                        # Actualizar el registro existente
+                        lecturas_existentes.fecha_lectura_1 = fecha_lectura_1 if fecha_lectura_1 and fecha_lectura_1 != '---' else None
+                        lecturas_existentes.hora_lectura_1 = hora_lectura_1 if hora_lectura_1 and hora_lectura_1 != '---' else None
+                        lecturas_existentes.fecha_lectura_2 = fecha_lectura_2 if fecha_lectura_2 and fecha_lectura_2 != '---' else None
+                        lecturas_existentes.hora_lectura_2 = hora_lectura_2 if hora_lectura_2 and hora_lectura_2 != '---' else None
+                       # lecturas_existentes.hora_lectura_3 = hora_lectura_3 if hora_lectura_3 and hora_lectura_3 != '---' else None
+                        #lecturas_existentes.hora_lectura_4 = hora_lectura_4 if hora_lectura_4 and hora_lectura_4 != '---' else None
+                        lecturas_existentes.save()
+                        logger.debug(f"Lecturas actualizadas correctamente con ID: {lecturas_existentes.id_lectura}")
+                    else:
+                        # Crear un nuevo registro
+                        lecturas = Lecturas(
+                            fecha_lectura_1=fecha_lectura_1 if fecha_lectura_1 and fecha_lectura_1 != '---' else None,
+                            hora_lectura_1=hora_lectura_1 if hora_lectura_1 and hora_lectura_1 != '---' else None,
+                            fecha_lectura_2=fecha_lectura_2 if fecha_lectura_2 and fecha_lectura_2 != '---' else None,
+                            hora_lectura_2=hora_lectura_2 if hora_lectura_2 and hora_lectura_2 != '---' else None,
+                            #hora_lectura_3=hora_lectura_3 if hora_lectura_3 and hora_lectura_3 != '---' else None,
+                            #hora_lectura_4=hora_lectura_4 if hora_lectura_4 and hora_lectura_4 != '---' else None,
+                            nombre_bita_cbap=bitacora
+                        )
+                        lecturas.save()
+                        logger.debug(f"Nuevas lecturas creadas con ID: {lecturas.id_lectura}")
+                except Exception as e:
+                    logger.error(f"Error al actualizar/crear lecturas: {str(e)}")
+                    return JsonResponse({
+                        'success': False,
+                        'error': f"Error al actualizar/crear lecturas: {str(e)}"
+                    }, status=400)
+                # Procesar las filas del formulario
+                num_filas = int(request.POST.get('num_filas', 0))
+                filas_procesadas = 0
+                
+                for i in range(num_filas):
+                    # Verificar si la fila tiene datos antes de procesarla
+                    if request.POST.get(f'clave_c_m_{i}') or request.POST.get(f'medicion_c_m_{i}') or request.POST.get(f'cantidad_c_m_{i}') or request.POST.get(f'dE_1_{i}') or request.POST.get(f'dE_2_{i}') or request.POST.get(f'dE_3_{i}') or request.POST.get(f'dE_4_{i}') or request.POST.get(f'placa_dD_{i}') or request.POST.get(f'placa_dD2_{i}') or request.POST.get(f'promedio_dD_{i}') or request.POST.get(f'placa_d_{i}') or request.POST.get(f'placa_d2_{i}') or request.POST.get(f'promedio_d_{i}') or request.POST.get(f'placa_d_2_{i}') or request.POST.get(f'placa_d2_2_{i}') or request.POST.get(f'promedio_d_2_{i}') or request.POST.get(f'resultado_r_{i}') or request.POST.get(f'ufC_placa_r_{i}') or request.POST.get(f'diferencia_r_{i}'):
+                        # Obtener los datos de la fila
+                        clave_c_m = request.POST.get(f'clave_c_m_{i}', '')
+                        medicion_c_m = request.POST.get(f'medicion_c_m_{i}', '')
+                        cantidad_c_m = request.POST.get(f'cantidad_c_m_{i}', '')
+                       
+                        
+                        # Usar safe_float para todas las conversiones de string a float
+                        dE_1 = safe_float(request.POST.get(f'dE_1_{i}'))
+                        dE_2 = safe_float(request.POST.get(f'dE_2_{i}'))
+                        dE_3 = safe_float(request.POST.get(f'dE_3_{i}'))
+                        dE_4 = safe_float(request.POST.get(f'dE_4_{i}'))
+                        placa_dD = (request.POST.get(f'placa_dD_{i}'))
+                        placa_dD2 = (request.POST.get(f'placa_dD2_{i}'))
+                        promedio_dD = (request.POST.get(f'promedio_dD_{i}'))
+                        placa_d = (request.POST.get(f'placa_d_{i}'))
+                        placa_d2 = (request.POST.get(f'placa_d2_{i}'))
+                        promedio_d = (request.POST.get(f'promedio_d_{i}'))
+                        placa_d_2 = (request.POST.get(f'placa_d_2_{i}'))
+                        placa_d2_2 = (request.POST.get(f'placa_d2_2_{i}'))
+                        promedio_d_2 = (request.POST.get(f'promedio_d_2_{i}'))
+                       
+                        
+                        # Para estos campos, mantener como string
+                        resultado_r = request.POST.get(f'resultado_r_{i}', '')
+                        ufC_placa_r = request.POST.get(f'ufC_placa_r_{i}', '')
+                        diferencia_r = request.POST.get(f'diferencia_r_{i}', '')
+                        
+                        
+                        # === 3.1. ACTUALIZAR O CREAR CLAVE MUESTRA ===
+                        if filas_procesadas < len(claves_muestra_existentes):
+                            # Actualizar registro existente
+                            clave_muestra = claves_muestra_existentes[filas_procesadas]
+                            clave_muestra.clave_c_m = clave_c_m
+                            clave_muestra.medicion_c_m = medicion_c_m
+                            clave_muestra.cantidad_c_m = cantidad_c_m
+                            
+                            clave_muestra.save()
+                        else:
+                            # Crear nuevo registro
+                            ClaveMuestraCbap.objects.create(
+                                id_cbap_c_m=bitacora,
+                                clave_c_m=clave_c_m,
+                                medicion_c_m=medicion_c_m,
+                                cantidad_c_m=cantidad_c_m,
+                               
+                            )
+                        
+                        # === 3.2. ACTUALIZAR O CREAR DILUCIONES EMPLEADAS ===
+                        if filas_procesadas < len(diluciones_empleadas_existentes):
+                            # Actualizar registro existente
+                            dilucion_empleada = diluciones_empleadas_existentes[filas_procesadas]
+                            dilucion_empleada.dE_1 = dE_1
+                            dilucion_empleada.dE_2 = dE_2
+                            dilucion_empleada.dE_3 = dE_3
+                            dilucion_empleada.dE_4 = dE_4
+                            dilucion_empleada.save()
+                        else:
+                            # Crear nuevo registro
+                            DilucionesEmpleadas.objects.create(
+                                id_cbap_dE=bitacora,
+                                dE_1=dE_1,
+                                dE_2=dE_2,
+                                dE_3=dE_3,
+                                dE_4=dE_4
+                            )
+                        
+                        # === 3.3. ACTUALIZAR O CREAR DIRECTO O DILUCIÓN ===
+                        if filas_procesadas < len(direct_o_dilucion_existentes):
+                            # Actualizar registro existente
+                            direct_o_dilucion = direct_o_dilucion_existentes[filas_procesadas]
+                            direct_o_dilucion.placa_dD = placa_dD
+                            direct_o_dilucion.placa_dD2 = placa_dD2
+                            direct_o_dilucion.promedio_dD = promedio_dD
+                          
+                            direct_o_dilucion.save()
+                        else:
+                            # Crear nuevo registro
+                            Direct_o_Dilucion.objects.create(
+                                id_cbap_dD=bitacora,
+                                placa_dD=placa_dD,
+                                placa_dD2=placa_dD2,
+                                promedio_dD=promedio_dD,
+                               
+                            )
+                        
+                        # === 3.4. ACTUALIZAR O CREAR DILUCIÓN ===
+                        if filas_procesadas < len(dilucion_existentes):
+                            # Actualizar registro existente
+                            dilucion = dilucion_existentes[filas_procesadas]
+                            dilucion.placa_d = placa_d
+                            dilucion.placa_d2 = placa_d2
+                            dilucion.promedio_d = promedio_d
+                            dilucion.placa_d_2 = placa_d_2
+                            dilucion.placa_d2_2 = placa_d2_2
+                            dilucion.promedio_d_2 = promedio_d_2
+                            dilucion.save()
+                        else:
+                            # Crear nuevo registro
+                            Dilucion.objects.create(
+                                id_cbap_d=bitacora,
+                                placa_d=placa_d,
+                                placa_d2=placa_d2,
+                                promedio_d=promedio_d,
+                                placa_d_2=placa_d_2,
+                                placa_d2_2=placa_d2_2,
+                                promedio_d_2=promedio_d_2
+                            )
+                        
+                        # === 3.5. ACTUALIZAR O CREAR RESULTADOS ===
+                        if filas_procesadas < len(resultados_existentes):
+                            # Actualizar registro existente
+                            resultado = resultados_existentes[filas_procesadas]
+                            resultado.resultado_r = resultado_r
+                            resultado.ufC_placa_r = ufC_placa_r
+                            resultado.diferencia_r = diferencia_r
+                         
+                            resultado.save()
+                        else:
+                            # Crear nuevo registro
+                            Resultado.objects.create(
+                                id_cbap_r=bitacora,
+                                resultado_r=resultado_r,
+                                ufC_placa_r=ufC_placa_r,
+                                diferencia_r=diferencia_r,
+                              
+                            )
+                        
+                        filas_procesadas += 1
+                        
+                # === 5. ACTUALIZAR CONTROL DE CALIDAD ===
+                controles_calidad_existentes = list(ControlCalidad.objects.filter(id_cbap_cc=bitacora))
+                for i in range(1, 5):
+                    
+                    
+                    control_calidad_data = {
+                        'nombre_laf': request.POST.get(f'nombre_laf_{i}', ''),
+                        'mes_1cc': request.POST.get(f'mes_1cc_{i}', ''),
+                        'anio_1cc': request.POST.get(f'anio_1cc_{i}', ''),                        
+                        'page_1cc': request.POST.get(f'page_1cc_{i}', ''),
+                    }
+                    
+                    if i-1 < len(controles_calidad_existentes):
+                        # Actualizar registro existente
+                        control_calidad = controles_calidad_existentes[i-1]
+                        control_calidad.nombre_laf = control_calidad_data['nombre_laf']
+                        control_calidad.mes_1cc = control_calidad_data['mes_1cc']
+                        control_calidad.anio_1cc = control_calidad_data['anio_1cc']
+                        control_calidad.page_1cc = control_calidad_data['page_1cc']
+                        control_calidad.save()
+                    else:
+                        # Crear nuevo registro
+                        ControlCalidad.objects.create(
+                            id_cbap_cc=bitacora,
+                            nombre_laf=control_calidad_data['nombre_laf'],
+                            mes_1cc=control_calidad_data['mes_1cc'],
+                            anio_1cc=control_calidad_data['anio_1cc'],
+                            page_1cc=control_calidad_data['page_1cc']
+                        )
+
+                # === 6. ACTUALIZAR VERIFICACIÓN DE BALANZA ===
+                verificaciones_balanza_existentes = list(VerificacionBalanza.objects.filter(id_cbap_vb=bitacora))
+                for i in range(1, 3):
+                    # Procesar hora para verificación de balanza
+                    hora_vb = safe_date_time(request.POST.get(f'hora_vb_{i}'))
+                    
+                    if i-1 < len(verificaciones_balanza_existentes):
+                        # Actualizar registro existente
+                        veri_balanza = verificaciones_balanza_existentes[i-1]
+                        
+                        # Actualizar campos con valores del formulario o mantener los existentes si están vacíos
+                        veri_balanza.hora_vb = hora_vb
+                        
+                        # Para actividad_vb, limitar a 50 caracteres
+                        actividad_vb_nuevo = request.POST.get(f'actividad_vb_{i}', '')
+                        if actividad_vb_nuevo:
+                            veri_balanza.actividad_vb = actividad_vb_nuevo[:50]
+                        
+                        # Usar safe_float para campos numéricos
+                        ajuste_vb = safe_float(request.POST.get(f'ajuste_vb_{i}'))
+                        if ajuste_vb is not None:
+                            veri_balanza.ajuste_vb = ajuste_vb
+                            
+                        valor_nominal_vb = safe_float(request.POST.get(f'valor_nominal_vb_{i}'))
+                        if valor_nominal_vb is not None:
+                            veri_balanza.valor_nominal_vb = valor_nominal_vb
+                            
+                        valor_convencional_vb = safe_float(request.POST.get(f'valor_convencional_vb_{i}'))
+                        if valor_convencional_vb is not None:
+                            veri_balanza.valor_convencional_vb = valor_convencional_vb
+                            
+                        valo_masa_vb = safe_float(request.POST.get(f'valo_masa_vb_{i}'))
+                        if valo_masa_vb is not None:
+                            veri_balanza.valo_masa_vb = valo_masa_vb
+                            
+                        diferecnia_vb = safe_float(request.POST.get(f'diferecnia_vb_{i}'))
+                        if diferecnia_vb is not None:
+                            veri_balanza.diferecnia_vb = diferecnia_vb
+                            
+                        incertidumbre_vb = safe_float(request.POST.get(f'incertidumbre_vb_{i}'))
+                        if incertidumbre_vb is not None:
+                            veri_balanza.incertidumbre_vb = incertidumbre_vb
+                            
+                        emt_vb = safe_float(request.POST.get(f'emt_vb_{i}'))
+                        if emt_vb is not None:
+                            veri_balanza.emt_vb = emt_vb
+                        
+                        veri_balanza.aceptacion_vb = request.POST.get(f'aceptacion_vb_{i}', '') or veri_balanza.aceptacion_vb
+                        veri_balanza.valor_pesado_muestra_vb = request.POST.get(f'valor_pesado_muestra_vb_{i}', '') or veri_balanza.valor_pesado_muestra_vb
+                        veri_balanza.mes_verficacion_vb = request.POST.get(f'mes_verficacion_vb_{i}', '') or veri_balanza.mes_verficacion_vb
+                        veri_balanza.anio_verficacion_vb = request.POST.get(f'anio_verficacion_vb_{i}', '') or veri_balanza.anio_verficacion_vb
+                        veri_balanza.pagina_verficacion_vb = request.POST.get(f'pagina_verficacion_vb_{i}', '') or veri_balanza.pagina_verficacion_vb
+                        
+                        veri_balanza.save()
+                    else:
+                        # Crear nuevo registro solo si se proporcionan datos
+                        if (request.POST.get(f'hora_vb_{i}') or request.POST.get(f'actividad_vb_{i}') or 
+                            request.POST.get(f'ajuste_vb_{i}') or request.POST.get(f'valor_nominal_vb_{i}') or 
+                            request.POST.get(f'valor_convencional_vb_{i}') or request.POST.get(f'valo_masa_vb_{i}') or 
+                            request.POST.get(f'diferecnia_vb_{i}') or request.POST.get(f'incertidumbre_vb_{i}') or 
+                            request.POST.get(f'emt_vb_{i}') or request.POST.get(f'aceptacion_vb_{i}') or 
+                            request.POST.get(f'valor_pesado_muestra_vb_{i}')):
+                            
+                            # Para actividad_vb, limitar a 50 caracteres
+                            actividad_vb_nuevo = request.POST.get(f'actividad_vb_{i}', '')
+                            if len(actividad_vb_nuevo) > 50:
+                                actividad_vb_nuevo = actividad_vb_nuevo[:50]
+                            
+                            # Usar safe_float para campos numéricos
+                            VerificacionBalanza.objects.create(
+                                id_cbap_vb=bitacora,
+                                hora_vb=hora_vb,
+                                actividad_vb=actividad_vb_nuevo,
+                                ajuste_vb=safe_float(request.POST.get(f'ajuste_vb_{i}')),
+                                valor_nominal_vb=safe_float(request.POST.get(f'valor_nominal_vb_{i}')),
+                                valor_convencional_vb=safe_float(request.POST.get(f'valor_convencional_vb_{i}')),
+                                valo_masa_vb=safe_float(request.POST.get(f'valo_masa_vb_{i}')),
+                                diferecnia_vb=safe_float(request.POST.get(f'diferecnia_vb_{i}')),
+                                incertidumbre_vb=safe_float(request.POST.get(f'incertidumbre_vb_{i}')),
+                                emt_vb=safe_float(request.POST.get(f'emt_vb_{i}')),
+                                aceptacion_vb=request.POST.get(f'aceptacion_vb_{i}', ''),
+                                valor_pesado_muestra_vb=request.POST.get(f'valor_pesado_muestra_vb_{i}', ''),
+                                mes_verficacion_vb=request.POST.get(f'mes_verficacion_vb_{i}', ''),
+                                anio_verficacion_vb=request.POST.get(f'anio_verficacion_vb_{i}', ''),
+                                pagina_verficacion_vb=request.POST.get(f'pagina_verficacion_vb_{i}', '')
+                            )
+
+                # Establecer el estado de la bitácora según la acción
+                if accion == 'rechazar':
+                    # Si la acción es guardar, simplemente actualizamos el registro existente
+                    try:
+                        bitcora_cbap = Bitcoras_Cbap.objects.get(
+                            nombre_bita_cbap=bitacora,
+                            estado='rechazada'
+                        )
+                        # Actualizar la fecha
+                        bitcora_cbap.fecha_bita_cbap = timezone.now()
+                        bitcora_cbap.save()
+                        
+                        logger.debug(f"Registro actualizado (guardado): {bitcora_cbap.id_bita_cbap}, estado: {bitcora_cbap.estado}")
+                    except Bitcoras_Cbap.DoesNotExist:
+                        # Si no existe, crear un nuevo registro
+                        bitcora_cbap = Bitcoras_Cbap.objects.create(
+                            name_user_cbap=request.user,
+                            nombre_bita_cbap=bitacora,
+                            estado='rechazada',
+                            nombre_user_destino=f"{request.user.first_name} {request.user.last_name}"
+                        )
+                        
+                        logger.debug(f"Nuevo registro creado (guardado): {bitcora_cbap.id_bita_cbap}, estado: {bitcora_cbap.estado}")
+
+                    return JsonResponse({
+                        'success': True,
+                        'message': "Bitácora actualizada correctamente",
+                        'bitacora_id': bitacora.id_cbap,
+                        'redirect_url': reverse('microalimentos:bitacoras_rechazadas', args=[bitacora.id_cbap])
+                    })
+                
+                elif accion == 'enviar':
+                    # Obtener datos adicionales para el envío
+                    usuario_destino_id = request.POST.get('usuario_destino')
+                    password = request.POST.get('password')
+                    
+                    # Validar contraseña
+                    user = authenticate(request, username=request.user.username, password=password)
+                    if user is None or not user.is_active:
+                        # Si la contraseña es incorrecta, devolver error y NO continuar con el proceso
+                        return JsonResponse({
+                            'success': False,
+                            'message': "Contraseña incorrecta"
+                        }, status=403)
+                    
+                    # Obtener el usuario destino
+                    try:
+                        usuario_destino = CustomUser.objects.get(id_user=usuario_destino_id)
+                    except CustomUser.DoesNotExist:
+                        return JsonResponse({
+                            'success': False,
+                            'error': 'Usuario destino no encontrado'
+                        }, status=404)
+                    
+                    # Actualizar el registro existente con estado 'guardada' a 'enviada'
+                    try:
+                        bitcora_cbap = Bitcoras_Cbap.objects.get(
+                            nombre_bita_cbap=bitacora,
+                            estado='rechazada'
+                        )
+                        # Actualizar a estado 'enviada'
+                        bitcora_cbap.estado = 'enviada'
+                        bitcora_cbap.fecha_envio = timezone.now()
+                        bitcora_cbap.nombre_user_destino = f"{usuario_destino.first_name} {usuario_destino.last_name}"
+                        bitcora_cbap.save()
+                        
+                        logger.debug(f"Registro actualizado (enviado): {bitcora_cbap.id_bita_cbap}, estado: {bitcora_cbap.estado}")
+                    except Bitcoras_Cbap.DoesNotExist:
+                        # Si no existe, crear un nuevo registro con estado 'enviada'
+                        bitcora_cbap = Bitcoras_Cbap.objects.create(
+                            name_user_cbap=request.user,
+                            nombre_bita_cbap=bitacora,
+                            estado='enviada',
+                            fecha_envio=timezone.now(),
+                            nombre_user_destino=f"{usuario_destino.first_name} {usuario_destino.last_name}"
+                        )
+                        
+                        logger.debug(f"Nuevo registro creado (enviado): {bitcora_cbap.id_bita_cbap}, estado: {bitcora_cbap.estado}")
+                    
+                    logger.info(f"Bitácora {bitacora.id_cbap} actualizada y enviada exitosamente a {usuario_destino}")
+                    return JsonResponse({
+                        'success': True,
+                        'message': f'Bitácora actualizada y enviada correctamente a {usuario_destino.first_name} {usuario_destino.last_name}',
+                        'redirect_url': reverse('microalimentos:lista_bitacoras_rechazadas')
+                    })
+
+        except Exception as e:
+            logger.error(f"Error al modificar la bitácora: {str(e)}")
+            import traceback
+            logger.error(traceback.format_exc())
+            return JsonResponse({
+                'success': False,
+                'error': f"Error al modificar la bitácora: {str(e)}"
+            }, status=500)
+
+    else:
+        # Si la solicitud es GET, cargar los datos existentes para mostrar en el formulario
+        try:
+            # Obtener datos relacionados
+            datos_campo = bitacora.id_dc_cbap
+            diluciones_empleadas = DilucionesEmpleadas.objects.filter(id_cbap_dE=bitacora)
+            direct_o_dilucion = Direct_o_Dilucion.objects.filter(id_cbap_dD=bitacora)
+            dilucion = Dilucion.objects.filter(id_cbap_d=bitacora)
+            clave_muestra = ClaveMuestraCbap.objects.filter(id_cbap_c_m=bitacora)
+            resultado = Resultado.objects.filter(id_cbap_r=bitacora)
+            control_calidad = ControlCalidad.objects.filter(id_cbap_cc=bitacora)
+            verificacion_balanza = VerificacionBalanza.objects.filter(id_cbap_vb=bitacora)
+            
+            # Obtener el registro de blanco existente
+            try:
+                blanco = tableBlanco.objects.get(nombre_bita_cbap=bitacora)
+            except tableBlanco.DoesNotExist:
+                blanco = None
+            
+            # Preparar formularios con datos existentes
+            datos_campo_form = DatosCampoCbapForm(instance=datos_campo)
+            
+            # Obtener jefes de laboratorio para el selector
+            jefes = CustomUser.objects.filter(rol_user__name_rol='Jefe de Laboratorio')
+            
+            context = {
+                'bitacora': bitacora,
+                'datos_campo_form': datos_campo_form,
+                'diluciones_empleadas': diluciones_empleadas,
+                'direct_o_dilucion': direct_o_dilucion,
+                'dilucion': dilucion,
+                'clave_muestra': clave_muestra,
+                'resultado': resultado,
+                'control_calidad': control_calidad,
+                'verificacion_balanza': verificacion_balanza,
+                'jefes': jefes,
+                'blanco': blanco,  # Añadir el registro de blanco al contexto
+                'modo': 'modificar'
+            }
+            
+            return render(request, 'modificar_bitacora.html', context)
+            
+        except Exception as e:
+            logger.error(f"Error al cargar datos para modificar bitácora: {str(e)}")
+            messages.error(request, f"Error al cargar datos para modificar bitácora: {str(e)}")
+            return redirect('microalimentos:lista_bitacoras_rechazadas')
 ######################################
 #Vista para los años de las bitácoras#
 ######################################
@@ -1698,6 +2662,9 @@ def historial_bitacoras_por_mes(request, anio):
     
     # Siempre renderizar la plantilla, incluso en caso de error
     return render(request, 'lista_meses_bitacoras.html', context)
+##################################################
+#Vista para las bitácoras autorizadas por periodo#
+##################################################
 @login_required
 @role_required('Analista de Laboratorio')
 def lista_bitacoras_por_periodo(request, año, mes):
@@ -1773,8 +2740,11 @@ def lista_bitacoras_por_periodo(request, año, mes):
 # Añadir estas vistas a tu archivo views.py
 
 from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import csrf_exempt
 from .models import Notification
-
+#####################################
+# Vistas para manejar notificaciones#
+#####################################
 @login_required
 def get_notifications(request):
     """
@@ -1800,6 +2770,9 @@ def get_notifications(request):
     
     return JsonResponse({'notifications': notification_list})
 
+################################################
+# Vista para marcar una notificación como leída#
+################################################
 @login_required
 @require_http_methods(["POST"])
 def mark_notification_read(request, notification_id):
@@ -1814,6 +2787,9 @@ def mark_notification_read(request, notification_id):
     except Notification.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'Notificación no encontrada'}, status=404)
 
+#########################################################
+# Vista para marcar todas las notificaciones como leídas#
+#########################################################
 @login_required
 @require_http_methods(["POST"])
 def mark_all_read(request):
@@ -1899,3 +2875,157 @@ def service_worker(request):
     # Devolver el contenido con el tipo MIME correcto
     response = HttpResponse(content, content_type='application/javascript')
     return response
+
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
+import json
+import logging
+
+from .models import Bitcoras_Cbap, ObservacionCampo
+
+logger = logging.getLogger(__name__)
+
+@login_required
+@csrf_exempt  # Solo para pruebas, en producción usa protección CSRF
+@require_POST
+def guardar_campos_corregidos(request):
+    """
+    Vista para guardar un campo corregido por el analista.
+    """
+    try:
+        # Imprimir todos los datos recibidos para depuración
+        logger.debug(f"Datos POST recibidos: {request.POST}")
+        print(f"Datos POST recibidos: {request.POST}")
+        
+        # Obtener datos del request
+        bitacora_id = request.POST.get('bitacora_id')
+        campo_id = request.POST.get('campo_id')
+        campo_nombre = request.POST.get('campo_nombre', 'Campo sin nombre')
+        valor_original = request.POST.get('valor_original', '')
+        valor_actual = request.POST.get('valor_actual', '')
+        campo_tipo = request.POST.get('campo_tipo', 'desconocido')
+        observacion = request.POST.get('observacion', '')
+        
+        # Intentar obtener historial y contador si se proporcionan
+        try:
+            historial_ediciones = json.loads(request.POST.get('historial_ediciones', '[]'))
+        except:
+            historial_ediciones = []
+        
+        try:
+            contador_ediciones = int(request.POST.get('contador_ediciones', '0'))
+        except:
+            contador_ediciones = 0
+        
+        # Validar datos requeridos
+        if not all([bitacora_id, campo_id]):
+            return JsonResponse({
+                'success': False,
+                'message': 'Faltan datos requeridos: bitacora_id y campo_id son obligatorios'
+            }, status=400)
+        
+        # Validar que exista la bitácora
+        try:
+            # Intentar diferentes formas de buscar la bitácora
+            try:
+                bitacora = Bitcoras_Cbap.objects.get(id_bita_cbap=bitacora_id)
+                logger.debug(f"Bitácora encontrada con id_bita_cbap={bitacora_id}")
+            except Bitcoras_Cbap.DoesNotExist:
+                try:
+                    bitacora = Bitcoras_Cbap.objects.get(nombre_bita_cbap__id_cbap=bitacora_id)
+                    logger.debug(f"Bitácora encontrada con nombre_bita_cbap__id_cbap={bitacora_id}")
+                except Bitcoras_Cbap.DoesNotExist:
+                    # Última opción: buscar por id_cbap
+                    bitacora = Bitcoras_Cbap.objects.get(id_cbap=bitacora_id)
+                    logger.debug(f"Bitácora encontrada con id_cbap={bitacora_id}")
+            
+            # Verificar si ya existe una observación para este campo
+            try:
+                observacion_existente = ObservacionCampo.objects.get(
+                    bitacora=bitacora,
+                    campo_id=campo_id
+                )
+                
+                # Si el valor ha cambiado, actualizar SOLO el valor actual
+                if valor_actual != observacion_existente.valor_actual:
+                    # Actualizar el valor actual, manteniendo el original intacto
+                    observacion_existente.valor_actual = valor_actual
+                    
+                    # Actualizar el estado a 'editado'
+                    observacion_existente.estado = 'editado'
+                    
+                    # Actualizar el usuario que realizó la edición
+                    observacion_existente.editado_por = request.user
+                    
+                    # Actualizar historial y contador si se proporcionan
+                    if historial_ediciones:
+                        observacion_existente.historial_ediciones = historial_ediciones
+                    
+                    if contador_ediciones > 0:
+                        observacion_existente.contador_ediciones = contador_ediciones
+                    
+                    # Guardar los cambios - esto activará el método save() personalizado
+                    observacion_existente.save()
+                    
+                    logger.info(f"Campo {campo_id} corregido en bitácora {bitacora_id} por {request.user}")
+                    return JsonResponse({
+                        'success': True,
+                        'message': 'Campo corregido correctamente',
+                        'id': observacion_existente.id_valor_editado,
+                        'historial': observacion_existente.historial_ediciones,
+                        'contador': observacion_existente.contador_ediciones
+                    })
+                else:
+                    # El valor no ha cambiado
+                    return JsonResponse({
+                        'success': True,
+                        'message': 'No se detectaron cambios en el valor del campo',
+                        'id': observacion_existente.id_valor_editado,
+                        'historial': observacion_existente.historial_ediciones,
+                        'contador': observacion_existente.contador_ediciones
+                    })
+            except ObservacionCampo.DoesNotExist:
+                # Crear una nueva observación
+                nueva_observacion = ObservacionCampo(
+                    bitacora=bitacora,
+                    campo_id=campo_id,
+                    campo_nombre=campo_nombre,
+                    valor_original=valor_original,
+                    valor_actual=valor_actual,
+                    campo_tipo=campo_tipo,
+                    observacion=observacion,
+                    editado_por=request.user,
+                    estado='editado',
+                    historial_ediciones=historial_ediciones,
+                    contador_ediciones=contador_ediciones
+                )
+                
+                # Guardar la nueva observación - esto activará el método save() personalizado
+                nueva_observacion.save()
+                
+                logger.info(f"Nueva observación creada para campo {campo_id} en bitácora {bitacora_id} por {request.user}")
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Observación creada correctamente',
+                    'id': nueva_observacion.id_valor_editado,
+                    'historial': nueva_observacion.historial_ediciones,
+                    'contador': nueva_observacion.contador_ediciones
+                })
+                
+        except Bitcoras_Cbap.DoesNotExist:
+            logger.error(f"Bitácora no encontrada con ID: {bitacora_id}")
+            return JsonResponse({
+                'success': False,
+                'message': 'Bitácora no encontrada'
+            }, status=404)
+        
+    except Exception as e:
+        logger.error(f"Error al guardar campo corregido: {str(e)}")
+        import traceback
+        logger.error(traceback.format_exc())
+        return JsonResponse({
+            'success': False,
+            'message': f'Error al guardar el campo corregido: {str(e)}'
+        }, status=500)

@@ -1294,3 +1294,5 @@ export function recolectarDatosTabla() {
         num_filas: filas.length
     };
 }
+// Si necesitas que la función sea accesible globalmente
+window.recolectarDatosTabla = recolectarDatosTabla;

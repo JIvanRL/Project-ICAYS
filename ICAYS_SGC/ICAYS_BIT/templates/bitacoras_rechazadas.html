@@ -1,5 +1,11 @@
 {% extends 'base.html' %}
 {% load static %}
+{% block extra_css%}
+<link rel="stylesheet" href="{% static 'css/observaciones.css' %}">
+<link rel="stylesheet" href="{% static 'css/visualizar-campos-rechazados.css' %}">
+<!-- Incluir Font Awesome para los iconos -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+{% endblock%}
 {% block content %}
 <body>
     <div class="container-fluid">
@@ -7,33 +13,39 @@
             {% csrf_token %}
             <input type="hidden" id="usuario_id_actual" value="{{ request.user.id_user }}"> <!-- ID del usuario actual -->
             <input type="hidden" id="bitacora_id" value="{{ bitacora.id_cbap }}"> <!-- ID de la bitácora actual -->
+            <input type="hidden" id="observaciones_cbap_estado" value="{{ registro.observaciones_cbap_estado|escapejs }}">
+<input type="hidden" id="campos_seleccionados" value="{{ registro.campos_seleccionados|escapejs }}">
             <div class="d-flex flex-wrap justify-content-between align-items-center">
+                
                 <!-- Botón "Regresar" alineado a la izquierda -->
-                <button class="icon-container button-style custom-button mb-2" type="button" data-url="{% url 'microalimentos:lista_bitacoras' %}">Regresar</button>
-        <!-- En registerBita.html -->
-            <div class="row mb-3 align-items-center">
-                <!-- Selector de envío -->
-                <!-- En registerBita.html -->
+                <button class="icon-container button-style custom-button mb-2" type="button" data-url="{% url 'microalimentos:lista_bitacoras_rechazadas' %}">Regresar</button>
                 <div class="col-auto">
-                    <div class="input-group">
-                        <label class="input-group-text" for="usuario_destino">Enviar a:</label>
-                        <select class="form-select" id="usuario_destino" name="usuario_destino" >
-                            <option value="" selected>Seleccione un usuario...</option>
-                        </select>
-                    </div>
+                    <button class="retroAlim"  id="btnResumenObservaciones"> Ver Retroalimentacion</button>
                 </div>
-                <!-- Botones alineados horizontalmente -->
-                <div class="col-auto">
-                    <button class="enviar-custom custom-button" type="button" data-bs-toggle="modal" data-bs-target="#enviar">Enviar</button>
-                </div>
-                <div class="col-auto">
-                    <button class="cancelar-custom custom-button" data-url="{% url 'microalimentos:inicioAnalistas' %}" type="button">Cancelar</button>
-                </div>
-                <div class="col-auto">
-                    <button class="guardar-custom custom-button" type="button" onclick="guardarFormularioEditadoParaMas()">Guardar</button>
+                <div class="row mb-3 align-items-center">
+                    <!-- Selector de envío -->
+                    <!-- En registerBita.html -->
+                        <div class="col-auto">
+                            <div class="input-group">
+                                <label class="input-group-text" for="usuario_destino">Enviar a:</label>
+                                <select class="form-select" id="usuario_destino" name="usuario_destino" required>
+                                    <option value="" selected>Seleccione un usuario...</option>
+                                </select>
+                            </div>
+                        </div>
+                    <!-- Botones alineados horizontalmente -->
+                        <div class="col-auto">
+                            <button class="enviar-custom custom-button" type="button" data-bs-toggle="modal" data-bs-target="#enviar">Enviar</button>
+                        </div>
+                        <div>
+
+                        </div>
+                        <div>
+
+                        </div>
                 </div>
             </div>
-            </div>
+            
             
             <div class="d-flex align-items-center p-3">
                 <!-- Contenedor de botones alineado a la izquierda -->
@@ -43,18 +55,20 @@
                         <i class="bi bi-arrow-down-circle"></i>
                     </button>                
                     <!-- Botón para agregar filas -->
-                    <button id="add-row-btn" class="btn btn-success" type="button">
+                    <button id="add-row-btn" class="btn btn-success" type="button" disabled>
                         <i class="bi bi-plus-circle"></i>
                     </button>        
                     <!-- Botón para eliminar filas -->
-                    <button id="remove-row-btn" class="btn btn-danger" type="button">
+                    <button id="remove-row-btn" class="btn btn-danger" type="button" disabled>
                         <i class="bi bi-dash-circle"></i>
                     </button>
+                    
                 </div>
+                
             
                 <!-- Título centrado -->
                 <h1 class="text-center flex-grow-1 m-0" >{{ bitacora.nombre_cbap }}</h1>
-                <input type="hidden" name="nombre_cbap" value="{{ bitacora.nombre_cbap }}" >
+                <input type="hidden" name="nombre_cbap" value="Cuenta de bacterias aerobias en placa" >
                 <div class="d-flex gap-3">
                     <div class="col-12 col-md-5">
                         <div class="form-floating">
@@ -64,7 +78,7 @@
                                 value="{{ bitacora.pagina_cbap }}" 
                                 name="pagina_cbap" 
                                 placeholder="Página">
-                            <label for="pagina_cbap" >Página</label>
+                            <label for="pagina_cbap">Página</label>
                             {% if form.pagina_cbap.errors %}
                             <div class="invalid-feedback">
                                 {{ form.pagina_cbap.errors|join:", " }}
@@ -96,7 +110,7 @@
                                                             value="{{ bitacora.id_dc_cbap.fecha_siembra_dc|date:'Y-m-d' }}" 
                                                             placeholder="Fecha"
                                                             min="2000-01-01"
-                                                            max="{% now 'Y-m-d' %}" required>
+                                                            max="{% now 'Y-m-d' %}">
                                                     <label for="fecha_siembra">Fecha de siembra</label>
                                                 </div>
                                             </div>
@@ -104,13 +118,13 @@
                                                 <div class="form-floating">
                                                     <input type="time" class="form-control form-control-sm" id="hora_siembra" name="hora_siembra"
                                                         value="{% if bitacora.id_dc_cbap.hora_siembra_dc %}{{ bitacora.id_dc_cbap.hora_siembra_dc|time:'H:i' }}{% endif %}"
-                                                        placeholder="Hora" required>
+                                                        placeholder="Hora">
                                                     <label for="hora_siembra">Hora de siembra</label>
                                                 </div>
                                             </div>
                                             <div class="col-12 col-md-6">
                                                 <div class="form-floating">
-                                                    <input type="time" class="form-control form-control-sm" id="hora_incubacion" value="{% if bitacora.id_dc_cbap.hora_siembra_dc %}{{ bitacora.id_dc_cbap.hora_incubacion_dc|time:'H:i' }}{% endif %}" name="hora_incubacion" placeholder="Hora" required>
+                                                    <input type="time" class="form-control form-control-sm" id="hora_incubacion" value="{% if bitacora.id_dc_cbap.hora_siembra_dc %}{{ bitacora.id_dc_cbap.hora_incubacion_dc|time:'H:i' }}{% endif %}" name="hora_incubacion" placeholder="Hora" >
                                                     <label for="hora_incubacion">Hora de incubación</label>
                                                 </div>
                                             </div>
@@ -130,6 +144,7 @@
                                     </div>
                                 </div>
                             </div>
+                    
                             <!-- Segunda tarjeta -->
                             <div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4 col-xxl-4 mb-3">
                                 <div class="card h-100 shadow-sm">
@@ -189,20 +204,19 @@
                                     </div>
                                 </div>
                             </div>
-                        <!-- Tercera tarjeta -->
                             <div class="col-md-4 mb-3">
-                                <div class="card h-100 shadow-sm">
+                                <div class="card h-100 shadow-sm"> <!-- Añadí sombra y altura fija -->
                                     <div class="card-body">
-                                        <div class="row g-2">
+                                        <div class="row g-2"> <!-- Reducir el espacio entre filas -->
                                             <h2 class="card-title">Fecha y hora de lecturas</h2>
-                                            
+                                            <!-- Fecha, Hora, Procedimiento y Equipo de incubación -->
                                             {% if lecturas %}
                                             <!-- Primera lectura -->
                                             <div class="col-12 col-md-6">
                                                 <div class="form-floating">
                                                     <input type="date" class="form-control form-control-sm" id="fecha_lectura_1" name="fecha_lectura_1" 
                                                         value="{% if lecturas.0.fecha_lectura_1 %}{{ lecturas.0.fecha_lectura_1|date:'Y-m-d' }}{% endif %}" 
-                                                        min="2000-01-01" max="{% now 'Y-m-d' %}" placeholder="Fecha" >
+                                                        min="2000-01-01" max="{% now 'Y-m-d' %}" placeholder="Fecha" readonly>
                                                     <label for="fecha_lectura_1">Fecha de lectura 1</label>
                                                 </div>
                                             </div>
@@ -211,7 +225,7 @@
                                                 <div class="form-floating">
                                                     <input type="date" class="form-control form-control-sm" id="fecha_lectura_2" name="fecha_lectura_2" 
                                                         value="{% if lecturas.0.fecha_lectura_2 %}{{ lecturas.0.fecha_lectura_2|date:'Y-m-d' }}{% endif %}" 
-                                                        min="2000-01-01" max="{% now 'Y-m-d' %}" placeholder="Fecha" >
+                                                        min="2000-01-01" max="{% now 'Y-m-d' %}" placeholder="Fecha" readonly>
                                                     <label for="fecha_lectura_2">Fecha de lectura 2</label>
                                                 </div>
                                             </div>
@@ -219,7 +233,7 @@
                                                 <div class="form-floating">
                                                     <input type="time" class="form-control form-control-sm" id="hora_lectura_1" name="hora_lectura_1" 
                                                         value="{% if lecturas.0.hora_lectura_1 %}{{ lecturas.0.hora_lectura_1|time:'H:i' }}{% endif %}" 
-                                                        placeholder="Hora">
+                                                        placeholder="Hora" readonly>
                                                     <label for="hora_lectura_1">Hora de lectura 1</label>
                                                 </div>
                                             </div>
@@ -228,11 +242,10 @@
                                                 <div class="form-floating">
                                                     <input type="time" class="form-control form-control-sm" id="hora_lectura_2" name="hora_lectura_2" 
                                                         value="{% if lecturas.0.hora_lectura_2 %}{{ lecturas.0.hora_lectura_2|time:'H:i' }}{% endif %}" 
-                                                        placeholder="Hora" >
+                                                        placeholder="Hora" readonly>
                                                     <label for="hora_lectura_2">Hora de lectura 2</label>
                                                 </div>
                                             </div>
-                                            
                                                                                        
                                             {% endif %}
                                         </div>
@@ -243,7 +256,7 @@
                             <div class="col-md-8 mb-3">
                                 <div class="card h-100 shadow-sm"> <!-- Añadí sombra y altura fija -->
                                     <div class="card-body">
-                                        <!-- Título "Reactivos y medios de cultivo LAF-02" -->
+                                        <!-- Título "Reactivos y medios de cultivo LAF-62" -->
                                         <div class="row mb-3">
                                             <div class="col-12 text-center">
                                                 <h5 class="card-title">Reactivos y medios de cultivo LAF-62</h5> <!-- Usé h5 para el título -->
@@ -259,13 +272,13 @@
                                             </div>
                                             <div class="col-12 col-md-3">
                                                 <div class="form-floating">
-                                                    <input type="text" name="pagina_fosfato_cbap" class="form-control form-control-sm" id="pagina_fosfato_cbap" value="{{bitacora.pagina_fosfato_cbap}}" placeholder="Página">
+                                                    <input type="text" name="pagina_fosfato_cbap" class="form-control form-control-sm" id="pagina_fosfato_cbap" value="{{bitacora.pagina_fosfato_cbap|default:'---' }}" placeholder="Página">
                                                     <label for="pagina_fosfato_cbap">Página</label>
                                                 </div>
                                             </div>
                                             <div class="col-12 col-md-3">
                                                 <div class="form-floating">
-                                                    <input type="text" name="numero_fosfato_cbap" class="form-control form-control-sm" id="numero_fosfato_cbap" value="{{bitacora.numero_fosfato_cbap}}" placeholder="Número">
+                                                    <input type="text" name="numero_fosfato_cbap" class="form-control form-control-sm" id="numero_fosfato_cbap" value="{{bitacora.numero_fosfato_cbap|default:'---' }}" placeholder="Número">
                                                     <label for="numero_fosfato_cbap">Número</label>
                                                 </div>
                                             </div>
@@ -280,13 +293,13 @@
                                             </div>
                                             <div class="col-12 col-md-3">
                                                 <div class="form-floating">
-                                                    <input type="text" name="pagina_agar_cbap" class="form-control form-control-sm" id="pagina_agar_cbap" value="{{bitacora.pagina_agar_cbap}}" placeholder="Página">
+                                                    <input type="text" name="pagina_agar_cbap" class="form-control form-control-sm" id="pagina_agar_cbap" value="{{bitacora.pagina_agar_cbap|default:'---' }}" placeholder="Página">
                                                     <label for="pagina_agar_cbap">Página</label>
                                                 </div>
                                             </div>
                                             <div class="col-12 col-md-3">
                                                 <div class="form-floating">
-                                                    <input type="text" name="numero_agar_cbap" class="form-control form-control-sm" id="numero_agar_cbap" value="{{bitacora.numero_agar_cbap}}" placeholder="Número">
+                                                    <input type="text" name="numero_agar_cbap" class="form-control form-control-sm" id="numero_agar_cbap" value="{{bitacora.numero_agar_cbap|default:'---' }}" placeholder="Número">
                                                     <label for="numero_agar_cbap">Número</label>
                                                 </div>
                                             </div>
@@ -298,265 +311,240 @@
                
                 <!-- Tabla 2: Verificacion de balanza-->
                         <!-- Tabla 2: Verificacion de balanza-->
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-12">
-            <div class="card shadow-sm"> <!-- Card con sombra -->
-                <div class="card-body">
-                    <!-- Título de la card -->
-                    <h5 style="caption-side: top; text-align: center; font-size: 1.5em; font-weight: bold; padding: 10px; background-color: #063970; color: white; border-radius: 10px;">
-                        Verificación de la balanza granataria LAM-12
-                    </h5>
-                    <div class="d-flex justify-content-center align-items-center w-100">
-                        <div class="d-flex flex-column align-items-center w-100">
-                          
-                            
-                            
-                            <!-- Controles en una fila con columnas de igual tamaño -->
-                            <div class="d-flex justify-content-center align-items-center w-100">
-                                <div class="d-flex align-items-center flex-wrap justify-content-center">
-                                      <!-- Título en su propia fila -->
-                                    <span class="mx-2">Ver verificación mensual de la balanza en: <a href="">LAF-42</a></span>
-                                    <div class="d-flex align-items-center mx-2">
-                                        <div class="col-6 col-sm-4 col-md-4 col-lg-6">
-                                            <select class="form-select" id="mes_verficacion_vb_1" name="mes_verficacion_vb_1" style="width: 100%; height: 38px;">
-                                                <option disabled>Mes</option>
-                                                <option value="Enero" {% if verificaciones_balanza.0.mes_verficacion_vb == 'Enero' %}selected{% endif %}>Enero</option>
-                                                <option value="Febrero" {% if verificaciones_balanza.0.mes_verficacion_vb == 'Febrero' %}selected{% endif %}>Febrero</option>
-                                                <option value="Marzo" {% if verificaciones_balanza.0.mes_verficacion_vb == 'Marzo' %}selected{% endif %}>Marzo</option>
-                                                <option value="Abril" {% if verificaciones_balanza.0.mes_verficacion_vb == 'Abril' %}selected{% endif %}>Abril</option>
-                                                <option value="Mayo" {% if verificaciones_balanza.0.mes_verficacion_vb == 'Mayo' %}selected{% endif %}>Mayo</option>
-                                                <option value="Junio" {% if verificaciones_balanza.0.mes_verficacion_vb == 'Junio' %}selected{% endif %}>Junio</option>
-                                                <option value="Julio" {% if verificaciones_balanza.0.mes_verficacion_vb == 'Julio' %}selected{% endif %}>Julio</option>
-                                                <option value="Agosto" {% if verificaciones_balanza.0.mes_verficacion_vb == 'Agosto' %}selected{% endif %}>Agosto</option>
-                                                <option value="Septiembre" {% if verificaciones_balanza.0.mes_verficacion_vb == 'Septiembre' %}selected{% endif %}>Septiembre</option>
-                                                <option value="Octubre" {% if verificaciones_balanza.0.mes_verficacion_vb == 'Octubre' %}selected{% endif %}>Octubre</option>
-                                                <option value="Noviembre" {% if verificaciones_balanza.0.mes_verficacion_vb == 'Noviembre' %}selected{% endif %}>Noviembre</option>
-                                                <option value="Diciembre" {% if verificaciones_balanza.0.mes_verficacion_vb == 'Diciembre' %}selected{% endif %}>Diciembre</option>
-                                            </select>
-                                        </div>
-                                        
-                                        <div class="col-4 col-sm-4 col-md-4 col-lg-6">
-                                            <select class="form-select d-inline anio-select tm" id="anio_verficacion_vb_1" name="anio_verficacion_vb_1" style="width: 100%; height: 38px;" data-selected-year="{% if verificaciones_balanza %}{{ verificaciones_balanza.0.anio_verficacion_vb|default:'---' }}{% endif %}">
-                                                <option disabled>Año</option>
-                                                <!-- Las opciones de años se agregan dinámicamente con JavaScript -->
-                                            </select>
-                                        </div>
-                                        <div  class="col-4 col-sm-4 col-md-4 col-lg-6">
-                                            <div class="form-floating mx-2" >
-                                                <input type="text" class="form-control form-control-sm" name="pagina_verficacion_vb_1" id="pagina_verficacion_vb_1" value="{% if verificaciones_balanza %}{{ verificaciones_balanza.0.pagina_verficacion_vb|default:'---' }}{% endif %}" placeholder="Página">
-                                                <label for="pagina_verficacion_vb_1" style="font-size: 12px;">Página</label>
+                        <div class="container">
+                            <div class="row justify-content-center">
+                                <div class="col-md-12">
+                                    <div class="card shadow-sm"> <!-- Card con sombra -->
+                                        <div class="card-body">
+                                            <!-- Título de la card -->
+                                            <h5 style="caption-side: top; text-align: center; font-size: 1.5em; font-weight: bold; padding: 10px; background-color: #063970; color: white; border-radius: 10px;">
+                                                Verificación de la balanza granataria LAM-12
+                                            </h5>
+                                            <div class="d-flex justify-content-center align-items-center w-100">
+                                                <div class="d-flex align-items-center flex-wrap justify-content-center">
+                                                    <span class="mx-2">Ver verificación mensual de la balanza en: <a href="">LAF-42</a></span>
+                                                    <div class="d-flex align-items-center mx-2">
+                                                        <span class="mx-2">Mes</span>
+                                                        <input type="text" id="mes_verficacion_vb" class="form-control form-control-sm mx-2" style="width: 80px;" name="mes_verficacion_vb" value="{% if verificaciones_balanza %}{{ verificaciones_balanza.0.mes_verficacion_vb|default:'---' }}{% endif %}">
+                                                        <span class="mx-2">Año</span>
+                                                        <input type="text" id="anio_verficacion_vb" class="form-control form-control-sm mx-2" style="width: 80px;" name="anio_verficacion_vb" value="{% if verificaciones_balanza %}{{ verificaciones_balanza.0.anio_verficacion_vb|default:'---' }}{% endif %}">
+                                                        <span class="mx-2">Página</span>
+                                                        <input type="text" id="pagina_verficacion_vb" class="form-control form-control-sm mx-2" style="width: 80px;" name="pagina_verficacion_vb" value="{% if verificaciones_balanza %}{{ verificaciones_balanza.0.pagina_verficacion_vb|default:'---' }}{% endif %}">
+                                                    </div>
+                                                </div>
                                             </div>
-                                        </div >
-                                        
+                                            <!-- Tabla con labels fuera de los campos -->
+                                            <div class="table-responsive">
+                                                <table class="table table-bordered">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Hora</th>
+                                                            <th>Actividad</th>
+                                                            <th>Ajuste de balanza</th>
+                                                            <th>Valor nominal</th>
+                                                            <th>Valor convencional</th>
+                                                            <th>Valor obtenido de la masa</th>
+                                                            <th>Diferencia absoluta</th>
+                                                            <th>Incertidumbre aceptada</th>
+                                                            <th>EMT</th>
+                                                            <th>Criterio de aceptación</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <!-- Fila 1 -->
+                                                        <tr>
+                                                            <td>
+                                                                <input type="time" id="hora_vb_1" name="hora_vb_1" 
+                                                                    class="form-control form-control-sm"
+                                                                    value="{% if verificaciones_balanza %}{{ verificaciones_balanza.0.hora_vb|time:'H:i' }}{% endif %}">
+                                                            </td>
+                                                            <td>
+                                                                <div class="form-floating">
+                                                                    <input type="text" id="actividad_vb_1" name="actividad_vb_1" 
+                                                                        class="form-control form-control-sm" readonly
+                                                                        value="{% if verificaciones_balanza %}{{ verificaciones_balanza.0.actividad_vb|default:'---' }}{% endif %}">
+                                                                </div>
+                                                            </td>
+                                                            <td style="width: 50px;">
+                                                                <input type="text" id="ajuste_vb_1" name="ajuste_vb_1" 
+                                                                    class="form-control form-control-sm"
+                                                                    value="{% if verificaciones_balanza %}{{ verificaciones_balanza.0.ajuste_vb|default:'---' }}{% endif %}">
+                                                            </td>
+                                                            <td>
+                                                                <input type="text" id="valor_nominal_vb_1" name="valor_nominal_vb_1" 
+                                                                    class="form-control form-control-sm"
+                                                                    value="{% if verificaciones_balanza %}{{ verificaciones_balanza.0.valor_nominal_vb|default:'---' }}{% endif %}">
+                                                            </td>
+                                                            <td>
+                                                                <input type="text" id="valor_convencional_vb_1" name="valor_convencional_vb_1" 
+                                                                    class="form-control form-control-sm"
+                                                                    value="{% if verificaciones_balanza %}{{ verificaciones_balanza.0.valor_convencional_vb|default:'---' }}{% endif %}">
+                                                            </td>
+                                                            <td>
+                                                                <input type="text" id="valo_masa_vb_1" name="valo_masa_vb_1" 
+                                                                    class="form-control form-control-sm"
+                                                                    value="{% if verificaciones_balanza %}{{ verificaciones_balanza.0.valo_masa_vb|default:'---' }}{% endif %}">
+                                                            </td>
+                                                            <td>
+                                                                <input type="text" id="diferecnia_vb_1" name="diferecnia_vb_1" 
+                                                                    class="form-control form-control-sm"
+                                                                    value="{% if verificaciones_balanza %}{{ verificaciones_balanza.0.diferecnia_vb|default:'---' }}{% endif %}">
+                                                            </td>
+                                                            <td>
+                                                                <input type="text" id="incertidumbre_vb_1" name="incertidumbre_vb_1" 
+                                                                    class="form-control form-control-sm"
+                                                                    value="{% if verificaciones_balanza %}{{ verificaciones_balanza.0.incertidumbre_vb|default:'---' }}{% endif %}">
+                                                            </td>
+                                                            <td>
+                                                                <input type="text" id="emt_vb_1" name="emt_vb_1" 
+                                                                    class="form-control form-control-sm"
+                                                                    value="{% if verificaciones_balanza %}{{ verificaciones_balanza.0.emt_vb|default:'---' }}{% endif %}">
+                                                            </td>
+                                                            <td>
+                                                                <input type="text" id="aceptacion_vb_1" name="aceptacion_vb_1" 
+                                                                    class="form-control form-control-sm"
+                                                                    value="{% if verificaciones_balanza %}{{ verificaciones_balanza.0.aceptacion_vb|default:'---' }}{% endif %}">
+                                                            </td>
+                                                        </tr>
+                                                        <!-- Fila 2 -->
+                                                        <tr>
+                                                            <td>
+                                                                <input type="time" id="hora_vb_2" name="hora_vb_2" 
+                                                                    class="form-control form-control-sm"
+                                                                    value="{% if verificaciones_balanza %}{{ verificaciones_balanza.1.hora_vb|time:'H:i' }}{% endif %}">
+                                                            </td>
+                                                            <td>
+                                                                <div class="input-group">
+                                                                    <textarea id="actividad_vb_2" name="actividad_vb_2" 
+                                                                        class="form-control form-control-sm" 
+                                                                        readonly 
+                                                                        style="height: auto; text-align: center; font-size: 12px; resize: none; border: none; overflow: hidden; white-space: pre-wrap; word-wrap: break-word;">Pesado de la(S) muestra(a)</textarea>
+                                                                </div>
+                                                            </td>
+                                                            <td colspan="8">
+                                                                <input type="text" id="valor_pesado_muestra_vb_2" name="valor_pesado_muestra_vb_2" 
+                                                                    class="form-control form-control-sm"
+                                                                    value="{% if verificaciones_balanza %}{{ verificaciones_balanza.1.valor_pesado_muestra_vb|default:'---' }}{% endif %}">
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                
-                    <!-- Tabla con labels fuera de los campos -->
-                    <div class="table-responsive">
-                        <table class="table table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>Hora</th>
-                                    <th>Actividad</th>
-                                    <th>Ajuste de balanza</th>
-                                    <th>Valor nominal</th>
-                                    <th>Valor convencional</th>
-                                    <th>Valor obtenido de la masa</th>
-                                    <th>Diferencia absoluta</th>
-                                    <th>Incertidumbre aceptada</th>
-                                    <th>EMT</th>
-                                    <th>Criterio de aceptación</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Fila 1 -->
-                                <tr>
-                                    <td>
-                                        <input type="time" name="hora_vb_1" 
-                                            class="form-control form-control-sm"
-                                            value="{% if verificaciones_balanza %}{{ verificaciones_balanza.0.hora_vb|time:'H:i'|default:'--:--:--' }}{% endif %}">
-                                    </td>
-                                    <td>
-                                        <div class="form-floating">
-                                            <input type="text" name="actividad_vb_1" 
-                                                class="form-control form-control-sm" readonly
-                                                value="{% if verificaciones_balanza %}{{ verificaciones_balanza.0.actividad_vb|default:'---' }}{% endif %}">
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <input type="text" name="ajuste_vb_1" 
-                                            class="form-control form-control-sm"
-                                            value="{% if verificaciones_balanza %}{{ verificaciones_balanza.0.ajuste_vb|default:'---' }}{% endif %}">
-                                    </td>
-                                    <td>
-                                        <input type="text" name="valor_nominal_vb_1" 
-                                            class="form-control form-control-sm"
-                                            value="{% if verificaciones_balanza %}{{ verificaciones_balanza.0.valor_nominal_vb|default:'---' }}{% endif %}">
-                                    </td>
-                                    <td>
-                                        <input type="text" name="valor_convencional_vb_1" 
-                                            class="form-control form-control-sm"
-                                            value="{% if verificaciones_balanza %}{{ verificaciones_balanza.0.valor_convencional_vb|default:'---' }}{% endif %}">
-                                    </td>
-                                    <td>
-                                        <input type="text" name="valo_masa_vb_1" 
-                                            class="form-control form-control-sm"
-                                            value="{% if verificaciones_balanza %}{{ verificaciones_balanza.0.valo_masa_vb|default:'---' }}{% endif %}">
-                                    </td>
-                                    <td>
-                                        <input type="text" name="diferecnia_vb_1" 
-                                            class="form-control form-control-sm"
-                                            value="{% if verificaciones_balanza %}{{ verificaciones_balanza.0.diferecnia_vb|default:'---' }}{% endif %}">
-                                    </td>
-                                    <td>
-                                        <input type="text" name="incertidumbre_vb_1" 
-                                            class="form-control form-control-sm"
-                                            value="{% if verificaciones_balanza %}{{ verificaciones_balanza.0.incertidumbre_vb|default:'---' }}{% endif %}">
-                                    </td>
-                                    <td>
-                                        <input type="text" name="emt_vb_1" 
-                                            class="form-control form-control-sm"
-                                            value="{% if verificaciones_balanza %}{{ verificaciones_balanza.0.emt_vb|default:'---' }}{% endif %}">
-                                    </td>
-                                    <td>
-                                        <input type="text" name="aceptacion_vb_1" 
-                                            class="form-control form-control-sm"
-                                            value="{% if verificaciones_balanza %}{{ verificaciones_balanza.0.aceptacion_vb|default:'---' }}{% endif %}">
-                                    </td>
-                                </tr>
-                                <!-- Fila 2 -->
-                                <tr>
-                                    <td>
-                                        <input type="time" name="hora_vb_2" 
-                                            class="form-control form-control-sm"
-                                            value="{% if verificaciones_balanza %}{{ verificaciones_balanza.1.hora_vb|time:'H:i' }}{% endif %}">
-                                    </td>
-                                    <td>
-                                        <div class="input-group">
-                                            <textarea name="actividad_vb_2" 
-                                                class="form-control form-control-sm" 
-                                                readonly 
-                                                style="height: auto; text-align: center; font-size: 12px; resize: none; border: none; overflow: hidden; white-space: pre-wrap; word-wrap: break-word;">
-                                                Pesado de la(S) muestra(a)
-                                            </textarea>
-                                        </div>
-                                    </td>
-                                    <td colspan="8">
-                                        <input type="text" name="valor_pesado_muestra_vb_2" 
-                                            class="form-control form-control-sm"
-                                            value="{% if verificaciones_balanza %}{{ verificaciones_balanza.1.valor_pesado_muestra_vb|default:'---' }}{% endif %}">
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                                        <!-- Tabla 2: Cumplimientos de calidad -->
+                        <div class="row mb-4">
+                            <div class="col-12 text-center">
+                                <div class="table-responsive"> <!-- Contenedor responsivo para la tabla -->
+    
+                                    <div class="container">
+                                        <div class="row justify-content-center">
+                                            <div class="col-md-12">
+                                                <div class="card shadow-sm"> <!-- Card con sombra -->
+                                                    <div class="card-body">
+                                                        <!-- Título de la card -->
+                                                        <h5 style="caption-side: top; text-align: center; font-size: 1.5em; font-weight: bold; padding: 10px; background-color: #063970; color: white; border-radius: 10px;" >
+                                                            Ver cumplimiento de controles de calidad en:
+                                                        </h5>
+                                    
+                                                        <!-- Primera fila de inputs con etiquetas flotantes -->
+<div class="row g-3 mb-3">
+    {% for control in controles_calidad %}
+        {% if forloop.counter <= 2 %}
+            <!-- Bitácora/Tomo {{ forloop.counter }} -->
+            <div class="col-12 col-md-6 col-lg-6">
+                <div class="form-floating">
+                    <div class="input-group input-group-sm">
+                        <div class="form-floating">
+                            <input type="text" class="form-control" id="nombre_laf_{{ forloop.counter }}"
+                                name="nombre_laf_{{ forloop.counter }}" value="{{ control.nombre_laf|default:'---' }}" readonly>
+                            <label for="nombre_laf_{{ forloop.counter }}">Bitácora</label>
+                        </div>
+                        <div class="form-floating">
+                            <input type="text" class="form-control" id="mes_1cc_{{ forloop.counter }}"
+                                name="mes_1cc_{{ forloop.counter }}" 
+                                value="{% if control.mes_1cc|default:'---' %}{{ control.mes_1cc }}{% endif %}" required>
+                            <label for="mes_1cc{{ forloop.counter }}">Mes</label>
+                        </div>
+                        <div class="form-floating">
+                            <input type="text" class="form-control" id="anio_1cc_{{ forloop.counter }}"
+                                name="anio_1cc_{{ forloop.counter }}" 
+                                value="{% if control.anio_1cc|default:'---' %}{{ control.anio_1cc }}{% endif %}" required>
+                            <label for="anio_1cc{{ forloop.counter }}">Año</label>
+                        </div>
+                        <div class="form-floating">
+                            <input type="text" id="page_1cc_{{ forloop.counter }}" name="page_1cc_{{ forloop.counter }}" 
+                                value="{{ control.page_1cc|default:'---' }}" class="form-control" required>
+                            <label for="page_1cc_{{ forloop.counter }}">Página </label>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
+            </div>    
+        {% endif %}
+    {% endfor %}
 </div>
 
-                               <!-- Tabla 2: Cumplimientos de calidad -->
-<div class="row mb-4">
-    <div class="col-12 text-center">
-        <div class="table-responsive"> <!-- Contenedor responsivo para la tabla -->
-            <div class="container">
-                <div class="row justify-content-center">
-                    <div class="col-md-12">
-                        <div class="card shadow-sm"> <!-- Card con sombra -->
-                            <div class="card-body">
-                                <!-- Título de la card -->
-                                <h5 style="caption-side: top; text-align: center; font-size: 1.5em; font-weight: bold; padding: 10px; background-color: #063970; color: white; border-radius: 10px;">
-                                    Ver cumplimiento de controles de calidad en:
-                                </h5>
-                                
-                                <div class="row mt-4">
-                                    {% for control in controles_calidad %}
-                                    <!-- Columna para cada control de calidad -->
-                                    <div class="col-6 col-sm-6 col-md-3 col-lg-3 col-xl-3 col-xxl-3 mb-4">
-                                        <div class="d-flex flex-column">
-                                            <!-- Código -->
-                                            <div class="form-floating mb-2">
-                                                <input type="text" class="form-control form-control-sm" 
-                                                       id="nombre_laf_{{ forloop.counter }}" 
-                                                       name="nombre_laf_{{ forloop.counter }}" 
-                                                       value="{{ control.nombre_laf|default:'---' }}" 
-                                                       readonly>
-                                                <label for="nombre_laf_{{ forloop.counter }}">Bitácora</label>
-                                            </div>
-                                            
-                                            <!-- Mes -->
-                                            <div class="mb-2">
-                                                <label for="mes_1cc_{{ forloop.counter }}" class="form-label small mb-1">Mes</label>
-                                                <select class="form-select form-select-sm" 
-                                                        id="mes_1cc_{{ forloop.counter }}" 
-                                                        name="mes_1cc_{{ forloop.counter }}">
-                                                    <option disabled {% if not control.mes_1cc %}selected{% endif %}>Mes</option>
-                                                    <option value="Enero" {% if control.mes_1cc == 'Enero' %}selected{% endif %}>Enero</option>
-                                                    <option value="Febrero" {% if control.mes_1cc == 'Febrero' %}selected{% endif %}>Febrero</option>
-                                                    <option value="Marzo" {% if control.mes_1cc == 'Marzo' %}selected{% endif %}>Marzo</option>
-                                                    <option value="Abril" {% if control.mes_1cc == 'Abril' %}selected{% endif %}>Abril</option>
-                                                    <option value="Mayo" {% if control.mes_1cc == 'Mayo' %}selected{% endif %}>Mayo</option>
-                                                    <option value="Junio" {% if control.mes_1cc == 'Junio' %}selected{% endif %}>Junio</option>
-                                                    <option value="Julio" {% if control.mes_1cc == 'Julio' %}selected{% endif %}>Julio</option>
-                                                    <option value="Agosto" {% if control.mes_1cc == 'Agosto' %}selected{% endif %}>Agosto</option>
-                                                    <option value="Septiembre" {% if control.mes_1cc == 'Septiembre' %}selected{% endif %}>Septiembre</option>
-                                                    <option value="Octubre" {% if control.mes_1cc == 'Octubre' %}selected{% endif %}>Octubre</option>
-                                                    <option value="Noviembre" {% if control.mes_1cc == 'Noviembre' %}selected{% endif %}>Noviembre</option>
-                                                    <option value="Diciembre" {% if control.mes_1cc == 'Diciembre' %}selected{% endif %}>Diciembre</option>
-                                                </select>
-                                            </div>
-                                            
-                                            <!-- Año -->
-                                            <div class="mb-2">
-                                                <label for="anio_1cc_{{ forloop.counter }}" class="form-label small mb-1">Año</label>
-                                                <select class="form-select form-select-sm anio-select tm" 
-                                                        id="anio_1cc_{{ forloop.counter }}" 
-                                                        name="anio_1cc_{{ forloop.counter }}"
-                                                        data-selected-year="{{ control.anio_1cc|default:'' }}">
-                                                    <option disabled {% if not control.anio_1cc %}selected{% endif %}>Año</option>
-                                                    <!-- Opciones de años se agregan con JavaScript -->
-                                                </select>
-                                            </div>
-                                            
-                                            <!-- Página -->
-                                            <div class="form-floating">
-                                                <input type="text" 
-                                                       id="page_1cc_{{ forloop.counter }}" 
-                                                       name="page_1cc_{{ forloop.counter }}" 
-                                                       value="{{ control.page_1cc|default:'' }}" 
-                                                       class="form-control form-control-sm" 
-                                                       required>
-                                                <label for="page_1cc_{{ forloop.counter }}">Página</label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    {% endfor %}
-                                </div>
-                                
-                                <!-- Descripción de las bitácoras -->
-                                <div class="row mt-4">
-                                    <div class="col-12 text-center">
-                                        <p class="mb-0 small">
-                                            <strong>LAF-45:</strong> Bitácora de control de calidad de microbiología,
-                                            <strong>LAF-44:</strong> Bitácora de control de medio ambiente,
-                                            <strong>LAF-57:</strong> Bitácora de bacterias aerobias en placa,
-                                            <strong>LAF-52:</strong> Bitácora de mohos y levaduras
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
+<!-- Segunda fila de inputs con etiquetas flotantes -->
+<div class="row g-3 mb-3">
+    {% for control in controles_calidad %}
+        {% if forloop.counter > 2 and forloop.counter <= 4 %}
+             <!-- Bitácora/Tomo {{ forloop.counter }} -->
+             <div class="col-12 col-md-6 col-lg-6">
+                <div class="form-floating">
+                    <div class="input-group input-group-sm">
+                        <div class="form-floating">
+                            <input type="text" class="form-control" id="nombre_laf_{{ forloop.counter }}"
+                                name="nombre_laf_{{ forloop.counter }}" value="{{ control.nombre_laf|default:'---' }}" readonly>
+                            <label for="nombre_laf_{{ forloop.counter }}">Bitácora</label>
+                        </div>
+                        <div class="form-floating">
+                            <input type="text" class="form-control" id="mes_1cc_{{ forloop.counter }}"
+                                name="mes_1cc_{{ forloop.counter }}" 
+                                value="{% if control.mes_1cc|default:'---' %}{{ control.mes_1cc }}{% endif %}" required>
+                            <label for="mes_1cc_{{ forloop.counter }}">Mes</label>
+                        </div>
+                        <div class="form-floating">
+                            <input type="text" class="form-control" id="anio_1cc_{{ forloop.counter }}"
+                                name="anio_1cc_{{ forloop.counter }}" 
+                                value="{% if control.anio_1cc|default:'---' %}{{ control.anio_1cc }}{% endif %}" required>
+                            <label for="anio_1cc{{ forloop.counter }}">Año</label>
+                        </div>
+                        <div class="form-floating">
+                            <input type="text" id="page_1cc_{{ forloop.counter }}" name="page_1cc_{{ forloop.counter }}" 
+                                value="{{ control.page_1cc|default:'---' }}" class="form-control" required>
+                            <label for="page_1cc_{{ forloop.counter }}">Página </label>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-</div>           
+        {% endif %}
+    {% endfor %}
+</div>
+
+
+                                    
+                                                        <!-- Descripción de las bitácoras -->
+                                                        <div class="row mt-4">
+                                                            <div class="col-12 text-center">
+                                                                <p class="mb-0 small">
+                                                                    <strong>LAF-45:</strong> Bitácora de control de calidad de microbiología,
+                                                                    <strong>LAF-44:</strong> Bitácora de control de medio ambiente,
+                                                                    <strong>LAF-57:</strong> Bitácora de bacterias aerobias en placa,
+                                                                    <strong>LAF-52:</strong> Bitácora de mohos y levaduras
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>                 
                 </div>
             </div>
         </div>
@@ -570,7 +558,6 @@
                     <thead>
                         <tr>
                             <th rowspan="2">Clave Muestra</th>
-                            <th rowspan="2">Matriz</th>
                             <th rowspan="2">Cantidad de muestra</th>
                             <th colspan="4">Diluciones empleadas</th>
                             <th colspan="2">Dilución o Directa</th>
@@ -603,8 +590,8 @@
                         <!-- Fila adicional debajo de los títulos -->
                         <tr>
                             <td><input type="text" value="Blanco" style="width: 110px;" readonly></td> <!-- No editable -->
-                            <td style="background:#c3ccd6;"><input type="text" value="---" style="width: 110px;" readonly></td>
-                            <td><input type="text" id="cantidad_blanco" name="cantidad_blanco" value="{{ blanco.cantidad_blanco|default:'---' }}"></td>
+                            
+                            <td><input type="text" id="cantidad_blanco" name="cantidad_blanco" style="width: 150px;" value="{{ blanco.cantidad_blanco|default:'---' }}"></td>
                             <td style="background:#c3ccd6;"><input type="text" value="---" readonly></td>
                             <td style="background:#c3ccd6;"><input type="text" value="---" readonly></td>
                             <td style="background:#c3ccd6;"><input type="text" value="---" readonly></td>
@@ -621,7 +608,7 @@
                             <!-- Subcolumnas de "Resultado" -->
                             <td><input type="text" id="resultado_blanco" name="resultado_blanco" value="{{ blanco.resultado_blanco|default:'---' }}"></td> <!-- Editable -->
                             <td style="background:#c3ccd6;"><input type="text" value="UFC/placa" style="width: 150px;" readonly></td> <!-- No editable en "Blanco" -->
-                            
+                            <td style="background:#c3ccd6;"><input type="text" value="---" readonly></td>
                         </tr>
                         <!-- Fila principal de inputs -->
                         
@@ -629,16 +616,8 @@
                         {% for fila in filas_datos %}
                             <tr>
                                 <!-- Datos de ClaveMuestra -->
-                                <td><input type="text" name="clave_c_m_{{ fila.index  }}" id="clave_c_m_{{ forloop.counter }}" value="{{ fila.clave_muestra.clave_c_m|default:'' }}"></td>
-                                <td><select class="form-select form-select-sm medicion-select" name="medicion_c_m_{{ fila.index }}" id="medicion_c_m_{{ forloop.counter }}">
-                                    <option value="" {% if not fila.clave_muestra.medicion_c_m %}selected{% endif %}>Seleccione...</option>
-                                    <option value="Aguas" {% if fila.clave_muestra.medicion_c_m == "Aguas" %}selected{% endif %}>Aguas</option>
-                                    <option value="Alimentos" {% if fila.clave_muestra.medicion_c_m == "Alimentos" %}selected{% endif %}>Alimentos</option>
-                                    <option value="Blancos" {% if fila.clave_muestra.medicion_c_m == "Blancos" %}selected{% endif %}>Blancos</option>
-                                    <option value="Inertes" {% if fila.clave_muestra.medicion_c_m == "Inertes" %}selected{% endif %}>Inertes</option>
-                                    <option value="Vivas" {% if fila.clave_muestra.medicion_c_m == "Vivas" %}selected{% endif %}>Vivas</option>
-                                </select></td>
-                                <td><input type="text" name="cantidad_c_m_{{ fila.index  }}" id="cantidad_c_m_{{ forloop.counter }}" value="{{ fila.clave_muestra.cantidad_c_m|default:'' }}"></td>
+                                <td><input type="text" name="clave_c_m_{{ fila.index  }}" id="clave_c_m_{{ forloop.counter }}" value="{{ fila.clave_muestra.clave_c_m|default:'---' }}"></td>
+                                <td><input type="text" name="cantidad_c_m_{{ fila.index  }}" id="cantidad_c_m_{{ forloop.counter }}" value="{{ fila.clave_muestra.cantidad_c_m|default:'---' }}"></td>
                                
                         
                                 <!-- Diluciones empleadas -->
@@ -672,37 +651,37 @@
                                 </td>
                                
                         
-                                <!-- Dilución directa -->
+                                                                <!-- Dilución directa -->
 <td><input type="text" name="placa_dD_{{ fila.index }}" class="placa1" id="placa_dD_{{ forloop.counter }}" 
-    value="{{ fila.directa.placa_dD|default:'' }}"></td>
+    value="{{ fila.directa.placa_dD|default:'---' }}"></td>
 <td><input type="text" name="placa_dD2_{{ fila.index }}" class="placa2" id="placa_dD2_{{ forloop.counter }}" 
-    value="{{ fila.directa.placa_dD2|default:'' }}"></td>
+    value="{{ fila.directa.placa_dD2|default:'---' }}"></td>
 <td><input type="text" name="promedio_dD_{{ fila.index }}" class="promedio" id="promedio_dD_{{ forloop.counter }}" 
-    value="{{ fila.directa.promedio_dD|default:'' }}"></td>
+    value="{{ fila.directa.promedio_dD|default:'---' }}"></td>
 
 
 <!-- Dilución -->
 <td><input type="text" name="placa_d_{{ fila.index }}" class="placa3" id="placa_d_{{ forloop.counter }}" 
-    value="{{ fila.dilucion.placa_d|default:'' }}"></td>
+    value="{{ fila.dilucion.placa_d|default:'---' }}"></td>
 <td><input type="text" name="placa_d2_{{ fila.index }}" class="placa4" id="placa_d2_{{ forloop.counter }}" 
-    value="{{ fila.dilucion.placa_d2|default:'' }}"></td>
+    value="{{ fila.dilucion.placa_d2|default:'---' }}"></td>
 <td><input type="text" name="promedio_d_{{ fila.index }}" class="promedio2" id="promedio_d_{{ forloop.counter }}" 
-    value="{{ fila.dilucion.promedio_d|default:'' }}"></td>
+    value="{{ fila.dilucion.promedio_d|default:'---' }}"></td>
 <td><input type="text" name="placa_d_2_{{ fila.index }}" class="placa5" id="placa_d_2_{{ forloop.counter }}" 
-    value="{{ fila.dilucion.placa_d_2|default:'' }}"></td>
+    value="{{ fila.dilucion.placa_d_2|default:'---' }}"></td>
 <td><input type="text" name="placa_d2_2_{{ fila.index }}" class="placa6" id="placa_d2_2_{{ forloop.counter }}" 
-    value="{{ fila.dilucion.placa_d2_2|default:'' }}"></td>
+    value="{{ fila.dilucion.placa_d2_2|default:'---' }}"></td>
 <td><input type="text" name="promedio_d_2_{{ fila.index }}" class="promedio3" id="promedio_d_2_{{ forloop.counter }}" 
     value="{{ fila.dilucion.promedio_d_2|default:'---' }}"></td>
 
 
 <!-- Resultado -->
 <td><input type="text" name="resultado_r_{{ fila.index }}" id="resultado_r_{{ forloop.counter }}" 
-    value="{{ fila.resultado.resultado_r|default:'' }}"></td>
+    value="{{ fila.resultado.resultado_r|default:'---' }}"></td>
 <td><input type="text" name="ufC_placa_r_{{ fila.index }}" id="ufC_placa_r_{{ forloop.counter }}" 
-    value="{{ fila.resultado.ufC_placa_r|default:'' }}"></td>
+    value="{{ fila.resultado.ufC_placa_r|default:'---' }}"></td>
 <td><input type="text" name="diferencia_r_{{ fila.index }}" id="diferencia_r_{{ forloop.counter }}" 
-    value="{{ fila.resultado.diferencia_r|default:'' }}"></td>  
+    value="{{ fila.resultado.diferencia_r|default:'---' }}"></td>  
                             
                             </tr>
                             {% empty %}
@@ -717,19 +696,18 @@
                 <div>
                     <strong><p style="font-size: 15px; color: black;">** Valor estimado/ se reporta como UFC/cantidad de alimento o ml de agua o superficie analizada</p></strong> 
                  </div>
-                 <div class="container-fluid">
-                    <div class="table-responsive-xl"> <!-- Agregamos table-responsive-xl -->
+                    <div class="d-flex justify-content-center mt-4">
                         <div class="w-100">
-                            <table class="table table-bordered table-sm"> <!-- Agregamos table-sm para pantallas pequeñas -->
+                            <table class="table-container text-center border">
                                 <thead>
                                     <tr>
-                                        <th class="align-middle" style="min-width: 150px;">Observaciones</th>
-                                        <th class="align-middle" style="min-width: 200px;">Ejemplo de calculo de resultado</th>
-                                        <th class="align-middle" style="min-width: 250px;">Ejemplo de calculo de resultado de superficies vivas e inertes</th>
-                                        <th class="align-middle" style="min-width: 200px;">Ejemplo de calculo diferencia entre duplicados</th>
-                                        <th class="align-middle" style="min-width: 100px;">Elaboró</th>
-                                        <th class="align-middle" style="min-width: 100px;">Revisó</th>
-                                        <th class="align-middle" style="min-width: 100px;">Autorizó</th>
+                                        <th style="width: 20%;">Observaciones</th>
+                                        <th>Ejemplo de calculo de resultado</th>
+                                        <th>Ejemplo de canculo de resultado de superficies vivas e inertes</th>
+                                        <th>Ejemplo de calculo diferencia entre duplicados</th>
+                                        <th style="width: 8%;">Elaboró</th>
+                                        <th style="width: 8%;">Revisó</th>
+                                        <th style="width: 8%;">Autorizó</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -740,7 +718,7 @@
                                             </div>
                                         </td>
                                         
-<!-- Sección para mostrar los ejemplos de fórmulas -->
+                                        <!-- Sección para mostrar los ejemplos de fórmulas -->
 {% if ejemplos_formulas.0 %}
 <!-- Primera fórmula - Promedio de lectura ÷ Dilución empleada = Resultado -->
 <td class="align-middle">
@@ -875,9 +853,10 @@
 {% endif %}
                                         <td>
                                             <div class="d-flex flex-column align-items-center">
-                                                <span>{{ firma_elabora }}</span>
-                                                <span class="text-muted">Pendiente de revisión</span>
-                                                <hr class="w-100 mt-4">
+                                                {% if bitacora.firma_user.signature_user %}
+                                                <span>{{ bitacora.firma_user.signature_user }}</span>
+                                                {% endif %}
+                                                <hr class="w-100 mt-3">
                                                 <span>Firma</span>
                                             </div>
                                         </td>
@@ -890,7 +869,7 @@
                                         </td>
                                         <td>
                                             <div class="d-flex flex-column align-items-center">
-                                                <span class="text-muted">Pendiente de revisión</span>
+                                                <span class="text-muted">Pendiente de autorización</span>
                                                 <hr class="w-100 mt-4">
                                                 <span>Firma</span>
                                             </div>
@@ -900,9 +879,9 @@
                                 </tbody>
                             </table>
                         </div>
-                    </div>
-                 </div>
-                        
+                    </div>   
+                   
+                
             </div>
                     <!-- Modal confirmación-->
             <div class="modal fade" id="enviar" tabindex="-1" aria-labelledby="enviar" aria-hidden="true">
@@ -938,7 +917,7 @@
                             </div>
                         </div>
                         <div class="modal-footer justify-content-center">
-                            <button type="button" class="btn btn-primary" onclick="enviarFormularioGuardadaARevision()">Firmar</button>
+                            <button type="button" class="btn btn-primary" onclick="enviarFormularioEditadoARevision()">Firmar</button>
                         </div>
                     </div>
                 </div>
@@ -990,6 +969,9 @@
                     <!-- Mensaje de éxito -->
                     <p id="mensajeExitoTextoGuardar" class="mb-0"></p>
                 </div>
+                <div class="modal-footer justify-content-center">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Aceptar</button>
+                </div>
             </div>
         </div>
     </div>
@@ -1016,15 +998,241 @@
             </div>
         </div>
     </div>
-    
-        </form>
-    
+
+<!-- Modal de Observaciones (con estilo Bootstrap) -->
+<div class="modal fade" id="observacionesModal" tabindex="-1" aria-labelledby="observacionesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="observacionesModalLabel">
+                    <i class="bi bi-eye me-2"></i>
+                    Ver Retroalimentación
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Información del campo seleccionado -->
+                <div id="campoSeleccionadoInfo" class="alert alert-info mb-3">
+                    <strong>Campo seleccionado:</strong> <span id="campoSeleccionadoNombre">-</span>
+                </div>
+                
+                <!-- Sección para mostrar el comentario/observación -->
+                <div id="comentarioObservacion" class="mb-3">
+                    <strong>Comentario:</strong>
+                    <div class="border rounded p-2 bg-light">
+                        <span id="textoObservacion"></span>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <strong>Corregir:</strong>
+                </div>
+                
+                <!-- Textarea para mostrar el valor actual -->
+                <div class="form-group">
+                    <label for="observacionesText" class="form-label">Valor actual del campo:</label>
+                    <textarea id="observacionesText" class="form-control" rows="5" placeholder="Valor actual del campo..." readonly></textarea>
+                </div>
+            </div>
+            <div class="modal-footer justify-content-center">
+                 <!-- Botón para guardar observaciones -->
+ <button id="guardarObservaciones" class="btn btn-primary">Guardar observación</button>
+            </div>
+        </div>
     </div>
+</div>
+
+<!-- Modal para observaciones generales -->
+<div class="modal fade" id="observacionesModalGeneral" tabindex="-1" aria-labelledby="observacionesGeneralLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="observacionesGeneralLabel">
+                    <i class="bi bi-list-check me-2"></i>
+                    Retroalimentación General
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Sección para mostrar el comentario/observación general -->
+                <div class="mb-3">                    
+                    <label for="observacionesTextGeneral" class="form-label"><strong>Comentarios:</strong></label>
+                    <textarea id="observacionesTextGeneral" class="form-control" rows="10" 
+                            placeholder="Escriba una observación general o vea el resumen de todas las observaciones..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button id="guardarObservacionesGeneral" class="btn btn-primary">Guardar observación</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+        </form>
+  
 </body>
 {% endblock content %}
 {% block extra_js %}
-<script type="module" src="{% static 'js/events-bita131.js' %}"></script>
-<script src="{% static 'js/functions.js' %}"></script>
-<script src="{% static 'js/tomos.js' %}"></script>
+<!-- Script para deshabilitar todos los campos excepto botones -->
+<script>
+   document.addEventListener('DOMContentLoaded', function() {
+    console.log('Inicializando bloqueo de elementos de entrada para revisión...');
+    
+    // Seleccionar todos los elementos de entrada del formulario
+    const formInputs = document.querySelectorAll('input, select, textarea');
+    
+    // Deshabilitar todos los campos de entrada excepto los específicos
+    formInputs.forEach(function(input) {
+        // No deshabilitar:
+        // 1. Botones
+        // 2. Campos ocultos
+        // 3. El select de usuario_destino
+        // 4. Elementos dentro de modales (tanto clase 'modal' como 'modalOB')
+        if (input.type !== 'button' && 
+            input.type !== 'submit' && 
+            input.type !== 'reset' && 
+            input.type !== 'hidden' &&
+            !input.closest('button') && 
+            !input.closest('.modal') &&  // No deshabilitar elementos dentro de modales Bootstrap
+            !input.closest('.modalOB') &&  // No deshabilitar elementos dentro del modal de observaciones
+            input.id !== 'usuario_destino' &&  // Excluir específicamente el select de usuario_destino
+            input.id !== 'observacionesText') {  // Excluir específicamente el textarea de observaciones
+            
+            // Para checkboxes y radio buttons, usamos un enfoque diferente
+            if (input.type === 'checkbox' || input.type === 'radio') {
+                // Guardar el estado actual (checked o no)
+                const isChecked = input.checked;
+                
+                // Agregar un evento que impida cambios
+                input.addEventListener('click', function(e) {
+                    // Prevenir el comportamiento predeterminado
+                    e.preventDefault();
+                    // Mantener el estado original
+                    this.checked = isChecked;
+                    return false;
+                });
+                
+                // Agregar una clase CSS para indicar visualmente que está bloqueado
+                input.classList.add('checkbox-readonly');
+            } 
+            // Para selects, necesitamos un enfoque especial
+            else if (input.tagName.toLowerCase() === 'select') {
+                // Guardar el valor seleccionado actualmente
+                const valorSeleccionado = input.value;
+                
+                // Crear un elemento hidden para mantener el valor real
+                const hiddenInput = document.createElement('input');
+                hiddenInput.type = 'hidden';
+                hiddenInput.name = input.name;
+                hiddenInput.value = valorSeleccionado;
+                input.parentNode.insertBefore(hiddenInput, input.nextSibling);
+                
+                // Bloquear el cambio de valor
+                input.addEventListener('change', function(e) {
+                    // Restaurar el valor original
+                    setTimeout(() => {
+                        this.value = valorSeleccionado;
+                    }, 0);
+                });
+                
+                // Agregar estilo visual para indicar que está bloqueado
+                input.classList.add('select-readonly');
+                
+                // Aplicar estilos específicos para los selects de mes y año
+                if (input.id === 'mes_muestra_cbap' || input.id === 'año_muestra_cbap') {
+                    console.log(`Bloqueando select especial: ${input.id}`);
+                    
+                    // Deshabilitar todas las opciones excepto la seleccionada
+                    Array.from(input.options).forEach(option => {
+                        if (option.value !== valorSeleccionado) {
+                            option.disabled = true;
+                        }
+                    });
+                }
+            }
+            else {
+                // Para otros tipos de inputs, usar readOnly
+                input.readOnly = true;
+            }
+            
+            // Importante: Agregar un evento de clic para que los campos puedan ser seleccionados
+            input.addEventListener('click', function(e) {
+                // El evento se manejará en campos-seleccionables.js
+                // Solo evitamos que se propague para que no interfiera con otros eventos
+                e.stopPropagation();
+            });
+        }
+    });
+    
+    // Asegurarse de que el textarea de observaciones esté habilitado
+    const observacionesTextarea = document.getElementById('observacionesText');
+    if (observacionesTextarea) {
+        observacionesTextarea.readOnly = false;
+        console.log('Textarea de observaciones habilitado explícitamente');
+    }
+    
+    // Asegurarse de que el botón de guardar observaciones esté habilitado
+    const guardarObservacionesBtn = document.getElementById('guardarObservaciones');
+    if (guardarObservacionesBtn) {
+        guardarObservacionesBtn.disabled = false;
+        console.log('Botón de guardar observaciones habilitado explícitamente');
+    }
+    
+    // Agregar estilo solo para el mensaje, no para los campos
+    const style = document.createElement('style');
+    style.textContent = `
+        /* Mensaje de solo lectura */
+        .readonly-message {
+            background-color: #cff4fc;
+            color: #055160;
+            padding: 10px 15px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            border: 1px solid #b6effb;
+        }
+        
+        /* Estilo para checkboxes bloqueados */
+        .checkbox-readonly {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        
+        /* Estilo para selects bloqueados */
+        .select-readonly {
+            background-color: #f8f9fa;
+            opacity: 0.8;
+            cursor: not-allowed;
+        }
+        
+        /* Asegurar que el modal de observaciones esté por encima de cualquier capa de bloqueo */
+        .modalOB {
+            z-index: 9999 !important;
+        }
+        
+        /* Asegurar que el contenido del modal sea interactivo */
+        .modal-contentOB {
+            z-index: 10000 !important;
+        }
+    `;
+    document.head.appendChild(style);
+    
+    // Agregar mensaje de solo lectura
+    const formElement = document.getElementById('form-principal');
+    if (formElement) {
+        const readOnlyMessage = document.createElement('div');
+        readOnlyMessage.className = 'alert alert-info mt-3 mensaje-bloqueo';
+        readOnlyMessage.innerHTML = '<strong>Formulario de solo lectura:</strong> Esta bitácora está en modo de revisión y los campos no pueden ser modificados. <strong>Haga clic en cualquier campo para agregar una observación.</strong>';
+        formElement.parentNode.insertBefore(readOnlyMessage, formElement);
+    }
+    
+    console.log('Elementos de entrada bloqueados exitosamente, incluyendo checkboxes y selects');
+});
 
+</script>
+    <script src="{% static 'js/functions.js' %}"></script>
+    <script src="{% static 'js/events-bita131.js' %}"></script>
+    
+    <script src="{% static 'js/tomos.js' %}"></script>
+    <!-- Incluir el script de visualización de campos seleccionados -->
+    <script src="{% static 'js/visualizar-campos-rechazados.js' %}"></script>
 {% endblock %}

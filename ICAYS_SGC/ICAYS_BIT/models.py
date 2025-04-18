@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.contrib.auth.hashers import make_password
+from django.utils import timezone
 
 #############
 # Clase Área #
@@ -176,7 +177,8 @@ class Dilucion(models.Model):
 class ControlCalidad(models.Model):
     id_cc = models.AutoField(primary_key=True, db_column='id_cc')
     nombre_laf = models.CharField(null=True, max_length=250, default='---',blank=True, db_column='nombre_laf')
-    fecha_1cc = models.DateField(null=True, blank=True, db_column='fecha_1cc')
+    mes_1cc =  models.CharField(null=True, max_length=50, default='---', blank=True, db_column='mes_1cc')
+    anio_1cc =  models.CharField(null=True, max_length=50, default='---', blank=True, db_column='anio_1cc')
     page_1cc = models.CharField(null=True, max_length=50, default='---', blank=True, db_column='page_1cc')
     id_cbap_cc = models.ForeignKey(
         'bita_cbap',
@@ -213,7 +215,8 @@ class VerificacionBalanza(models.Model):
     aceptacion_vb = models.CharField(null=True, max_length=50, default='---', blank=True, db_column='aceptacion_vb')
     valor_pesado_muestra_vb = models.CharField(null=True, max_length=50, default='---', blank=True, db_column='valor_pesado_muestra_vb')
     fecha_vb = models.DateField(auto_now_add=True)
-    tomo_verficacion_vb  = models.CharField(null=True, max_length=50, default='---', blank=True, db_column='tomo_verficacion_vb')
+    mes_verficacion_vb  = models.CharField(null=True, max_length=50, default='---', blank=True, db_column='mes_verficacion_vb')
+    anio_verficacion_vb  = models.CharField(null=True, max_length=50, default='---', blank=True, db_column='anio_verficacion_vb')
     pagina_verficacion_vb  = models.CharField(null=True, max_length=50, default='---', blank=True, db_column='pagina_verficacion_vb')
 
     class Meta:
@@ -285,15 +288,14 @@ class bita_cbap(models.Model):
         related_name='bita_cbap'
     )
     letra_analista_cbap = models.CharField(null=True, max_length=250, default='---', blank=True, db_column='numero_analista_cbap')
-    mes_muestra_cbap = models.DateField(null=True, blank=True, db_column='mes_muestra_cbap')
+    año_muestra_cbap = models.CharField(null=True, max_length=250, default='---', blank=True, db_column='año_muestra_cbap')
+    mes_muestra_cbap = models.CharField(null=True, max_length=250, default='---', blank=True, db_column='mes_muestra_cbap')
     pagina_muestra_cbap = models.CharField(null=True, max_length=250, default='---', blank=True, db_column='pagina_muestra_cbap')
     pagina_fosfato_cbap = models.CharField(null=True, max_length=250, default='---', blank=True, db_column='pagina_fosfato_cbap')
     numero_fosfato_cbap = models.CharField(null=True, max_length=250, default='---', blank=True, db_column='numero_fosfato_cbap')
     pagina_agar_cbap = models.CharField(null=True, max_length=250, default='---', blank=True, db_column='pagina_agar_cbap')
     numero_agar_cbap = models.CharField(null=True, max_length=250, default='---', blank=True, db_column='numero_agar_cbap')
-    fecha_lectura_cbap = models.DateField(null=True, blank=True, db_column='fecha_lectura_cbap')
-    hora_lectura_cbap = models.TimeField(null=True, blank=True, db_column='hora_lectura_cbap')
-    observaciones_cbap = models.TextField(null=True, default='-', blank=True, db_column='observaciones_cbap')
+    observaciones_cbap = models.TextField(null=True, default='---', blank=True, db_column='observaciones_cbap')
     firma_user = models.ForeignKey(
         CustomUser,
         on_delete=models.SET_NULL,
@@ -341,9 +343,7 @@ class Bitcoras_Cbap(models.Model):
     fecha_bita_cbap = models.DateTimeField(auto_now=True, db_column='fecha_bita_cbap')
     fecha_envio = models.DateTimeField(null=True, blank=True)
     estado = models.CharField(max_length=20, choices=ESTADOS, default='guardada')
-    nombre_user_destino = models.CharField(max_length=250, default='-', blank=True, db_column='nombre_user_destino')
-    observaciones_cbap_estado = models.TextField(null=True, default='-', blank=True, db_column='observaciones')
-    
+    nombre_user_destino = models.CharField(max_length=250, default='-', blank=True, db_column='nombre_user_destino')    
     # Nuevo campo para la firma del revisor
     firma_revisor = models.ForeignKey(
         CustomUser,
@@ -372,6 +372,121 @@ class Bitcoras_Cbap(models.Model):
 
     class Meta:
         db_table = 'bitcoras_cbap'
+        
+class ObservacionCampo(models.Model):
+    id_valor_editado = models.AutoField(primary_key=True, db_column='id_valor_editado')
+    bitacora = models.ForeignKey(
+        Bitcoras_Cbap, 
+        on_delete=models.CASCADE,
+        related_name='valores_editados',
+        db_column='bitacora_id'
+    )
+    campo_id = models.CharField(max_length=255, db_column='campo_id')  # ID del campo en el formulario
+    campo_nombre = models.CharField(max_length=255, db_column='campo_nombre')  # Nombre legible del campo
+    valor_original = models.TextField(null=True, max_length=250, blank=True, db_column='valor_original')  # Valor original del campo
+    valor_actual = models.TextField(null=True, max_length=250, blank=True, db_column='valor_actual')  # Nuevo campo para el valor actual
+    campo_tipo = models.TextField(null=True, max_length=250, blank=True, db_column='campo_tipo')  # Tipo del campo
+    fecha_edicion = models.DateTimeField(auto_now=True, db_column='fecha_edicion')  # Cambiado a auto_now para actualizar en cada edición
+    observacion = models.CharField(null=True, max_length=250, blank=True, db_column='observacion')
+    
+    # Usuario que agregó la observación (jefe/revisor que rechazó)
+    # Agregar un valor predeterminado o permitir valores nulos
+    observacion_por = models.ForeignKey(
+        CustomUser, 
+        on_delete=models.CASCADE,
+        related_name='observaciones_realizadas',
+        db_column='observacion_por',
+        null=True,  # Permitir valores nulos temporalmente
+        default=1   # ID del usuario administrador o un usuario que exista seguro
+    )
+    
+    # Usuario que realizó la última edición
+    editado_por = models.ForeignKey(
+        CustomUser, 
+        on_delete=models.CASCADE,
+        related_name='valores_editados',
+        db_column='editado_por',
+        null=True,
+        blank=True
+    )
+    
+    # Estado de la observación
+    ESTADOS = (
+        ('pendiente', 'Pendiente de edición'),
+        ('editado', 'Editado'),
+        ('aprobado', 'Aprobado'),
+        ('rechazado', 'Rechazado nuevamente'),
+    )
+    estado = models.CharField(max_length=20, choices=ESTADOS, default='pendiente', db_column='estado')
+    
+    # Nuevos campos para el historial de ediciones
+    historial_ediciones = models.JSONField(null=True, blank=True, db_column='historial_ediciones', 
+                                          help_text="Historial de ediciones en formato JSON")
+    contador_ediciones = models.PositiveIntegerField(default=0, db_column='contador_ediciones',
+                                                   help_text="Contador de veces que se ha editado este campo")
+
+    class Meta:
+        db_table = 'valores_editados'
+        unique_together = ('bitacora', 'campo_id')  # Un campo solo puede tener un valor editado por bitácora
+        ordering = ['-fecha_edicion']
+    
+    def __str__(self):
+        return f"Valor editado para {self.campo_nombre} en bitácora {self.bitacora.id_bita_cbap}"
+    
+    def save(self, *args, **kwargs):
+        """
+        Sobrescribe el método save para actualizar el historial de ediciones
+        cada vez que se modifica el valor del campo.
+        """
+        # Verificar si es una instancia nueva o existente
+        is_new = self.pk is None
+        
+        # Si es una instancia existente, obtener el objeto anterior
+        if not is_new:
+            try:
+                old_instance = ObservacionCampo.objects.get(pk=self.pk)
+                old_valor = old_instance.valor_actual
+                
+                # Si el valor ha cambiado, actualizar el historial
+                if old_valor != self.valor_actual:
+                    # Inicializar historial si es None
+                    if self.historial_ediciones is None:
+                        self.historial_ediciones = []
+                    
+                    # Agregar entrada al historial
+                    nueva_entrada = {
+                        'fecha': timezone.now().isoformat(),
+                        'valor_anterior': old_valor,
+                        'valor_nuevo': self.valor_actual,
+                        'usuario_id': self.editado_por.id_user if self.editado_por else None,
+                        'usuario_nombre': f"{self.editado_por.first_name} {self.editado_por.last_name}" if self.editado_por else "Sistema",
+                        'estado': self.estado
+                    }
+                    
+                    # Agregar la entrada al historial
+                    self.historial_ediciones.append(nueva_entrada)
+                    
+                    # Incrementar contador
+                    self.contador_ediciones += 1
+            except ObservacionCampo.DoesNotExist:
+                pass
+        else:
+            # Si es una nueva instancia, inicializar el historial
+            self.historial_ediciones = [{
+                'fecha': timezone.now().isoformat(),
+                'valor_anterior': self.valor_original,
+                'valor_nuevo': self.valor_actual,
+                'usuario_id': self.editado_por.id_user if self.editado_por else None,
+                'usuario_nombre': f"{self.editado_por.first_name} {self.editado_por.last_name}" if self.editado_por else "Sistema",
+                'estado': self.estado
+            }]
+            self.contador_ediciones = 1
+        
+        # Llamar al método save original
+        super().save(*args, **kwargs)
+###################
+#Tabla de muestras#
+###################
 class tableBlanco(models.Model):
     id_blanco = models.AutoField(primary_key=True, db_column='id_blanco')
     cantidad_blanco = models.CharField(null=True, max_length=50, default='---', blank=True, db_column='cantidad_blanco')
@@ -387,6 +502,9 @@ class tableBlanco(models.Model):
     )
     class Meta:
         db_table = 'blancos_cbap'
+###################
+#Tabla de ejemplos#
+###################
 
 class ejemplosFormulas(models.Model):
     id_ejemplos = models.AutoField(primary_key=True, db_column='id_ejemplos')
@@ -405,7 +523,26 @@ class ejemplosFormulas(models.Model):
     )
     class Meta:
         db_table = 'ejemplos_cbap'
-
+###################
+#Tabla de lecturas#
+###################
+class Lecturas(models.Model):
+    id_lectura = models.AutoField(primary_key=True, db_column='id_lectura')
+    fecha_lectura_1 = models.DateField(null=True, blank=True, db_column='fecha_lectura_1')
+    hora_lectura_1 = models.TimeField(null=True, blank=True, db_column='hora_lectura_1')
+    fecha_lectura_2 = models.DateField(null=True, blank=True, db_column='fecha_lectura_2')
+    hora_lectura_2 = models.TimeField(null=True, blank=True, db_column='hora_lectura_2')
+    # Relación con nombre usuario de users
+    nombre_bita_cbap = models.ForeignKey(
+        bita_cbap,
+        on_delete=models.SET_NULL,
+        null=True,
+        db_column='nombre_bita_cbap_lecturas',
+        related_name='lecturas'
+    )
+    
+    class Meta:
+        db_table = 'lecturas'
 # ICAYS_SGC/ICAYS_BIT/models.py
 # Añadir esto a tu archivo models.py
 
@@ -435,6 +572,12 @@ class Notification(models.Model):
     
     def __str__(self):
         return f"Notification {self.id_notification} for {self.recipient}"
+
+
+##############################
+# Tabla de suscripciones push#
+##############################
+        
 class PushSubscription(models.Model):
     id_subscription = models.AutoField(primary_key=True, db_column='id_subscription')
     user = models.ForeignKey(
@@ -455,3 +598,4 @@ class PushSubscription(models.Model):
     
     def __str__(self):
         return f"Push Subscription for {self.user.username} ({self.endpoint[:30]}...)"
+    

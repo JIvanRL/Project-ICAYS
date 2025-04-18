@@ -20,5 +20,10 @@ urlpatterns = [
     path('cambia_estado_bitacora/<int:bitacora_id>/', views.cambiar_estado, name='cambia_estado_bitacora'),
     # Nueva ruta para la API de usuarios
     path('api/usuarios/', views.api_usuarios, name='api_usuarios'),
-    
+    # Agregar estas URLs al urlpatterns
+    path('guardar_campos_observaciones/', views.guardar_campos_observaciones, name='guardar_campos_observaciones'),
+    path('obtener_campos_observaciones/<int:bitacora_id>/', views.obtener_campos_observaciones, name='obtener_campos_observaciones'),
+     # Agregar esta URL para eliminar observaciones
+    path('eliminar_campo_observacion/', views.eliminar_campo_observacion, name='eliminar_campo_observacion'),
+
 ]

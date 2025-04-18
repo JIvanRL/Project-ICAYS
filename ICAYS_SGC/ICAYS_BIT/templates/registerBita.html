@@ -60,7 +60,7 @@
                         <label for="pagina_cbap">Página</label>
                         <!-- Campo oculto para asegurar que el valor se envíe al formulario -->
                         <input type="hidden" id="pagina_cbap_hidden" name="pagina_cbap">
-                    </div></qodoArtifact>
+                    </div>
                 </div>
             </div>
             
@@ -73,7 +73,7 @@
                 <div class="card card-body">
                     <div class="row justify-content-center"> <!-- Centrar las tarjetas horizontalmente -->
                         <!-- Primera tarjeta -->
-                        <div class="col-md-4 mb-3">
+                        <div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4 col-xxl-4 mb-3">
                             <div class="card h-100 shadow-sm"> <!-- Añadí sombra y altura fija -->
                                 <div class="card-body">
                                     <div class="row g-2"> <!-- Reducir el espacio entre filas -->
@@ -90,6 +90,8 @@
                                                 <label for="hora_siembra">Hora de siembra</label>
                                             </div>
                                         </div>
+                                        
+                                       
                                         <div class="col-12 col-md-6">
                                             <div class="form-floating">
                                                 <input type="time" class="form-control form-control-sm" id="hora_incubacion" name="hora_incubacion" placeholder="Hora" required>
@@ -113,42 +115,67 @@
                             </div>
                         </div>
                 
-                        <!-- Segunda tarjeta -->
-                        <div class="col-md-4 mb-3">
-                            <div class="card h-100 shadow-sm"> <!-- Añadí sombra y altura fija -->
+                        <!-- Segunda tarjeta -->                                                
+                        <div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4 col-xxl-4 mb-3">
+                            <div class="card h-100 shadow-sm">
                                 <div class="card-body">
                                     <!-- Título "Registro de muestras LAF-50" -->
                                     <div class="row mb-3">
                                         <div class="col-12 text-center">
-                                            <h5 class="card-title">Registro de muestras LAF-50</h5> <!-- Usé h5 para el título -->
+                                            <span class="mx-2">Registro de muestras: <a href="">LAF-50</a></span>
                                         </div>
                                     </div>
-                
+
                                     <!-- Letra Analista, Tomo y Página -->
                                     <div class="row g-2">
-                                        <div class="col-12 col-md-4">
+                                        <div class="col-12">
                                             <div class="form-floating">
                                                 <input type="text" class="form-control form-control-sm" id="letra_analista_cbap" name="letra_analista_cbap" placeholder="Letra Analista" required>
                                                 <label for="letra_analista_cbap">Letra Analista</label>
                                             </div>
-                                        </div>
-                                        <!-- <div class="col-12 col-md-4">
-                                            <div class="form-floating">
-                                                <input type="date" class="form-control form-control-sm" id="mes_muestra_cbap" name="mes_muestra_cbap" placeholder="Tomo" >
-                                                <label for="mes_muestra_cbap">Mes</label>
-                                            </div>
-                                        </div> -->
-                                        <div class="col-12 col-md-4">
+                                        </div>                                     
+                                        
+                                        <div class="col-12 mb-3">
                                             <div class="form-floating">
                                                 <input type="text" class="form-control form-control-sm" id="pagina_muestra_cbap" name="pagina_muestra_cbap" placeholder="Página" required>
                                                 <label for="pagina_muestra_cbap">Página</label>
                                             </div>
                                         </div>
+                                        
+                                        <div class="col-12">
+                                            <label for="mes_muestra_cbap">Tomo:</label>
+                                        </div>
+                                        
+                                        <div class="col-12 col-sm-12 col-md-12 col-lg-6">
+                                            <select class="form-select" id="mes_muestra_cbap" name="mes_muestra_cbap" style="width: 100%;">
+                                                <option selected disabled>Mes</option>
+                                                <option value="Enero">Enero</option>
+                                                <option value="Febrero">Febrero</option>
+                                                <option value="Marzo">Marzo</option>
+                                                <option value="Abril">Abril</option>
+                                                <option value="Mayo">Mayo</option>
+                                                <option value="Junio">Junio</option>
+                                                <option value="Julio">Julio</option>
+                                                <option value="Agosto">Agosto</option>
+                                                <option value="Septiembre">Septiembre</option>
+                                                <option value="Octubre">Octubre</option>
+                                                <option value="Noviembre">Noviembre</option>
+                                                <option value="Diciembre">Diciembre</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="col-12 col-sm-12 col-md-12 col-lg-6">
+                                            <select class="form-select d-inline anio-select tm" id="año_muestra_cbap" name="año_muestra_cbap" style="width: 100%;">
+                                                <option selected >Año</option>
+                                                <!-- Aquí se pueden agregar opciones de años dinámicamente con JavaScript -->
+                                            </select>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-4 mb-3">
+                        <!-- Tercera tarjeta -->
+                        <div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4 col-xxl-4 mb-3">
                             <div class="card h-100 shadow-sm"> <!-- Añadí sombra y altura fija -->
                                 <div class="card-body">
                                     <div class="row g-2"> <!-- Reducir el espacio entre filas -->
@@ -156,40 +183,42 @@
                                         <!-- Fecha, Hora, Procedimiento y Equipo de incubación -->
                                         <div class="col-12 col-md-6">
                                             <div class="form-floating">
-                                                <input type="date" class="form-control form-control-sm" id="fecha_lectura_cbap" name="fecha_lectura_cbap" placeholder="Fecha" required>
-                                                <label for="fecha_lectura_cbap">Fecha de lectura</label>
-                                            </div>
-                                        </div>
-                                        <div class="col-12 col-md-6 center">
-                                            <div class="form-floating">
-                                                <input type="time" class="form-control form-control-sm" id="hora_lectura_cbap" name="hora_lectura_cbap" placeholder="Hora" required>
-                                                <label for="hora_lectura_cbap">Hora de lectura</label>
+                                                <input type="date" class="form-control form-control-sm" id="fecha_lectura_1" name="fecha_lectura_1" placeholder="Fecha" required>
+                                                <label for="fecha_lectura_1">Fecha de lectura 1</label>
                                             </div>
                                         </div>
                                         <div class="col-12 col-md-6">
                                             <div class="form-floating">
-                                                <input type="date" class="form-control form-control-sm" id="floatingInput" placeholder="Fecha" >
-                                                <label for="floatingInput">Fecha de lectura</label>
+                                                <input type="date" class="form-control form-control-sm" id="floatingInput" name="fecha_lectura_2" placeholder="Fecha" >
+                                                <label for="hora_lectura_2">Fecha de lectura 2</label>
                                             </div>
                                         </div>
                                         <div class="col-12 col-md-6 center">
                                             <div class="form-floating">
-                                                <input type="time" class="form-control form-control-sm" id="floatingSiembra" placeholder="Hora">
-                                                <label for="floatingInput">Hora de lectura</label>
+                                                <input type="time" class="form-control form-control-sm" id="hora_lectura_1" name="hora_lectura_1" placeholder="Hora" required>
+                                                <label for="hora_lectura_1">Hora de lectura 1</label>
                                             </div>
                                         </div>
+                                        
+                                        <div class="col-12 col-md-6 center">
+                                            <div class="form-floating">
+                                                <input type="time" class="form-control form-control-sm" id="hora_lectura_2" name="hora_lectura_2" placeholder="Hora">
+                                                <label for="hora_lectura_1">Hora de lectura 2</label>
+                                            </div>
+                                        </div>
+                                        
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <!-- Tercera tarjeta -->
-                        <div class="col-md-8 mb-3">
+                        <!-- Cuarta tarjeta -->
+                        <div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8 col-xxl-8 mb-3">
                             <div class="card h-100 shadow-sm"> <!-- Añadí sombra y altura fija -->
                                 <div class="card-body">
                                     <!-- Título "Reactivos y medios de cultivo LAF-02" -->
                                     <div class="row mb-3">
                                         <div class="col-12 text-center">
-                                            <h5 class="card-title">Reactivos y medios de cultivo LAF-62</h5> <!-- Usé h5 para el título -->
+                                            <h5 class="card-title">Reactivos y medios de cultivo <a href="">LAF-62</a></h5> <!-- Usé h5 para el título -->
                                         </div>
                                     </div>
                 
@@ -239,24 +268,47 @@
                         </div>                    
                     </div>
            
-            <!-- Tabla 2: Verificacion de balanza-->
-                    <div class="container">
-                        <div class="row justify-content-center">
-                            <div class="col-md-12">
+            <!-- Quinta tarjeta Verificación de valanza -->
+                   <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 col-xxl-12">
                                 <div class="card shadow-sm"> <!-- Card con sombra -->
                                     <div class="card-body">
                                         <!-- Título de la card -->
                                         <h5 style="caption-side: top; text-align: center; font-size: 1.5em; font-weight: bold; padding: 10px; background-color: #063970; color: white; border-radius: 10px;">
-                                            Verificación de la balanza granataria LAM-12  
+                                            Verificación de la balanza granataria  <a href="" style="color: white;">LAM-12</a>  
                                         </h5>
                                         <div class="d-flex justify-content-center align-items-center w-100">
                                             <div class="d-flex align-items-center flex-wrap justify-content-center">
                                                 <span class="mx-2">Ver verificación mensual de la balanza en: <a href="">LAF-42</a></span>
-                                                <div class="d-flex align-items-center mx-2">
-                                                    <span class="mx-2">Tomo</span>
-                                                    <input type="text" class="form-control form-control-sm mx-2" style="width: 80px;" name="tomo_verficacion_vb">
+                                                <div class="d-flex align-items-center mx-2">    
+                                                   
+                                                    <div class="col-12 col-sm-12 col-md-12 col-lg-6">
+                                                        <select class="form-select" id="mes_verficacion_vb_1" name="mes_verficacion_vb_1" style="width: 100%;">
+                                                            <option selected disabled>Mes</option>
+                                                            <option value="Enero">Enero</option>
+                                                            <option value="Febrero">Febrero</option>
+                                                            <option value="Marzo">Marzo</option>
+                                                            <option value="Abril">Abril</option>
+                                                            <option value="Mayo">Mayo</option>
+                                                            <option value="Junio">Junio</option>
+                                                            <option value="Julio">Julio</option>
+                                                            <option value="Agosto">Agosto</option>
+                                                            <option value="Septiembre">Septiembre</option>
+                                                            <option value="Octubre">Octubre</option>
+                                                            <option value="Noviembre">Noviembre</option>
+                                                            <option value="Diciembre">Diciembre</option>
+                                                        </select>
+                                                    </div>
+                                                
+                                                    <div class="col-12 col-sm-12 col-md-12 col-lg-6">
+                                                        <select class="form-select d-inline anio-select tm" id="anio_verficacion_vb_1" name="anio_verficacion_vb_1" style="width: 100%;">
+                                                            <option selected >Año</option>
+                                                            <!-- Aquí se pueden agregar opciones de años dinámicamente con JavaScript -->
+                                                        </select>
+                                                    </div>
                                                     <span class="mx-2">Página</span>
-                                                    <input type="text" class="form-control form-control-sm mx-2" style="width: 80px;" name="pagina_verficacion_vb">
+                                                    <input type="text" class="form-control form-control-sm mx-2" style="width: 80px;" name="pagina_verficacion_vb_1">
                                                 </div>
                                             </div>
                                         </div>
@@ -285,7 +337,7 @@
                                                         </td>
                                                         <td>
                                                             <div class="form-floating">
-                                     
+                                    
                                                                 <input type="text" name="actividad_vb_1" value="Verificación" class="form-control form-control-sm" readonly>
                                                             </div>
                                                         </td>
@@ -311,7 +363,7 @@
                                                             <input type="text" name="emt_vb_1" class="form-control form-control-sm">
                                                         </td>
                                                         <td>
-                                                            <input type="text" name="aceptacion_vb_1" class="form-control form-control-sm">
+                                                            <input type="text" name="aceptacion_vb_1" class="form-control form-control-sm" style="width: 120px;">
                                                         </td>
                                                     </tr>
                                                     <!-- Fila 2 -->
@@ -321,9 +373,9 @@
                                                         </td>
                                                         <td>
                                                             <div class="input-group">
-                                                                <textarea name="actividad_vb_2" class="form-control form-control-sm" readonly 
-          style="height: auto; text-align: center; font-size: 12px; resize: none; border: none; overflow: hidden; white-space: pre-wrap; word-wrap: break-word;">
-                                                                    Pesado de la(S) muestra(a)
+                                                                <textarea name="actividad_vb_2" class="text-center form-control form-control-sm" readonly 
+                                                                style="position: relative ; text-align: center; font-size: 12px; resize: none; overflow: hidden; width: 150px; height: 60px;">
+                                                                    Pesado de la(s) muestra(s)
                                                                     </textarea>
             
                                                             </div>
@@ -340,139 +392,216 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-                                    <!-- Tabla 2: Cumplimientos de calidad -->
-                    <div class="row mb-4">
-                        <div class="col-12 text-center">
-                            <div class="table-responsive"> <!-- Contenedor responsivo para la tabla -->
-
-                                <div class="container">
-                                    <div class="row justify-content-center">
-                                        <div class="col-md-12">
-                                            <div class="card shadow-sm"> <!-- Card con sombra -->
-                                                <div class="card-body">
-                                                    <!-- Título de la card -->
-                                                    <h5 style="caption-side: top; text-align: center; font-size: 1.5em; font-weight: bold; padding: 10px; background-color: #063970; color: white; border-radius: 10px;" >
-                                                        Ver cumplimiento de controles de calidad en:
-                                                    </h5>
+                        <!-- Fin de la tarjeta Verificación de valanza -->
+                         <!-- Card de cumplimiento de calidad -->
+                        <div class="card shadow-sm"> <!-- Card con sombra -->
+                            <div class="card-body">
+                                <!-- Título de la card -->
+                                <h5 style="caption-side: top; text-align: center; font-size: 1.5em; font-weight: bold; padding: 10px; background-color: #063970; color: white; border-radius: 10px;">
+                                    Ver cumplimiento de controles de calidad en:
+                                </h5>
                                 
-                                                    <!-- Primera fila de inputs -->
-                                                    
-                                                    <!-- Primera fila de inputs con etiquetas flotantes -->
-                                                    <div class="row g-3 mb-3">
-                                                        <!-- Bitácora/Tomo 1 -->
-                                                        <div class="col-12 col-md-6 col-lg-3">
-                                                            <div class="form-floating">
-                                                                <div class="input-group input-group-sm">
-                                                                    <div class="form-floating">
-                                                                        <input type="text" class="form-control" id="nombre_laf_1" name="nombre_laf_1" value="LAF-45/" readonly>
-                                                                      
-                                                                    </div>
-                                                                    <div class="form-floating">
-                                                                        <input type="date" class="form-control" id="fecha_1cc_1" name="fecha_1cc_1" required >
-                                                                        <label for="fecha_1cc_1">Fecha</label>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <!-- Página 1 -->
-                                                        <div class="col-12 col-md-6 col-lg-3">
-                                                            <div class="form-floating">
-                                                                <input type="text" id="page_1cc_1" name="page_1cc_1" class="form-control" required >
-                                                                <label for="page_1cc_1">Página</label>
-                                                            </div>
-                                                        </div>
-                                                        <!-- Bitácora/Tomo 2 -->
-                                                        <div class="col-12 col-md-6 col-lg-3">
-                                                            <div class="form-floating">
-                                                                <div class="input-group input-group-sm">
-                                                                    <div class="form-floating">
-                                                                        <input type="text" class="form-control" id="nombre_laf_2" name="nombre_laf_2" value="LAF-44/" readonly >
-                                                                     
-                                                                    </div>
-                                                                    <div class="form-floating">
-                                                                        <input type="date" class="form-control" id="fecha_1cc_2" name="fecha_1cc_2" required>
-                                                                        <label for="fecha_1cc_2">Fecha</label>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <!-- Página 2 -->
-                                                        <div class="col-12 col-md-6 col-lg-3">
-                                                            <div class="form-floating">
-                                                                <input type="text" id="page_1cc_2" name="page_1cc_2" class="form-control" required>
-                                                                <label for="page_1cc_2">Página</label>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    <!-- Segunda fila de inputs con etiquetas flotantes -->
-                                                    <div class="row g-3 mb-3">
-                                                        <!-- Bitácora/Tomo 3 -->
-                                                        <div class="col-12 col-md-6 col-lg-3">
-                                                            <div class="form-floating">
-                                                                <div class="input-group input-group-sm">
-                                                                    <div class="form-floating">
-                                                                        <input type="text" class="form-control" id="nombre_laf_3" name="nombre_laf_3" value="LAF-57/" readonly>
-                                                                    
-                                                                    </div>
-                                                                    <div class="form-floating">
-                                                                        <input type="date" class="form-control" id="fecha_1cc_3" name="fecha_1cc_3" required>
-                                                                        <label for="fecha_1cc_3">Fecha</label>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <!-- Página 3 -->
-                                                        <div class="col-12 col-md-6 col-lg-3">
-                                                            <div class="form-floating">
-                                                                <input type="text" id="page_1cc_3" name="page_1cc_3" class="form-control" >
-                                                                <label for="page_1cc_3">Página</label>
-                                                            </div>
-                                                        </div>
-                                                        <!-- Bitácora/Tomo 4 -->
-                                                        <div class="col-12 col-md-6 col-lg-3">
-                                                            <div class="form-floating">
-                                                                <div class="input-group input-group-sm">
-                                                                    <div class="form-floating">
-                                                                        <input type="text" class="form-control" id="nombre_laf_4" name="nombre_laf_4" value="LAF-52/" readonly>
-                                                                       
-                                                                    </div>
-                                                                    <div class="form-floating">
-                                                                        <input type="date" class="form-control" id="fecha_1cc_4" name="fecha_1cc_4" required>
-                                                                        <label for="fecha_1cc_4">Fecha</label>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <!-- Página 4 -->
-                                                        <div class="col-12 col-md-6 col-lg-3">
-                                                            <div class="form-floating">
-                                                                <input type="text" id="page_1cc_4" name="page_1cc_4" class="form-control" required>
-                                                                <label for="page_1cc_4">Página</label>
-                                                            </div>
-                                                        </div>
-                                                    </div>
+                                <div class="row mt-4">
+                                    <!-- Primera columna - LAF-45 -->
+                                    <div class="col-6 col-sm-6 col-md-3 col-lg-3 col-xl-3 col-xxl-3 mb-4">
+                                        <div class="d-flex flex-column">
+                                            <!-- Código -->
+                                            <div class="form-floating mb-2">
+                                                <input type="text" class="form-control form-control-sm" id="nombre_laf_1" name="nombre_laf_1" value="LAF-45/" readonly>
+                                                <label for="nombre_laf_1">Bitácora</label>
+                                            </div>
+                                            
+                                            <!-- Mes -->
+                                            <div class="mb-2">
+                                                <label for="mes_1cc_1" class="form-label small mb-1"></label>
+                                                <select class="form-select form-select-sm" id="mes_1cc_1" name="mes_1cc_1">
+                                                    <option selected disabled>Mes</option>
+                                                    <option value="Enero">Enero</option>
+                                                    <option value="Febrero">Febrero</option>
+                                                    <option value="Marzo">Marzo</option>
+                                                    <option value="Abril">Abril</option>
+                                                    <option value="Mayo">Mayo</option>
+                                                    <option value="Junio">Junio</option>
+                                                    <option value="Julio">Julio</option>
+                                                    <option value="Agosto">Agosto</option>
+                                                    <option value="Septiembre">Septiembre</option>
+                                                    <option value="Octubre">Octubre</option>
+                                                    <option value="Noviembre">Noviembre</option>
+                                                    <option value="Diciembre">Diciembre</option>
+                                                </select>
+                                            </div>
+                                            
+                                            <!-- Año -->
+                                            <div class="mb-2">
+                                                <label for="anio_1cc_1" class="form-label small mb-1"></label>
+                                                <select class="form-select form-select-sm anio-select tm" id="anio_1cc_1" name="anio_1cc_1">
+                                                    <option selected disabled>Año</option>
+                                                    <!-- Opciones de años se agregan con JavaScript -->
+                                                </select>
+                                            </div>
+                                            
+                                            <!-- Página -->
+                                            <div class="form-floating">
+                                                <input type="text" id="page_1cc_1" name="page_1cc_1" class="form-control form-control-sm" required>
+                                                <label for="page_1cc_1">Página</label>
+                                            </div>
+                                        </div>
+                                    </div>
                                 
-                                                    <!-- Descripción de las bitácoras -->
-                                                    <div class="row mt-4">
-                                                        <div class="col-12 text-center">
-                                                            <p class="mb-0 small">
-                                                                <strong>LAF-45:</strong> Bitácora de control de calidad de microbiología,
-                                                                <strong>LAF-44:</strong> Bitácora de control de medio ambiente,
-                                                                <strong>LAF-57:</strong> Bitácora de bacterias aerobias en placa,
-                                                                <strong>LAF-52:</strong> Bitácora de mohos y levaduras
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                    <!-- Segunda columna - LAF-44 -->
+                                    <div class="col-6 col-sm-6 col-md-3 col-lg-3 col-xl-3 col-xxl-3 mb-4">
+                                        <div class="d-flex flex-column">
+                                            <!-- Código -->
+                                            <div class="form-floating mb-2">
+                                                <input type="text" class="form-control form-control-sm" id="nombre_laf_2" name="nombre_laf_2" value="LAF-44/" readonly>
+                                                <label for="nombre_laf_2">Bitácora</label>
+                                            </div>
+                                            
+                                            <!-- Mes -->
+                                            <div class="mb-2">
+                                                <label for="mes_1cc_2" class="form-label small mb-1"></label>
+                                                <select class="form-select form-select-sm" id="mes_1cc_2" name="mes_1cc_2">
+                                                    <option selected disabled>Mes</option>
+                                                    <option value="Enero">Enero</option>
+                                                    <option value="Febrero">Febrero</option>
+                                                    <option value="Marzo">Marzo</option>
+                                                    <option value="Abril">Abril</option>
+                                                    <option value="Mayo">Mayo</option>
+                                                    <option value="Junio">Junio</option>
+                                                    <option value="Julio">Julio</option>
+                                                    <option value="Agosto">Agosto</option>
+                                                    <option value="Septiembre">Septiembre</option>
+                                                    <option value="Octubre">Octubre</option>
+                                                    <option value="Noviembre">Noviembre</option>
+                                                    <option value="Diciembre">Diciembre</option>
+                                                </select>
+                                            </div>
+                                            
+                                            <!-- Año -->
+                                            <div class="mb-2">
+                                                <label for="anio_1cc_2" class="form-label small mb-1"></label>
+                                                <select class="form-select form-select-sm anio-select tm" id="anio_1cc_2" name="anio_1cc_2">
+                                                    <option selected disabled>Año</option>
+                                                    <!-- Opciones de años se agregan con JavaScript -->
+                                                </select>
+                                            </div>
+                                            
+                                            <!-- Página -->
+                                            <div class="form-floating">
+                                                <input type="text" id="page_1cc_2" name="page_1cc_2" class="form-control form-control-sm" required>
+                                                <label for="page_1cc_2">Página</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Tercera columna - LAF-43 -->
+                                    <div class="col-6 col-sm-6 col-md-3 col-lg-3 col-xl-3 col-xxl-3 mb-4">
+                                        <div class="d-flex flex-column">
+                                            <!-- Código -->
+                                            <div class="form-floating mb-2">
+                                                <input type="text" class="form-control form-control-sm" id="nombre_laf_3" name="nombre_laf_3" value="LAF-57/" readonly>
+                                                <label for="nombre_laf_3">Bitácora</label>
+                                            </div>
+                                            
+                                            <!-- Mes -->
+                                            <div class="mb-2">
+                                                <label for="mes_1cc_3" class="form-label small mb-1"></label>
+                                                <select class="form-select form-select-sm" id="mes_1cc_3" name="mes_1cc_3">
+                                                    <option selected disabled>Mes</option>
+                                                    <option value="Enero">Enero</option>
+                                                    <option value="Febrero">Febrero</option>
+                                                    <option value="Marzo">Marzo</option>
+                                                    <option value="Abril">Abril</option>
+                                                    <option value="Mayo">Mayo</option>
+                                                    <option value="Junio">Junio</option>
+                                                    <option value="Julio">Julio</option>
+                                                    <option value="Agosto">Agosto</option>
+                                                    <option value="Septiembre">Septiembre</option>
+                                                    <option value="Octubre">Octubre</option>
+                                                    <option value="Noviembre">Noviembre</option>
+                                                    <option value="Diciembre">Diciembre</option>
+                                                </select>
+                                            </div>
+                                            
+                                            <!-- Año -->
+                                            <div class="mb-2">
+                                                <label for="anio_1cc_3" class="form-label small mb-1"></label>
+                                                <select class="form-select form-select-sm anio-select tm" id="anio_1cc_3" name="anio_1cc_3">
+                                                    <option selected disabled>Año</option>
+                                                    <!-- Opciones de años se agregan con JavaScript -->
+                                                </select>
+                                            </div>
+                                            
+                                            <!-- Página -->
+                                            <div class="form-floating">
+                                                <input type="text" id="page_1cc_3" name="page_1cc_3" class="form-control form-control-sm" required>
+                                                <label for="page_1cc_3">Página</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Cuarta columna - LAF-42 -->
+                                    <div class="col-6 col-sm-6 col-md-3 col-lg-3 col-xl-3 col-xxl-3 mb-4">
+                                        <div class="d-flex flex-column">
+                                            <!-- Código -->
+                                            <div class="form-floating mb-2">
+                                                <input type="text" class="form-control form-control-sm" id="nombre_laf_4" name="nombre_laf_4" value="LAF-52/" readonly>
+                                                <label for="nombre_laf_4">Bitácora</label>
+                                            </div>
+                                            
+                                            <!-- Mes -->
+                                            <div class="mb-2">
+                                                <label for="mes_1cc_4" class="form-label small mb-1"></label>
+                                                <select class="form-select form-select-sm" id="mes_1cc_4" name="mes_1cc_4">
+                                                    <option selected disabled>Mes</option>
+                                                    <option value="Enero">Enero</option>
+                                                    <option value="Febrero">Febrero</option>
+                                                    <option value="Marzo">Marzo</option>
+                                                    <option value="Abril">Abril</option>
+                                                    <option value="Mayo">Mayo</option>
+                                                    <option value="Junio">Junio</option>
+                                                    <option value="Julio">Julio</option>
+                                                    <option value="Agosto">Agosto</option>
+                                                    <option value="Septiembre">Septiembre</option>
+                                                    <option value="Octubre">Octubre</option>
+                                                    <option value="Noviembre">Noviembre</option>
+                                                    <option value="Diciembre">Diciembre</option>
+                                                </select>
+                                            </div>
+                                            
+                                            <!-- Año -->
+                                            <div class="mb-2">
+                                                <label for="anio_1cc_4" class="form-label small mb-1"></label>
+                                                <select class="form-select form-select-sm anio-select tm" id="anio_1cc_4" name="anio_1cc_4">
+                                                    <option selected disabled>Año</option>
+                                                    <!-- Opciones de años se agregan con JavaScript -->
+                                                </select>
+                                            </div>
+                                            
+                                            <!-- Página -->
+                                            <div class="form-floating">
+                                                <input type="text" id="page_1cc_4" name="page_1cc_4" class="form-control form-control-sm" required>
+                                                <label for="page_1cc_4">Página</label>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
+                                
+                                <!-- Descripción de las bitácoras -->
+                                <div class="row mt-4">
+                                    <div class="col-12 text-center">
+                                        <p class="mb-0 small">
+                                            <strong>LAF-45:</strong> Bitácora de control de calidad de microbiología,
+                                            <strong>LAF-44:</strong> Bitácora de control de medio ambiente,
+                                            <strong>LAF-57:</strong> Bitácora de bacterias aerobias en placa,
+                                            <strong>LAF-52:</strong> Bitácora de mohos y levaduras
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>                                     
+                       
+                   </div>                                       
             </div>
         </div>
     </div>
@@ -581,82 +710,82 @@
                                     </td>
                                     
                                     <!-- Primera fórmula -->
-<!-- Primera fórmula -->
-<td class="align-middle">
-    <!-- Content for calculo de resultado -->
-    <div class="d-flex flex-column gap-1">
-        <p class="fs-9 mb-0">Promedio de lectura ÷ Dilución empleada = Resultado</p>
-        <div class="d-flex gap-1">
-            <input type="number" id="num1" name="dato1_ejemplo_1" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;">
-            <span class="fs-9">÷</span>
-            <input type="number" id="num2" name="dato2_ejemplo_1" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;">
-            <span class="fs-9">=</span>
-            <!-- Resultado visible como label -->
-            <label class="fs-9" id="result" >R</label>
-            <!-- Input oculto para enviar el valor -->
-            <input type="hidden" id="resultdo_ejemplo_1" name="resultdo_ejemplo_1">
-        </div>
-        <div class="d-flex gap-1 p-1">
-            <p class="fs-9 mb-0">Clave muestra:</p>
-            <input type="text" name="clave_muestra_ejemplo_1" class="form-control form-control-sm" style="width: 80px; height: 25px; font-size: 0.75rem;">
-        </div>
-    </div>
-</td>
+                                    <!-- Primera fórmula -->
+                                    <td class="align-middle">
+                                        <!-- Content for calculo de resultado -->
+                                        <div class="d-flex flex-column gap-1">
+                                            <p class="fs-9 mb-0">Promedio de lectura ÷ Dilución empleada = Resultado</p>
+                                            <div class="d-flex gap-1">
+                                                <input type="number" id="num1" name="dato1_ejemplo_1" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;">
+                                                <span class="fs-9">÷</span>
+                                                <input type="number" id="num2" name="dato2_ejemplo_1" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;">
+                                                <span class="fs-9">=</span>
+                                                <!-- Resultado visible como label -->
+                                                <label class="fs-9" id="result" >R</label>
+                                                <!-- Input oculto para enviar el valor -->
+                                                <input type="hidden" id="resultdo_ejemplo_1" name="resultdo_ejemplo_1">
+                                            </div>
+                                            <div class="d-flex gap-1 p-1">
+                                                <p class="fs-9 mb-0">Clave muestra:</p>
+                                                <input type="text" name="clave_muestra_ejemplo_1" class="form-control form-control-sm" style="width: 80px; height: 25px; font-size: 0.75rem;">
+                                            </div>
+                                        </div>
+                                    </td>
+                                                                        
+                                    <!-- Segunda fórmula -->
+                                    <td class="align-middle">
+                                        <!-- Content for calculo de resultado -->
+                                        <div class="d-flex flex-column gap-1">
+                                            <p class="fs-9 mb-0">Ejemplo de cálculo de resultado de superficies vivas e inertes:</p>
+                                            <p class="fs-9 mb-0">(promedio de la lectura ÷ Dilución empleadas) x Volumen de medio de transporte = resultado</p>
+                                            <div class="d-flex gap-1">
+                                                (<input type="text" id="num3" name="dato1_ejemplo_2" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;">
+                                                <span class="fs-9">÷</span>
+                                                <input type="text" id="num4" name="dato2_ejemplo_2" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;">) x
+                                                <input type="text" id="num5" name="dato3_ejemplo_2" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;">
+                                                <span class="fs-9">=</span>
+                                                <!-- Resultado visible como label -->
+                                                <label class="fs-9" id="result2" >R</label>
+                                                <!-- Input oculto para enviar el valor -->
+                                                <input type="hidden" id="resultdo_ejemplo_2" name="resultdo_ejemplo_2">
+                                            </div>
+                                            <div class="d-flex gap-1 p-1">
+                                                <p class="fs-9 mb-0">Clave muestra:</p>
+                                                <input type="text" name="clave_muestra_ejemplo_2" class="form-control form-control-sm" style="width: 80px; height: 25px; font-size: 0.75rem;">
+                                            </div>
+                                        </div>
+                                    </td>
                                     
-<!-- Segunda fórmula -->
-<td class="align-middle">
-    <!-- Content for calculo de resultado -->
-    <div class="d-flex flex-column gap-1">
-        <p class="fs-9 mb-0">Ejemplo de cálculo de resultado de superficies vivas e inertes:</p>
-        <p class="fs-9 mb-0">(promedio de la lectura ÷ Dilución empleadas) x Volumen de medio de transporte = resultado</p>
-        <div class="d-flex gap-1">
-            (<input type="text" id="num3" name="dato1_ejemplo_2" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;">
-            <span class="fs-9">÷</span>
-            <input type="text" id="num4" name="dato2_ejemplo_2" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;">) x
-            <input type="text" id="num5" name="dato3_ejemplo_2" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;">
-            <span class="fs-9">=</span>
-            <!-- Resultado visible como label -->
-            <label class="fs-9" id="result2" >R</label>
-            <!-- Input oculto para enviar el valor -->
-            <input type="hidden" id="resultdo_ejemplo_2" name="resultdo_ejemplo_2">
-        </div>
-        <div class="d-flex gap-1 p-1">
-            <p class="fs-9 mb-0">Clave muestra:</p>
-            <input type="text" name="clave_muestra_ejemplo_2" class="form-control form-control-sm" style="width: 80px; height: 25px; font-size: 0.75rem;">
-        </div>
-    </div>
-</td>
-                                    
-<!-- Tercera fórmula -->
-<td class="align-middle">
-    <!-- Content for calculo de resultado -->
-    <div class="d-flex flex-column gap-1">
-        <p class="fs-9 mb-0">Ejemplo de cálculo diferencia entre duplicados</p>
-        <div class="formula-container">
-            <p class="formula-text flex-column mb-0">
-                <span class="formula-part">(placa1 - placa2) ÷ Promedio × 100 = ≤5%</span>
-            </p>
-        </div>
-        
-        <div class="d-flex gap-1">
-            <input type="text" id="num6" name="dato1_ejemplo_3" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;">
-            <span class="fs-9">-</span>
-            <input type="text" id="num7" name="dato2_ejemplo_3" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;">
-            <span class="fs-9">÷</span>
-            <input type="text" id="num8" name="dato3_ejemplo_3" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;">
-            
-            <span class="fs-9">x 100 =</span>
-            <!-- Resultado visible como label -->
-            <label class="fs-9" id="result3" >R</label>
-            <!-- Input oculto para enviar el valor -->
-            <input type="hidden" id="resultdo_ejemplo_3" name="resultdo_ejemplo_3">
-        </div>
-        <div class="d-flex gap-1 p-1">
-            <p class="fs-9 mb-0">Clave muestra:</p>
-            <input type="text" name="clave_muestra_ejemplo_3" class="form-control form-control-sm" style="width: 80px; height: 25px; font-size: 0.75rem;">
-        </div>
-    </div>
-</td>                             
+                                            <!-- Tercera fórmula -->
+                                            <td class="align-middle">
+                                                <!-- Content for calculo de resultado -->
+                                                <div class="d-flex flex-column gap-1">
+                                                    <p class="fs-9 mb-0">Ejemplo de cálculo diferencia entre duplicados</p>
+                                                    <div class="formula-container">
+                                                        <p class="formula-text flex-column mb-0">
+                                                            <span class="formula-part">(placa1 - placa2) ÷ Promedio × 100 = ≤5%</span>
+                                                        </p>
+                                                    </div>
+                                                    
+                                                    <div class="d-flex gap-1">
+                                                        <input type="text" id="num6" name="dato1_ejemplo_3" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;">
+                                                        <span class="fs-9">-</span>
+                                                        <input type="text" id="num7" name="dato2_ejemplo_3" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;">
+                                                        <span class="fs-9">÷</span>
+                                                        <input type="text" id="num8" name="dato3_ejemplo_3" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;">
+                                                        
+                                                        <span class="fs-9">x 100 =</span>
+                                                        <!-- Resultado visible como label -->
+                                                        <label class="fs-9" id="result3" >R</label>
+                                                        <!-- Input oculto para enviar el valor -->
+                                                        <input type="hidden" id="resultdo_ejemplo_3" name="resultdo_ejemplo_3">
+                                                    </div>
+                                                    <div class="d-flex gap-1 p-1">
+                                                        <p class="fs-9 mb-0">Clave muestra:</p>
+                                                        <input type="text" name="clave_muestra_ejemplo_3" class="form-control form-control-sm" style="width: 80px; height: 25px; font-size: 0.75rem;">
+                                                    </div>
+                                                </div>
+                                            </td>                             
                                     <td class="align-middle">
                                         <div class="text-center">
                                             <span class="text-muted">Pendiente de elaboración</span>
@@ -685,85 +814,49 @@
                         </table>
                     </div>
                     
-                    <!-- Mobile-only accordion view that appears on small screens -->
-                    <div class="d-md-none mt-3">
-                        <div class="accordion" id="tableAccordion">
-                            <!-- Observaciones Section -->
-                            <div class="card">
-                                <div class="card-header" id="headingObservaciones">
-                                    <h2 class="mb-0">
-                                        <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse" data-target="#collapseObservaciones" aria-expanded="true" aria-controls="collapseObservaciones">
-                                            Observaciones
-                                        </button>
-                                    </h2>
-                                </div>
-                                <div id="collapseObservaciones" class="collapse show" aria-labelledby="headingObservaciones" data-parent="#tableAccordion">
-                                    <div class="card-body">
-                                        <textarea name="observaciones_cbap_mobile" class="form-control" rows="3" style="resize: none;" placeholder="Escriba sus observaciones aquí..."></textarea>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Cálculos Section -->
-                            <div class="card">
-                                <div class="card-header" id="headingCalculos">
-                                    <h2 class="mb-0">
-                                        <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#collapseCalculos" aria-expanded="false" aria-controls="collapseCalculos">
-                                            Cálculos
-                                        </button>
-                                    </h2>
-                                </div>
-                                <div id="collapseCalculos" class="collapse" aria-labelledby="headingCalculos" data-parent="#tableAccordion">
-                                    <div class="card-body">
-                                        <div class="mb-3">
-                                            <h6>Cálculo de resultado</h6>
-                                            <small>Contenido del cálculo de resultado</small>
-                                        </div>
-                                        <div class="mb-3">
-                                            <h6>Cálculo de superficies</h6>
-                                            <small>Contenido del cálculo de superficies</small>
-                                        </div>
-                                        <div>
-                                            <h6>Cálculo de diferencias</h6>
-                                            <small>Contenido del cálculo de diferencias</small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Firmas Section -->
-                            <div class="card">
-                                <div class="card-header" id="headingFirmas">
-                                    <h2 class="mb-0">
-                                        <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#collapseFirmas" aria-expanded="false" aria-controls="collapseFirmas">
-                                            Firmas
-                                        </button>
-                                    </h2>
-                                </div>
-                                <div id="collapseFirmas" class="collapse" aria-labelledby="headingFirmas" data-parent="#tableAccordion">
-                                    <div class="card-body">
-                                        <div class="row">
-                                            <div class="col-4 text-center">
-                                                <small class="text-muted">Elaboró</small>
+                    <!-- Versión móvil de la tabla - visible solo en pantallas pequeñas -->
+                    <div class="d-md-none">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-sm">
+                                <thead>
+                                    <tr>
+                                        <th colspan="2">Información del Documento</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <th scope="row">Observaciones</th>
+                                        <td>
+                                            <textarea name="observaciones_cbap" class="form-control form-control-sm" rows="3" style="resize: none;" placeholder="Escriba sus observaciones aquí..."></textarea>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="2" class="text-center fw-bold">Elaboración y Firmas</td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="2">
+                                            <div class="text-center border-bottom pb-2 mb-2">
+                                                <span class="text-muted">Pendiente de elaboración</span>
                                                 <hr class="my-1">
-                                                <small>Firma</small>
+                                                <span>Firma</span>
                                             </div>
-                                            <div class="col-4 text-center">
-                                                <small class="text-muted">Revisó</small>
+                                            <div class="text-center border-bottom pb-2 mb-2">
+                                                <span class="text-muted">Pendiente de revisión</span>
                                                 <hr class="my-1">
-                                                <small>Firma</small>
+                                                <span>Firma</span>
                                             </div>
-                                            <div class="col-4 text-center">
-                                                <small class="text-muted">Autorizó</small>
+                                            <div class="text-center">
+                                                <span class="text-muted">Pendiente de autorización</span>
                                                 <hr class="my-1">
-                                                <small>Firma</small>
+                                                <span>Firma</span>
                                             </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
+                    
                 </div>
             </div>
         </div>
@@ -892,6 +985,7 @@
 {% block extra_js %}
     <script type="module" src="{% static 'js/events-bita131.js' %}"></script>
     <script src="{% static 'js/functions.js' %}"></script>
+    <script src="{% static 'js/tomos.js' %}"></script>
    
     
 {% endblock %}

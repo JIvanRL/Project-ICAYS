@@ -1,0 +1,16 @@
+/* Estilos para campos editados */
+.valor-editado {
+    border: 2px solid #28a745 !important;
+    background-color: rgba(40, 167, 69, 0.1) !important;
+}
+
+/* Efecto de destello para indicar actualización */
+@keyframes destello {
+    0% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(40, 167, 69, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
+}
+
+.destello {
+    animation: destello 1s ease-out;
+}

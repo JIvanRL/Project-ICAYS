@@ -1,0 +1,61 @@
+.modalOB {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+.modal-contentOB {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 600px;
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close:hover {
+    color: black;
+}
+
+textarea {
+    width: 100%;
+    margin: 10px 0;
+}
+
+/* Boton de retroalimentacion */
+
+.retroAlim {
+    background: #177838;
+    font-size: 18px;
+    color: white; /* La letra será blanca por defecto */
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    margin-top: 20px; /* Añadido para separar el botón un poco más abajo */
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s; /* Para transición suave en el hover */
+}
+
+.retroAlim:hover {
+    background-color: white; /* El fondo se vuelve blanco */
+    color: black; /* El texto se vuelve negro */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Añadir sombra sutil al pasar el mouse */
+  }
+  
+  .retroAlim:focus {
+    outline: none; /* Elimina el borde azul al hacer foco */
+  }
+

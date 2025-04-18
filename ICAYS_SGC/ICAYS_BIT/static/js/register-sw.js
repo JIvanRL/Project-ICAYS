@@ -90,7 +90,7 @@ function showNotSupportedMessage() {
   const message = document.createElement('div');
   message.id = 'notifications-not-supported';
   message.className = 'notifications-not-supported';
-  message.textContent = 'Tu navegador no soporta notificaciones push.';
+
   
   // Añadir al DOM
   const header = document.querySelector('header') || document.querySelector('nav');

@@ -1,7 +1,7 @@
 from django import forms
 from .models import (
     DilucionesEmpleadas, Direct_o_Dilucion, Dilucion,
-    ControlCalidad, VerificacionBalanza, bita_cbap, DatosCampoCbap, ClaveMuestraCbap, Resultado, Bitcoras_Cbap, tableBlanco, ejemplosFormulas
+    ControlCalidad, VerificacionBalanza, bita_cbap, DatosCampoCbap, ClaveMuestraCbap, Resultado, Bitcoras_Cbap, tableBlanco, ejemplosFormulas, Lecturas, ObservacionCampo
 )
 
 from .models import DilucionesEmpleadas
@@ -63,11 +63,7 @@ class Dilucion2Form(forms.ModelForm):
 class ControlCalidadForm(forms.ModelForm):
     class Meta:
         model = ControlCalidad
-        fields = ['nombre_laf','fecha_1cc', 'page_1cc']
-# class ControlCalidadForm(forms.ModelForm):
-#     class Meta:
-#         model = ControlCalidad
-#         fields = ['laf_1','fecha_1cc', 'page_1cc', 'laf_2','fecha_2cc','page_2cc','laf_3', 'fecha_3cc','page_3cc','laf_4','fecha_4cc','page_4cc']
+        fields = ['nombre_laf','mes_1cc', 'anio_1cc', 'page_1cc']
 
 # Formulario para VerificacionBalanza
 class VerificacionBalanzaForm(forms.ModelForm):
@@ -76,7 +72,8 @@ class VerificacionBalanzaForm(forms.ModelForm):
         fields = [
             'hora_vb', 'actividad_vb', 'ajuste_vb', 'valor_nominal_vb', 
             'valor_convencional_vb', 'valo_masa_vb', 'diferecnia_vb', 
-            'incertidumbre_vb', 'emt_vb', 'aceptacion_vb', 'valor_pesado_muestra_vb'
+            'incertidumbre_vb', 'emt_vb', 'aceptacion_vb', 'valor_pesado_muestra_vb', 'mes_verficacion_vb', 'anio_verficacion_vb',
+            'pagina_verficacion_vb'
         ]
 
 class DatosCampoCbapForm(forms.ModelForm):
@@ -99,10 +96,9 @@ class BitaCbapForm(forms.ModelForm):
     class Meta:
         model = bita_cbap
         fields = [
-            'nombre_cbap', 'pagina_cbap', 'letra_analista_cbap', 
+            'nombre_cbap', 'pagina_cbap', 'letra_analista_cbap', 'año_muestra_cbap', 
             'mes_muestra_cbap', 'pagina_muestra_cbap', 'pagina_fosfato_cbap', 
-            'numero_fosfato_cbap', 'pagina_agar_cbap', 'numero_agar_cbap', 
-            'fecha_lectura_cbap', 'hora_lectura_cbap', 'observaciones_cbap'
+            'numero_fosfato_cbap', 'pagina_agar_cbap', 'numero_agar_cbap', 'observaciones_cbap'
         ]
 class BitcorasCbapForm(forms.ModelForm):
     class Meta:
@@ -119,3 +115,14 @@ class EjemplosForm(forms.ModelForm):
     class Meta: 
         model = ejemplosFormulas
         fields = ['dato1_ejemplo', 'dato2_ejemplo', 'dato3_ejemplo', 'resultdo_ejemplo', 'clave_muestra_ejemplo']
+
+class LecturasForm(forms.ModelForm):
+    class Meta:
+        model = Lecturas
+        fields = ['fecha_lectura_1', 'hora_lectura_1','fecha_lectura_2', 'hora_lectura_2']
+
+class ObservacionesForm(forms.ModelForm):
+    class Meta:
+        model = ObservacionCampo
+        fields = ['campo_nombre', 'valor_original','campo_tipo', 'observacion']
+        
