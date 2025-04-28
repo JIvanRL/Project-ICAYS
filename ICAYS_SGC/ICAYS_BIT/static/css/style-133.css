@@ -1,186 +1,10 @@
-/* linea de los imput */
+.card {
+    height: 100%;
+  }
 
-.input-container {
-    font-family: Arial, sans-serif; /* Fuente opcional */
-    margin: 20px; /* Espacio externo */
-}
-
-.underline-input {
-    border: none; /* Sin borde */
-    border-bottom: 2px solid #000; /* Línea inferior */
-    outline: none; /* Sin contorno al hacer clic */
-    padding: 5px; /* Espacio interno */
-    font-size: 16px; /* Tamaño de la fuente */
-    background: transparent; /* Fondo transparente */
-    width: 120px; /* Ancho del input */
-    padding-bottom: 0px;
-}
-
-.underline-input::placeholder {
-    color: transparent; /* Oculta el placeholder */
-}
-
-
-.underline-input-peque {
-    border: none; /* Sin borde */
-    border-bottom: 2px solid #000; /* Línea inferior */
-    outline: none; /* Sin contorno al hacer clic */
-    padding: 6px; /* Espacio interno */
-    font-size: 13px; /* Tamaño de la fuente */
-    background: transparent; /* Fondo transparente */
-    width: 40px; /* Ancho del input */
-    padding-bottom: 0px; /* Espacio entre el texto y la línea */
-}
-
-.underline-input-peque::placeholder {
-    color: transparent; /* Oculta el placeholder */
-}
-
-
-/* Nuevo */
-.a {
-    margin: 15px;
-    font-family: Arial, sans-serif;
-    display: flex
-}
-
-.fechaC {
-    display: inline-block;
-    width: 140px;
-}
-
-input[type="date"] {
-    padding: 10px; /* Espacio interno */
-    font-size: 16px; /* Tamaño de la fuente */
-    border: 1px solid #ccc; /* Borde */
-    border-radius: 5px; /* Bordes redondeados */
-    outline: none; /* Sin contorno al hacer clic */
-}
-
-input[type="date"]:focus {
-    border-color: #007bff; /* Cambia el color del borde al hacer clic */
-    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); /* Sombra al hacer clic */
-}
-
-/* Nuevo hora */
-
-
-input[type="time"] {
-    padding: 10px; /* Espacio interno */
-    font-size: 16px; /* Tamaño de la fuente */
-    border: 1px solid #ccc; /* Borde */
-    border-radius: 5px; /* Bordes redondeados */
-    outline: none; /* Sin contorno al hacer clic */
-}
-
-input[type="time"]:focus {
-    border-color: #007bff; /* Cambia el color del borde al hacer clic */
-    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); /* Sombra al hacer clic */
-}
-
-/* texto con lineas */
-
-.texto-con-linea1 {
-    display: inline-block; /* Hace que el borde solo ocupe el ancho del texto */
-    border-bottom: 2px solid black; /* Línea negra debajo del texto */
-    padding-bottom: 2px; /* Espacio entre el texto y la línea */
-}
-
-.texto-con-linea {
-    position: relative;
-    display: inline-block;
-    margin-left: 10px;
-}
-
-.texto-con-linea::after {
-    content: '';
-    position: absolute;
-    left: 65%; /* Centra la línea respecto al texto */
-    transform: translateX(-60%); /* Ajusta la posición horizontal */
-    bottom: -2px; /* Posición de la línea */
-    width: 130%;
-    height: 1px; /* Grosor de la línea */
-    background-color: black; /* Color de la línea */
-}
-
-.texto-con-linea-peque {
-    position: relative;
-    display: inline-block;
-    margin-left: 10px;
-}
-
-.texto-con-linea-peque::after {
-    content: '';
-    position: absolute;
-    left: 65%; /* Centra la línea respecto al texto */
-    transform: translateX(-60%); /* Ajusta la posición horizontal */
-    bottom: -2px; /* Posición de la línea */
-    width: 100%;
-    height: 1px; /* Grosor de la línea */
-    background-color: black; /* Color de la línea */
-}
-
-/* Espacio entre palabras - estilos para acomodar las palabras*/
-
-.fuentePeq {
-    font-size: 13px;
-}
-
-.espacioLetras {
-    margin-left: 20px; /* Espacio de 10px */
-}
-
-.espacioPalabras {
-    padding-left: 50px;
-}
-
-.espacioPag {
-    padding-left: 25px;
-}
-
-.espacioToms {
-    padding-left: 35px;
-}
-
-.mismoRenglon {
-    display: inline-block;
-}
-
-/* estilos de las tablas */
-
-table {
-    width: 100%;
-    height: 200px;
-    border-collapse: collapse;
-    margin: 20px 0;
-}
-
-th, td {
-    border: 1px solid #ccc;
-    padding: 10px;
-    text-align: center;
-}
-
-th {
-    background-color: #f0f0f0;
-    font-weight: bold;
-}
-
-.contenedor-tabla {
-    overflow-x: auto; /* Barra de desplazamiento horizontal si es necesario */
-    padding-left: 40px; /* Espacio a la izquierda */
-    padding-right: 40px;
-}
-
-.underline-tabla {
-    border: none; /* Sin borde */
-    border-bottom: 0px solid #000; /* Línea inferior */
-    outline: none; /* Sin contorno al hacer clic */
-    padding: 5px; /* Espacio interno */
-    font-size: 16px; /* Tamaño de la fuente */
-    background: transparent; /* Fondo transparente */
-    width: 120px; /* Ancho del input */
-}
+.full-height {
+    height: 100%;
+  }
 
 .celda-flex {
     display: flex;
@@ -207,84 +31,203 @@ th {
     background-color: #f0f0f0; /* Cambia el color de fondo al hacer clic */
 }
 
-
-.tabla2 {
-    width: 500px; 
-    height: 90px; 
-    border: 1px solid black;
-    padding-left: 30px;
+/* Clase para los titulos redondeados y azules como taba de cumplimiento de calidad*/
+.cct {
+  caption-side: top;
+  font-size: 1.5em;
+  font-weight: bold;
+  padding: 10px;
+  background-color: #063970;
+  color: white;
+  border-radius: 10px;
 }
 
-.tabla2 td {
-    width: 50px;
-    height: 10px;
-    text-align: center;
-  }
+/* clase texto con lineas */
 
-/* Divicion de pantalla */
-
-.div-izquierdo, .div-derecho {
-    padding: 20px;
-    box-sizing: border-box;
+.texto-con-linea1 {
+  display: inline-block; /* Hace que el borde solo ocupe el ancho del texto */
+  border-bottom: 2px solid black; /* Línea negra debajo del texto */
+  padding-bottom: 2px; /* Espacio entre el texto y la línea */
 }
 
-.div-izquierdo {
-    flex: 6; /* Ocupa 1 parte del espacio disponible */
-    background-color: white; /* Color de fondo */
-    color: black; /* Color del texto */
+.texto-con-linea {
+  position: relative;
+  display: inline-block;
+  margin-left: 10px;
 }
 
-.div-derecho {
-    flex: 4; /* Ocupa 2 partes del espacio disponible */
-    background-color: white; /* Color de fondo */
-    color: black; /* Color del texto */
+.texto-con-linea::after {
+  content: '';
+  position: absolute;
+  left: 65%; /* Centra la línea respecto al texto */
+  transform: translateX(-60%); /* Ajusta la posición horizontal */
+  bottom: -2px; /* Posición de la línea */
+  width: 130%;
+  height: 1px; /* Grosor de la línea */
+  background-color: black; /* Color de la línea */
 }
 
-.contenedor-flex {
-    display: flex; /* Activa Flexbox */
-    height: 100vh; /* Ocupa toda la altura de la pantalla */
+.texto-con-linea-peque {
+  position: relative;
+  display: inline-block;
+  margin-left: 10px;
 }
 
-@media (max-width: 820px) {
-    .contenedor-flex {
-        flex-direction: column; /* Cambia la dirección a vertical 768px*/
-    }
-
-    .div-izquierdo, .div-derecho {
-        flex: 1 1 100%; /* Ocupa el 100% del ancho */
-    }
-
-    .contenedor-tabla {
-        overflow-x: auto; /* Barra de desplazamiento horizontal si es necesario */
-        padding-left: 0%; /* Espacio a la izquierda */
-        padding-right: 0%;
-    }
+.texto-con-linea-peque::after {
+  content: '';
+  position: absolute;
+  left: 65%; /* Centra la línea respecto al texto */
+  transform: translateX(-60%); /* Ajusta la posición horizontal */
+  bottom: -2px; /* Posición de la línea */
+  width: 100%;
+  height: 1px; /* Grosor de la línea */
+  background-color: black; /* Color de la línea */
 }
 
-/* cancelacion */
-
-.registro-cancelado {
-    position: relative;
-    display: inline-block;
-    padding: 0 10px;
+.mismoRenglon {
+  display: inline-block;
 }
 
-.registro-cancelado::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 0;
-    width: 100%;
-    height: 3px; /* Línea más gruesa */
-    background-color: #ccc; /* Color gris */
-    transform: rotate(-45deg);
-    transform-origin: center;
+/* linea de los imput */
+
+.input-container {
+  font-family: Arial, sans-serif; /* Fuente opcional */
+  margin: 20px; /* Espacio externo */
 }
 
-.diagonal {
-    width: 300px;
-    height: 200px;
-    background: linear-gradient(45deg, #ff7f50, #1e90ff);
-    /* Este gradiente crea una diagonal desde la esquina superior izquierda hasta la esquina inferior derecha */
-    border: 1px solid #000;
+.underline-input {
+  border: none; /* Sin borde */
+  border-bottom: 2px solid #000; /* Línea inferior */
+  outline: none; /* Sin contorno al hacer clic */
+  padding: 5px; /* Espacio interno */
+  font-size: 16px; /* Tamaño de la fuente */
+  background: transparent; /* Fondo transparente */
+  width: 50px; /* Ancho del input */
+  padding-bottom: 0px;
+  text-align: center;
+}
+
+.underline-input::placeholder {
+  color: transparent; /* Oculta el placeholder */
+}
+
+
+.underline-input-peque {
+  border: none; /* Sin borde */
+  border-bottom: 2px solid #000; /* Línea inferior */
+  outline: none; /* Sin contorno al hacer clic */
+  padding: 6px; /* Espacio interno */
+  font-size: 13px; /* Tamaño de la fuente */
+  background: transparent; /* Fondo transparente */
+  width: 40px; /* Ancho del input */
+  padding-bottom: 0px; /* Espacio entre el texto y la línea */
+}
+
+.underline-input-peque::placeholder {
+  color: transparent; /* Oculta el placeholder */
+}
+
+/* diseños nuevos */
+
+.ipt {
+  width: 50px; /* Ancho del input */
+  text-align: center;
+  border-radius: 10%;
+}
+.ipt_T {
+  width: 90px; /* Ancho del input */
+  text-align: center;
+  border-radius: 10%;
+}
+
+.ipt::placeholder{
+  color: transparent;
+}
+
+td input {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: transparent;
+  text-align: center;
+  padding: 5px;
+  box-sizing: border-box;
+}
+
+.tmInT {
+  width: 55px;
+
+}
+
+.fraccion {
+  display: inline-block;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.numerador, .denominador {
+  display: block;
+}
+
+.numerador {
+  border-bottom: 1px solid black; /* Línea divisoria */
+  padding: 0 5px; /* Espaciado horizontal */
+}
+
+.tm {
+  font-size: 14px;
+}
+
+.trm {
+  font-size: 20px;
+}
+
+.botones-flotantes {
+  position: fixed; /* Hace que el contenedor sea flotante */
+   /*bottom: 20px; Distancia desde la parte inferior de la pantalla */
+  /* left: 50%;  Centra horizontalmente */
+  /* transform: translateX(-50%);  Ajusta el centrado */
+  z-index: 1000; /* Asegura que los botones estén por encima de otros elementos */
+   /* background-color: white; Fondo para que los botones sean visibles */
+   /* padding: 10px; Espaciado interno */
+   /* border-radius: 8px; Bordes redondeados */
+  /*  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); Sombra para resaltar */
+}
+
+#boton-subir {
+  position: fixed; /* Fija el botón en la pantalla */
+  bottom: 20px; /* Distancia desde la parte inferior */
+  right: 20px; /* Distancia desde la derecha */
+  display: none; /* Oculta el botón inicialmente */
+  z-index: 1000; /* Asegura que esté por encima de otros elementos */
+}
+
+.tdD {
+  position: relative; /* Establecer el contexto de posicionamiento */
+  padding: 0;         /* Eliminar el padding de la celda */
+  margin: 0;          /* Eliminar el margin de la celda */
+}
+
+.tdD input[type="checkbox"] {
+  position: absolute; /* Posicionar el checkbox de manera absoluta */
+  top: 10px;
+  left: 20px;
+  width: 70%;  /* Ocupar todo el ancho de la celda */
+  height: 70%; /* Ocupar todo el alto de la celda */
+  margin: 0;    /* Eliminar el margin del checkbox */
+}
+
+.TdDCh {
+  position: relative; /* Establecer el contexto de posicionamiento */
+  padding: 0;         /* Eliminar el padding de la celda */
+  margin: 0;          /* Eliminar el margin de la celda */
+}
+
+.TdDCh input[type="checkbox"] {
+  position: absolute; /* Posicionar el checkbox de manera absoluta */
+  top: 5px;
+  left: 20px;
+  width: 70%;  /* Ocupar todo el ancho de la celda */
+  height: 70%; /* Ocupar todo el alto de la celda */
+  margin: 0;    /* Eliminar el margin del checkbox */
 }

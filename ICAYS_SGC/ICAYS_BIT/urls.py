@@ -11,6 +11,8 @@ urlpatterns = [
     path('bitacorasAnaliticas/', views.analiticas, name='BitacorasAnaliticas'),
     path('mantenimiento/', views.paginasNo, name='paginando'),
     path('FP133/', views.cuentademohosylevaduras, name='FP-133'),
+    path('FP179/', views.preparacionSolucionesMediosCultivo, name='FP-179'),
+    path('FP173/', views.ControlMedioAmbiente, name='FP-173'),
     #listado de bitacoras
     path('listaBita/', views.lista_bitacoras_guardadas, name='lista_bitacoras'),
     #listado de bitacoras en revision
