@@ -1,0 +1,124 @@
+.rectangulo {
+    width: 250px;       /* Ancho del rectángulo */
+    height: 300px;      /* Alto del rectángulo */
+    background-color: #e9e9e9; /* Color de fondo */
+    border: 2px solid #000;  /* Borde opcional */
+    position: relative; /* Necesario para los pseudoelementos */
+}
+
+.rombo {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background-color: #4CAF50;
+    transform: rotate(45deg);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.rombo::before {
+    content: attr(data-numero);
+    color: white;
+    font-weight: bold;
+    font-size: 10px;
+    transform: rotate(-45deg);
+}
+
+/* 4 rombos en lado izquierdo */
+.rombo:nth-child(4) { top: 20px; left: 20px; }
+.rombo:nth-child(3) { top: 95px; left: 20px; }
+.rombo:nth-child(2) { top: 170px; left: 20px; }
+.rombo:nth-child(1) { top: 250px; left: 20px; }
+
+/* 3 rombos en parte superior (incluyendo 1 de los izquierdos) */
+.rombo:nth-child(5) { top: 20px; left: 115px; }
+.rombo:nth-child(6) { top: 20px; left: 210px; }
+
+/* 3 rombos en lado derecho (incluyendo 1 de los superiores) */
+.rombo:nth-child(7) { top: 95px; right: 20px; }
+.rombo:nth-child(8) { top: 170px; right: 20px; }
+
+
+/* Líneas divisorias */
+.linea {
+    position: absolute;
+    background-color: #333;
+    z-index: 1;
+}
+
+/* Línea vertical izquierda (Mesa 1) */
+.linea-vertical-izq {
+    top: 60px;
+    left: 70px;
+    width: 1px;
+    height: 237px;
+}
+
+/* Línea horizontal superior (Mesa 2) */
+.linea-horizontal-sup {
+    top: 60px;
+    left: 70px;
+    width: 106px;
+    height: 1px;
+}
+
+/* Línea vertical derecha (Mesa 3) */
+.linea-vertical-der {
+    top: 60px;
+    right: 70px;
+    width: 1px;
+    height: 145px;
+}
+
+.linea-horizontal-inf {
+    top: 205px;
+    right: 0px;
+    width: 71px;
+    height: 1px;
+}
+
+/* Etiquetas de Mesa */
+.mesa {
+    position: absolute;
+    font-weight: bold;
+    font-size: 12px;
+    color: #333;
+}
+
+.mesa-1 {
+    top: 130px;
+    left: 5px;
+    transform: rotate(-90deg);
+}
+
+.mesa-2 {
+    top: 45px;
+    left: 65px;
+    font-size: 10px;
+}
+
+.mesa-3 {
+    top: 130px;
+    right: 5px;
+    transform: rotate(-90deg);
+}
+
+/* Estilo para el contenedor del ícono */
+.icono-acomodo {
+    /* position: fixed; */
+    bottom: 0px;  /* Mismo margen inferior que los rombos */
+    right: 20px;   /* Mismo margen derecho que los rombos 7 y 8 */
+    z-index: 2;    /* Para que aparezca sobre las líneas si es necesario */
+    font-size: 44px; /* Tamaño del ícono */
+    color: #333;    /* Color del ícono */
+    top: 263px;}
+
+.linea-icon {
+    position: absolute;
+
+}
+
+.letterCh {
+    font-size: 14px;
+}

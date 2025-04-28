@@ -1,0 +1,317 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/173.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="overflow-x: hidden;">
+    <div class="contenedor-botones">
+    <div class="d-flex flex-wrap justify-content-between align-items-center">
+            <!-- Botón "Regresar" -->
+            <button class="icon-container button-style custom-button mb-2" data-url="{% url 'microalimentos:BitacorasAnaliticas' %}">Regresar</button>
+
+            <div class="d-flex justify-content-center flex-grow-1 ms-10">
+                <button class="icon-container button-style custom-button mb-2" data-url="{% url 'microalimentos:inicioAnalistas' %}">Menu Principal</button>
+            </div>
+        
+            <!-- Botones Enviar, cancelar y guardar-->
+            <div class="d-flex flex-wrap gap-2">
+                <button class="enviar-custom custom-button" data-url="{% url 'microalimentos:BitacorasAnaliticas' %}">Enviar</button>
+                <button class="cancelar-custom custom-button" data-url="{% url 'microalimentos:BitacorasAnaliticas' %}">Cancelar</button>
+                <button class="guardar-custom custom-button" type="submit">Guardar</button>
+            </div>
+    </div>
+    </div>
+
+    <!-- <button id="boton-subir" class="btn btn-primary">↑ Subir</button> -->
+
+    <div class="col-auto mb-5 text-center mt-5">
+        <h2>Control de medio ambiente por el metodo de placa expuesta y superficies inertes</h2>
+        <h3>Método General para el Control de Calidad en el área de Microbiología LAG-12LA</h3>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="row">
+            <div class="col-2 mb-3">
+                <div class="card">
+                    <div class="card-header text-center">Fecha</div>
+                        <div class="card-body">
+                            <input type="date" class="form-control form-control-sm text-center" id="fecha_siembra" name="FP133fechaSiembra" placeholder="Fecha" >
+                        </div>
+                </div>
+            </div>
+  
+            <div class="col-2 mb-3">
+                <div class="card">
+                    <div class="card-header text-center">Hora</div>
+                        <div class="card-body">
+                            <input type="time" class="form-control form-control-sm text-center" id="hora_siembra" name="FP133horaSiembra" placeholder="Hora" >
+                        </div>
+                </div>
+            </div>
+  
+            <div class="col-4 mb-3">
+                    <div class="text-center">
+                        <h6>Área de microbiología 2</h6>
+                </div>
+            </div>
+
+            <div class="col-4 mb-3">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="ms-2">
+                            <p>Equipo de incubación: </p>
+                        </div>
+                        <div class="text-center">
+                            <p class="fw-semibold d-inline">25°C</p> 
+                            <p class="d-inline">LAT-147</p>
+                        </div>
+
+                        <div class="text-center">
+                            <p class="fw-semibold d-inline">35°C</p> 
+                            <p class="d-inline">LAT-63</p>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+  
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row">
+                    <div class="col-3 mb-3">
+                        <p class="d-inline ms-5">Reactivos y medios de cultivo: </p>
+                    </div>
+                    <label for="inputEmail3" class="col-1 col-form-label text-center">LAF-02</label>
+                    <div class="col-1">
+                        <input type="email" class="form-control text-center" id="inputEmail3">
+                    </div>
+
+                    <div class="col-2">
+                        <p class="d-inline text-center">Tomo:</p>
+                        <select class="form-select tm" id="mes" name="FP133TomoLAF50M">
+                                <option selected>Mes</option>
+                                <option value="1">Enero</option>
+                                <option value="2">Febrero</option>
+                                <option value="3">Marzo</option>
+                                <option value="4">Abril</option>
+                                <option value="5">Mayo</option>
+                                <option value="6">Junio</option>
+                                <option value="7">Julio</option>
+                                <option value="8">Agosto</option>
+                                <option value="9">Septiembre</option>
+                                <option value="10">Octubre</option>
+                                <option value="11">Noviembre</option>
+                                <option value="12">Diciembre</option>
+                        </select>
+                        <select class="form-select anio-select tm" id="anio" name="FP133TomoLAF50A">
+                            <option selected>Año</option>
+                        </select>
+                    </div>
+                    <div class="col-2">
+                        <p class="text-center">
+                            Página
+                        </p>
+                        <input type="" class="form-control text-center">
+                    </div>
+                    <div class="col-2">
+                        <p class="text-center">Número</p>
+                        <input type="text" class="form-control text-center">
+                    </div>
+                </div>
+                </div>
+            </div>
+            
+        </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-2">
+                <p class="d-inline ms-5 fw-bolder">Desinfectante utilizado:</p>
+            </div>
+            <div class="col-2">
+                
+                <input type="text"class="d-flex form-control-sm">
+            </div>
+
+            <div class="col-3">
+
+            </div>
+            <div class="col-3">
+                <p>Numero de placas utilizadas para el analisis de medio ambiente:</p>
+            </div>
+
+            <div class="col-1">
+                <input type="text" class="form-control-sm">
+            </div>
+
+        </div>
+
+        <div class="row">
+            <div class="col-6">
+                <p class="d-inline fw-bolder">Nota:</p>
+                <p class="d-inline"> Para todas las actividades a realizar ver metodo general LAG-12LA</p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-6">
+                <p class="d-inline fw-bolder">TOMA DE MUESTRA DE SUPERFICIES INERTES.</p>
+                <p class="d-inline"> Para todas las actividades a realizar ver metodo general LAG-12LA</p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-6">
+                <p class="d-inline fw-bolder">METODO DE PLACA EXPUESTA (AIRE).</p>
+                <p class="d-inline"> Para todas las actividades a realizar ver metodo general LAG-12LA</p>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+
+            <div class="col-4 mb-3">
+                
+            </div>
+  
+            <div class="col-2 mb-3">
+                <div class="card">
+                    <div class="rectangulo">
+                         <!-- 4 rombos lado izquierdo -->
+                        <div class="rombo" data-numero="1"></div>
+                        <div class="rombo" data-numero="2"></div>
+                        <div class="rombo" data-numero="3"></div>
+                        <div class="rombo" data-numero="4"></div>
+                        
+                        <!-- 2 rombos adicionales en parte superior (el 5 y 6, el 1 ya está) -->
+                        <div class="rombo" data-numero="5"></div>
+                        <div class="rombo" data-numero="6"></div>
+                        
+                        <!-- 2 rombos adicionales en lado derecho (el 7 y 8, el 6 ya está) -->
+                        <div class="rombo" data-numero="7"></div>
+                        <div class="rombo" data-numero="8"></div>
+
+                        <!-- Líneas divisorias -->
+                        <div class="linea linea-vertical-izq"></div>
+                        <div class="linea linea-horizontal-sup"></div>
+                        <div class="linea linea-vertical-der"></div>
+                        <div class="linea linea-horizontal-inf"></div>
+                        
+                        <!-- Etiquetas de Mesa -->
+                        <div class="mesa mesa-1">Mesa de siembra 1</div>
+                        <div class="mesa mesa-2">Mesa de trabajo [equipos]</div>
+                        <div class="mesa mesa-3">Mesa de siembra 2</div>
+                        <div class="icono-acomodo"><i class="bi bi-arrow-return-left"></i></div>
+                    </div>
+                </div>
+            </div>
+  
+            <div class="col-4 mb-3 mt-4 mx-4">
+                <p>Ubicacion de los puntos para analisis</p>
+            </div>
+  
+        </div>
+
+        <div class="row mt-5">
+            <div class="col-6">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="card-header">
+                            <h5 class="text-center">MEDIO AMBIENTE (aire)</h5>
+                        </div>
+                        <div class="row mt-4">
+                            <div class="col-3">
+                                <p class="letterCh">Toma de muestra incubación:</p>
+                            </div>
+                            <div class="col-4">
+                                <div class="card">
+                                    <div class="card-header text-center">Fecha:</div>
+                                        <div class="card-body">
+                                            <input type="date" class="form-control form-control-sm text-center">
+                                            <input type="date" class="form-control form-control-sm text-center mt-2">
+                                        </div>
+                                    </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="card">
+                                    <div class="card-header text-center">Hora:</div>
+                                        <div class="card-body">
+                                            <input type="time" class="form-control form-control-sm text-center">
+                                            <input type="time" class="form-control form-control-sm text-center mt-2">
+                                        </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-6">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="card-header"><h5 class="text-center">SUPERFICIES INERTES</h5></div>
+                            <div class="row mt-4">
+                                <div class="col-3">
+                                    <p class="letterCh">Toma de muestra Siembra Incubación:</p>
+                                </div>
+                                <div class="col-4">
+                                    <div class="card">
+                                        <div class="card-header text-center">Fecha:</div>
+                                            <div class="card-body">
+                                                <input type="date" class="form-control form-control-sm text-center">
+                                                <input type="date" class="form-control form-control-sm text-center mt-2">
+                                                <input type="date" class="form-control form-control-sm text-center mt-2">
+                                            </div>
+                                        </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="card">
+                                        <div class="card-header text-center">Hora:</div>
+                                            <div class="card-body">
+                                                <input type="time" class="form-control form-control-sm text-center">
+                                                <input type="time" class="form-control form-control-sm text-center mt-2">
+                                                <input type="time" class="form-control form-control-sm text-center mt-2">
+                                            </div>
+                                    </div>
+                                </div>
+                        </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4 mb-3">
+            <div class="col-12">
+                <h5 class="text-center">TABLAS DE RESULTADOS</h5>
+                <div class="row">
+                    <div class="col-6">
+                        <div class="card">
+                            <div class="card-body">
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        
+
+    </form>
+</div>  <!-- Div del contenedor || No mover este comentario**-->
+
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'js/133.js' %}"></script>
+    <script src="{% static 'js/bloquear.js' %}"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+{% endblock %}

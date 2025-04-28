@@ -1,0 +1,515 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/style-133.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="overflow-x: hidden;">
+<div class="contenedor-botones">
+    <div class="d-flex flex-wrap justify-content-between align-items-center">
+            <!-- Botón "Regresar" -->
+            <button class="icon-container button-style custom-button mb-2" data-url="{% url 'microalimentos:BitacorasAnaliticas' %}">Regresar</button>
+
+            <div class="d-flex justify-content-center flex-grow-1 ms-10">
+                <button class="icon-container button-style custom-button mb-2" data-url="{% url 'microalimentos:inicioAnalistas' %}">Menu Principal</button>
+            </div>
+        
+            <!-- Botones Enviar, cancelar y guardar-->
+            <div class="d-flex flex-wrap gap-2">
+                <button class="enviar-custom custom-button" data-url="{% url 'microalimentos:BitacorasAnaliticas' %}">Enviar</button>
+                <button class="cancelar-custom custom-button" data-url="{% url 'microalimentos:BitacorasAnaliticas' %}">Cancelar</button>
+                <button class="guardar-custom custom-button" type="submit">Guardar</button>
+            </div>
+    </div>
+</div>
+    <button id="boton-subir" class="btn btn-primary">↑ Subir</button>
+
+    <div class="col-auto mb-5 text-center mt-5">
+        <h1>Bitácora de preparación de soluciones y medios de cultivo</h1>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label for="" class="form-control">Fecha de preparación: </label>
+                <input type="time" class="form-control">
+            </div>
+        </div>
+        
+
+<!-- //////////////////////////////////Balanza////////////////////////////////////////////////////////////// -->
+<div class="row">
+    <div class="col-md-12 d-flex flex-column mb-3">
+        <!-- Cards Para tabla de diluciones (Duilucion 1) -->
+        <div class="card mb-3">
+            <div class="card-body">
+                <div>
+                    <button id="agregarFila" type="button" class="btn btn-success mb-3">
+                        <i class="bi bi-plus-circle"></i>
+                    </button>
+
+                    <button id="eliminarFila" type="button" class="btn btn-danger btn mb-3">
+                        <i class="bi bi-dash-circle"></i>
+                    </button>
+                </div>
+
+                    <table class="table table-bordered celda-flex agregar1" style="border-color: black;">
+
+                        <tbody class="text-center">
+                            <tr>
+                                <th scope="col">Hora</th>
+                                <th scope="col">Ajuste de balanza</th>
+                                <th scope="col">Valor nominal</th>
+                                <th scope="col">Valor convencional</th>
+                                <th scope="col">Valor obtenido de la masa</th>
+                                <th scope="col">Diferencia absoluta</th>
+                                <th scope="col">Insertidumbre aceptada</th>
+                                <th scope="col">EMT</th>
+                                <th scope="col">Criterio de aceptación</th>
+                            </tr>
+
+                            <tr>
+                                <td><input type="time" name="muestras[0][clave]"></td>
+                                <td><input type="text" name="muestras[0][cantidad]"></td>
+                                <td><input type="text" name="muestras[0][dilucion]"></td>
+                                <td><input type="text" name="muestras[1][dia3_placa1]"></td>
+                                <td><input type="text" name="muestras[0][dia3_placa2]"></td>
+                                <td><input type="text" name="muestras[1][dia4_placa1]"></td>
+                                <td><input type="text" name="muestras[0][dia4_placa2]"></td>
+                                <td><input type="text" name="muestras[1][dia5_placa1]"></td>
+                                <td><input type="text" name="muestras[0][dia5_placa2]"></td>
+                            </tr>
+                        
+                        </tbody>
+                    </table>
+
+            </div>
+        </div>
+        
+      </div>
+</div>
+<!-- //////////////////////////////////////////////Potenciomtro/////////////////////////////////////////////////////////// -->
+<div class="row">
+    <div class="col-md-12 d-flex flex-column mb-3">
+        <!-- Cards Para tabla de diluciones (Duilucion 1) -->
+        <div class="card mb-3">
+            <div class="card-body">
+                <div>
+                    <button id="agregarFila" type="button" class="btn btn-success mb-3">
+                        <i class="bi bi-plus-circle"></i>
+                    </button>
+
+                    <button id="eliminarFila" type="button" class="btn btn-danger btn mb-3">
+                        <i class="bi bi-dash-circle"></i>
+                    </button>
+                </div>
+
+                    <table class="table table-bordered celda-flex agregar1" style="border-color: black;">
+
+                        <tbody class="text-center">
+                            <tr>
+                                <th rowspan="2" scope="col">Hora</th>
+                                <th colspan="2" scope="col">Calibración</th>
+                                <th colspan="4" scope="col">Verificación</th>
+                                <th colspan="2" scope="col">Criterio de aceptación</th>
+                            </tr>
+                            <tr>
+                                <td>Buffer1</td>
+                                <td>Buffer2</td>
+                                <td>Marca</td>
+                                <td>Lote</td>
+                                <td>Valor real</td>
+                                <td>Valor obtenido</td>
+                                <td>Diferencia</td>
+                                <td>Se acepta / Se rechaza</td>
+                            </tr>
+
+                            <tr>
+                                <td><input type="time" name="muestras[0][clave]"></td>
+                                <td><input type="text" name="muestras[0][cantidad]"></td>
+                                <td><input type="text" name="muestras[0][dilucion]"></td>
+                                <td><input type="text" name="muestras[1][dia3_placa1]"></td>
+                                <td><input type="text" name="muestras[0][dia3_placa2]"></td>
+                                <td><input type="text" name="muestras[1][dia4_placa1]"></td>
+                                <td><input type="text" name="muestras[0][dia4_placa2]"></td>
+                                <td><input type="text" name="muestras[1][dia5_placa1]"></td>
+                                <td><input type="text" name="muestras[0][dia5_placa2]"></td>
+                            </tr>
+                        
+                        </tbody>
+                    </table>
+
+            </div>
+        </div>
+        
+      </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12 d-flex flex-column mb-3">
+        <!-- Cards Para tabla de diluciones (Duilucion 1) -->
+        <div class="card-md-6 mb-3">
+            <div class="card-body">
+                <div>
+                    <button id="agregarFila" type="button" class="btn btn-success mb-3">
+                        <i class="bi bi-plus-circle"></i>
+                    </button>
+
+                    <button id="eliminarFila" type="button" class="btn btn-danger btn mb-3">
+                        <i class="bi bi-dash-circle"></i>
+                    </button>
+                </div>
+
+                    <table class="table table-bordered celda-flex agregar1" style="border-color: black;">
+
+                        <tbody class="text-center">
+                            <tr>
+                                <th colspan="15">Preparación de medios de cultivo y soluciones</th>
+                            </tr>
+
+                            <tr>
+                                <th rowspan="2" scope="col">N°</th>
+                                <th rowspan="2" scope="col">Nombre del medio o reactivo a preparar</th>
+                                <th rowspan="2" scope="col">Marca</th>
+                                <th rowspan="2" scope="col">Lote</th>
+                                <th rowspan="2" scope="col">Fecha de caducidad</th>
+                                <th colspan="2" scope="col">Balanza</th>
+                                <th colspan="2" scope="col">Volumen a preparar</th>
+                                <th rowspan="2" scope="col">Lote de agua liberado</th>
+                                <th colspan="3" scope="col">Potenciómetro</th>
+                                <th rowspan="2" scope="col">Metodo de preparación</th>
+                                <th rowspan="2" scope="col">N°. De inventario de equipo para almacenar solución o medio</th>
+                            </tr>
+                            <tr>
+                                <td>P1</td>
+                                <td>P2</td>
+                                <td>Volumen (ml)</td>
+                                <td>Cantidad y volumen (ml) de frascos</td>
+                                <td>Ph de fabricante</td>
+                                <td>Ph1</td>
+                                <td>Ph2</td>
+                            </tr>
+
+                            <tr>
+                                <td><input name="muestras[0][clave]">1</td>
+                                <td><input type="text" name="muestras[0][cantidad]"></td>
+                                <td><input type="text" name="muestras[0][dilucion]"></td>
+                                <td><input type="text" name="muestras[1][dia3_placa1]"></td>
+                                <td><input type="text" name="muestras[0][dia3_placa2]"></td>
+                                <td><input type="text" name="muestras[1][dia4_placa1]"></td>
+                                <td><input type="text" name="muestras[0][dia4_placa2]"></td>
+                                <td><input type="text" name="muestras[1][dia5_placa1]"></td>
+                                <td><input type="text" name="muestras[0][dia5_placa2]"></td>
+                                <td><input type="text" name="muestras[1][dia3_placa1]"></td>
+                                <td><input type="text" name="muestras[0][dia3_placa2]"></td>
+                                <td><input type="text" name="muestras[1][dia4_placa1]"></td>
+                                <td><input type="text" name="muestras[0][dia4_placa2]"></td>
+                                <td><input type="text" name="muestras[1][dia5_placa1]"></td>
+                                <td><input type="text" name="muestras[0][dia5_placa2]"></td>
+                            </tr>
+                        
+                        </tbody>
+                    </table>
+
+            </div>
+        </div>
+        
+      </div>
+</div>
+
+<!-- /////////////////////////////////////Condiciones de esterilización//////////////////////// -->
+
+
+<div class="row">
+    <div class="col-md-12 d-flex flex-column mb-3">
+        <!-- Cards Para tabla de diluciones (Duilucion 1) -->
+        <div class="card mb-3">
+            <div class="card-body">
+                <div>
+                    <button id="agregarFila" type="button" class="btn btn-success mb-3">
+                        <i class="bi bi-plus-circle"></i>
+                    </button>
+
+                    <button id="eliminarFila" type="button" class="btn btn-danger btn mb-3">
+                        <i class="bi bi-dash-circle"></i>
+                    </button>
+                </div>
+
+                    <table class="table table-bordered celda-flex agregar1" style="border-color: black;">
+
+                        <tbody class="text-center">
+                            <tr>
+                                <th colspan="11" scope="col">Condiciones de esterilización</th>
+                            </tr>
+                            <tr>
+                                <th rowspan="2" scope="col">N°.</th>
+                                <th rowspan="2" scope="col">Material para esterilizar</th>
+                                <th rowspan="2" scope="col">Autoclave</th>
+                                <th colspan="2" scope="col">Tiempo</th>
+                                <th rowspan="2" scope="col">Indicador de esterilidad</th>
+                                <th rowspan="2" scope="col">Termómetro</th>
+                                <th rowspan="2" scope="col">Temperatura(°C)</th>
+                                <th rowspan="2" scope="col">Presión (lb)</th>
+                                <th rowspan="2" scope="col">Tiempo Total (min)</th>
+                            </tr>
+
+                            <tr>
+                                <td>T1</td>
+                                <td>T2</td>
+                            </tr>
+
+                            <tr>
+                                <td><input type="text" name="muestras[0][clave]"></td>
+                                <td><input type="text" name="muestras[0][cantidad]"></td>
+                                <td><input type="text" name="muestras[0][dilucion]"></td>
+                                <td><input type="text" name="muestras[1][dia3_placa1]"></td>
+                                <td><input type="text" name="muestras[0][dia3_placa2]"></td>
+                                <td><input type="text" name="muestras[1][dia4_placa1]"></td>
+                                <td><input type="text" name="muestras[0][dia4_placa2]"></td>
+                                <td><input type="text" name="muestras[1][dia5_placa1]"></td>
+                                <td><input type="text" name="muestras[0][dia5_placa2]"></td>
+                                <td><input type="text" name="muestras[0][dia5_placa2]"></td>
+                            </tr>
+                        
+                        </tbody>
+                    </table>
+
+            </div>
+        </div>
+        
+      </div>
+</div>
+<!-- ////////////////////////////////////Verificacion de perdida de diluyentes/////////////////////////////// -->
+<div class="row">
+    <div class="col-md-12 d-flex flex-column mb-3">
+        <div class="card mb-3">
+            <div class="card-body">
+
+                    <table class="table table-bordered celda-flex agregar1" style="border-color: black;">
+
+                        <tbody class="text-center">
+                            <tr>
+                                <th colspan="11" scope="col">Verificación de pérdida de diluyentes</th>
+                            </tr>
+                            <tr>
+                                <th scope="col">Recipiente.</th>
+                                <th scope="col">Número</th>
+                                <th scope="col">P1 (g)</th>
+                                <th scope="col">ml agregados</th>
+                                <th scope="col">P2 (g)</th>
+                                <th scope="col">P3 (g)</th>
+                                <th scope="col">Diferencia (g)</th>
+                                <th scope="col">Volumen final en mi</th>
+                                <th scope="col">Criterio final</th>
+                            </tr>
+
+
+                            <tr>
+                                <td rowspan="5">Tubos</td>
+                            </tr>
+
+                            <tr>
+                                <td>1</td>
+                                <td><input type="text" name="muestras[0][dilucion]"></td>
+                                <td><input type="text" name="muestras[1][dia3_placa1]"></td>
+                                <td><input type="text" name="muestras[0][dia3_placa2]"></td>
+                                <td><input type="text" name="muestras[1][dia4_placa1]"></td>
+                                <td><input type="text" name="muestras[0][dia4_placa2]"></td>
+                                <td><input type="text" name="muestras[1][dia5_placa1]"></td>
+                                <td><input type="text" name="muestras[0][dia5_placa2]"></td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td><input type="text" name="muestras[0][dilucion]"></td>
+                                <td><input type="text" name="muestras[1][dia3_placa1]"></td>
+                                <td><input type="text" name="muestras[0][dia3_placa2]"></td>
+                                <td><input type="text" name="muestras[1][dia4_placa1]"></td>
+                                <td><input type="text" name="muestras[0][dia4_placa2]"></td>
+                                <td><input type="text" name="muestras[1][dia5_placa1]"></td>
+                                <td><input type="text" name="muestras[0][dia5_placa2]"></td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td><input type="text" name="muestras[0][dilucion]"></td>
+                                <td><input type="text" name="muestras[1][dia3_placa1]"></td>
+                                <td><input type="text" name="muestras[0][dia3_placa2]"></td>
+                                <td><input type="text" name="muestras[1][dia4_placa1]"></td>
+                                <td><input type="text" name="muestras[0][dia4_placa2]"></td>
+                                <td><input type="text" name="muestras[1][dia5_placa1]"></td>
+                                <td><input type="text" name="muestras[0][dia5_placa2]"></td>
+                            </tr>
+                            <tr>
+                                <td>4</td>
+                                <td><input type="text" name="muestras[0][dilucion]"></td>
+                                <td><input type="text" name="muestras[1][dia3_placa1]"></td>
+                                <td><input type="text" name="muestras[0][dia3_placa2]"></td>
+                                <td><input type="text" name="muestras[1][dia4_placa1]"></td>
+                                <td><input type="text" name="muestras[0][dia4_placa2]"></td>
+                                <td><input type="text" name="muestras[1][dia5_placa1]"></td>
+                                <td><input type="text" name="muestras[0][dia5_placa2]"></td>
+                            </tr>
+
+                            <tr>
+                                <td>Frasco 90 ml</td>
+                                <td>1</td>
+                                <td><input type="text" name="muestras[0][dilucion]"></td>
+                                <td><input type="text" name="muestras[1][dia3_placa1]"></td>
+                                <td><input type="text" name="muestras[0][dia3_placa2]"></td>
+                                <td><input type="text" name="muestras[1][dia4_placa1]"></td>
+                                <td><input type="text" name="muestras[0][dia4_placa2]"></td>
+                                <td><input type="text" name="muestras[1][dia5_placa1]"></td>
+                                <td><input type="text" name="muestras[0][dia5_placa2]"></td>
+                            </tr>
+                            <tr>
+                                <td>Frasco 225 ml</td>
+                                <td>1</td>
+                                <td><input type="text" name="muestras[0][dilucion]"></td>
+                                <td><input type="text" name="muestras[1][dia3_placa1]"></td>
+                                <td><input type="text" name="muestras[0][dia3_placa2]"></td>
+                                <td><input type="text" name="muestras[1][dia4_placa1]"></td>
+                                <td><input type="text" name="muestras[0][dia4_placa2]"></td>
+                                <td><input type="text" name="muestras[1][dia5_placa1]"></td>
+                                <td><input type="text" name="muestras[0][dia5_placa2]"></td>
+                            </tr>
+                        
+                        </tbody>
+                    </table>
+
+            </div>
+        </div>
+        
+      </div>
+</div>
+
+<!-- /////////////////////////////////////////////////Liberacion de medios de cultivo/////////////////////////////// -->
+
+<div class="row">
+    <div class="col-md-12 mt-4">
+    <div class="row">
+    <div class="col-md-6 d-flex flex-column mb-3">
+        <div class="card mb-3">
+            <div class="card-body">
+
+                    <table class="table table-bordered celda-flex agregar1" style="border-color: black;">
+
+                        <tbody class="text-center">
+                            <tr>
+                                <th colspan="4" scope="col">Liberación de medios de cultivo</th>
+                            </tr>
+
+                            <tr>
+                                <td colspan="2">
+                                        <label for="valor">LAF-/</label>
+                                        <input type="text">
+                                </td>
+                                <td colspan="2">
+                                        <label for="valor">LAF-/</label>
+                                        <input type="text">
+                                </td>
+                            </tr>
+
+
+                            <tr>
+                                
+                                <td>
+                                    TOMO
+                                    <div class="celda-flex">
+                                        <select class="form-select d-inline tm" id="mes">
+                                            <option selected>Mes</option>
+                                            <option value="1">Enero</option>
+                                            <option value="2">Febrero</option>
+                                            <option value="3">Marzo</option>
+                                            <option value="4">Abril</option>
+                                            <option value="5">Mayo</option>
+                                            <option value="6">Junio</option>
+                                            <option value="7">Julio</option>
+                                            <option value="8">Agosto</option>
+                                            <option value="9">Septiembre</option>
+                                            <option value="10">Octubre</option>
+                                            <option value="11">Noviembre</option>
+                                            <option value="12">Diciembre</option>
+                                        </select>
+                                        
+                                    </div>
+                                    <div>
+                                        <select class="form-select d-inline anio-select tm" id="anio">
+                                            <option selected>Año</option>
+                                        </select>
+                                    </div>
+                                </td>
+
+                                <td>
+                                    Páginas
+                                    <ul>
+                                        <li><input type="text"></li>
+                                        <li><input type="text"></li>
+                                        <li><input type="text"></li>
+                                      </ul>
+                                </td>>
+                                <td>
+                                    TOMO
+                                    <div class="celda-flex">
+                                        <select class="form-select d-inline tm" id="mes">
+                                            <option selected>Mes</option>
+                                            <option value="1">Enero</option>
+                                            <option value="2">Febrero</option>
+                                            <option value="3">Marzo</option>
+                                            <option value="4">Abril</option>
+                                            <option value="5">Mayo</option>
+                                            <option value="6">Junio</option>
+                                            <option value="7">Julio</option>
+                                            <option value="8">Agosto</option>
+                                            <option value="9">Septiembre</option>
+                                            <option value="10">Octubre</option>
+                                            <option value="11">Noviembre</option>
+                                            <option value="12">Diciembre</option>
+                                        </select>
+                                        
+                                    </div>
+                                    <div>
+                                        <select class="form-select d-inline anio-select tm" id="anio">
+                                            <option selected>Año</option>
+                                        </select>
+                                    </div>
+                                </td>
+
+                                <td>
+                                    Páginas
+                                    <ul>
+                                        <li><input type="text"></li>
+                                        <li><input type="text"></li>
+                                        <li><input type="text"></li>
+                                      </ul>
+                                </td>>
+
+                            </tr>                        
+                                                  
+                                         
+                        </tbody>
+                    </table>
+
+            </div>
+        </div>
+        
+      </div>
+    </div>
+</div>
+</div>
+
+
+
+</form>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'js/133.js' %}"></script>
+    <script src="{% static 'js/bloquear.js' %}"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+{% endblock %}

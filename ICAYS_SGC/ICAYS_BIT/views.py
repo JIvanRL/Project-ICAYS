@@ -3029,3 +3029,14 @@ def guardar_campos_corregidos(request):
             'success': False,
             'message': f'Error al guardar el campo corregido: {str(e)}'
         }, status=500)
+
+
+@login_required
+@role_required('Analista de Laboratorio')
+def preparacionSolucionesMediosCultivo(request):
+  return render(request, 'FP-179.html')
+
+@login_required
+@role_required('Analista de Laboratorio')
+def ControlMedioAmbiente(request):
+  return render(request, 'FP-173.html')

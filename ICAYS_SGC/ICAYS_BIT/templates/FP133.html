@@ -1,306 +1,1368 @@
 {% extends 'base.html' %}
 {% load static %}
+
 {% block extra_css %}
-    <!-- Incluye el archivo CSS específico de esta app -->
-    <link rel="stylesheet" href="{% static 'css/style-133.css' %}">
+<link rel="stylesheet" href="{% static 'css/style-133.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="d-flex flex-wrap justify-content-between align-items-center">
-        <!-- Botón "Regresar" alineado a la izquierda -->
-        <button class="icon-container button-style custom-button mb-2" data-url="{% url 'microalimentos:BitacorasAnaliticas' %}">Regresar</button>
-
-        <div class="d-flex justify-content-center flex-grow-1 ms-10">
-            <button class="icon-container button-style custom-button mb-2" data-url="{% url 'microalimentos:inicioAnalistas' %}">Menu Principal</button>
-        </div>
+<div class="container-fluid" style="overflow-x: hidden;">
     
-        <!-- Botones alineados a la derecha -->
-        <div class="d-flex flex-wrap gap-2">
-            <button class="enviar-custom custom-button" data-url="{% url 'microalimentos:BitacorasAnaliticas' %}">Enviar</button>
-            <button class="cancelar-custom custom-button" data-url="{% url 'microalimentos:BitacorasAnaliticas' %}">Cancelar</button>
-            <button class="guardar-custom custom-button" data-url="{% url 'microalimentos:BitacorasAnaliticas' %}">Guardar</button>
-        </div>
+
+<div class="contenedor-botones">
+    <div class="d-flex flex-wrap justify-content-between align-items-center">
+            <!-- Botón "Regresar" -->
+            <button class="icon-container button-style custom-button mb-2" data-url="{% url 'microalimentos:BitacorasAnaliticas' %}">Regresar</button>
+
+            <div class="d-flex justify-content-center flex-grow-1 ms-10">
+                <button class="icon-container button-style custom-button mb-2" data-url="{% url 'microalimentos:inicioAnalistas' %}">Menu Principal</button>
+            </div>
+        
+            <!-- Botones Enviar, cancelar y guardar-->
+            <div class="d-flex flex-wrap gap-2">
+                <button class="enviar-custom custom-button" data-url="{% url 'microalimentos:BitacorasAnaliticas' %}">Enviar</button>
+                <button class="cancelar-custom custom-button" data-url="{% url 'microalimentos:BitacorasAnaliticas' %}">Cancelar</button>
+                <button class="guardar-custom custom-button" type="submit">Guardar</button>
+            </div>
     </div>
-        <div class="col-auto">
-            <h1>Cuenta de mohos y levaduras en alimentos</h1>
-        </div>
+</div>
+    <button id="boton-subir" class="btn btn-primary">↑ Subir</button>
 
-<!-- aqui puse el div del contenedor-->
+    <form method="post">
+        {% csrf_token %}
+        
+    <div class="col-auto mb-5 text-center mt-5">
+        <h1>Cuenta de mohos y levaduras en alimentos</h1>
+    </div>
 
+<!-- ////////////////////////////////////////////////////////////////////////////////////////////////// -->
+     
+<div class="row mb-1">
+    <!-- Columna para las tres cards -->
+    <div class="col-md-6 mt-4">
+      <!-- Fila para las dos primeras cards (una al lado de la otra) -->
+      <div class="row">
+          <div class="col-4 mb-3">
+              <div class="card">
+                  <div class="card-header">Fecha de siembra</div>
+                      <div class="card-body">
+                          <input type="date" class="form-control form-control-sm" id="fecha_siembra" name="FP133fechaSiembra" placeholder="Fecha" >
+                      </div>
+              </div>
+          </div>
 
-    <div class="contenedor-flex">   
+          <div class="col-4 mb-3">
+              <div class="card">
+                  <div class="card-header">Hora de siembra</div>
+                      <div class="card-body">
+                          <input type="time" class="form-control form-control-sm" id="hora_siembra" name="FP133horaSiembra" placeholder="Hora" >
+                      </div>
+              </div>
+          </div>
 
-        <div class="div-izquierdo">
+          <div class="col-4 mb-3">
+              <div class="card">
+                  <div class="card-header">Hora de incubación</div>
+                      <div class="card-body">
+                          <input type="time" class="form-control form-control-sm" id="fecha_siembra" name="FP133horaIncubacion" placeholder="Hora" >
+                      </div>
+              </div>
+          </div>
 
-            <div class="a">
+      </div>
+      
+      <!-- Card 3 debajo de las dos anteriores, con el mismo ancho que las dos combinadas -->
+      <div class="mb-3 mt-2">
+        <div class="card">
+          <div class="card-body">
+            <div class="d-flex gap-5 mt-3 mb-2">
+                <p class="card-text">Procedimiento: <span>LAI-05M2</span> </p>
+                <p class=" card-text">Equipo de incubación: <span >LAT-147 (25°C)</span></p>
+            </div>
 
-                <div class="form-floating">
-                    <input type="date" class="form-control fechaC" id="fecha" name="fecha" required>
-                    <label for="fecha" class="fechaL" >Fecha de siembra:</label>
+            <div class="row mb-3 d-flex align-items-center mt-4">
+                <div class="col-12 col-md-5">
+                    <p class="card-text d-inline">Registro de muestras:</p>
+
+                    <span class="d-inline mb-0">LAF-50</span>
+
                 </div>
 
-                <div style="padding-left: 15px;">
-                    <div class="form-floating">
-                        <input type="time" id="horaSiembra" name="horaSiembra" class="form-control fechaC"required>
-                        <label for="horaSiembra">Hora de siembra:</label>
+                <div class="col-12 col-md-4">
+                    <div>
+                        <label for="FP133TomoLAF50M">Tomo:</label>
+                        <select class="form-select d-inline tm" id="mes" name="FP133TomoLAF50M">
+                            <option selected>Mes</option>
+                            <option value="1">Enero</option>
+                            <option value="2">Febrero</option>
+                            <option value="3">Marzo</option>
+                            <option value="4">Abril</option>
+                            <option value="5">Mayo</option>
+                            <option value="6">Junio</option>
+                            <option value="7">Julio</option>
+                            <option value="8">Agosto</option>
+                            <option value="9">Septiembre</option>
+                            <option value="10">Octubre</option>
+                            <option value="11">Noviembre</option>
+                            <option value="12">Diciembre</option>
+                        </select>
+                        <select class="form-select d-inline anio-select tm" id="anio" name="FP133TomoLAF50A">
+                            <option selected>Año</option>
+                        </select>
                     </div>
                 </div>
-                
-                <div style="padding-left: 15px;">
+
+                <div class="col-12 col-md-3">
                     <div class="form-floating">
-                        <input type="time" id="horaIncubacion" name="horaIncubacion" class="form-control fechaC"required>
-                        <label for="horaIncubacion">Hora de incubación:</label>
+                        <input type="text" name="FP133paginaLAF50" class="form-control form-control-sm" id="paginaLAF50" placeholder="Página">
+                        <label for="FP133paginaLAF50">Página</label>
                     </div>
                 </div>
-
 
             </div>
 
-            <div class="input-container">
-                
-                <div>
-                    <p class="mismoRenglon">Procedimiento: <span class="texto-con-linea">LAI-05M2</span></p>
 
-                    <p class="mismoRenglon espacioPalabras">Equipo de incubación: <span class="texto-con-linea">LAT-147 (25°C)</span></p>
+            <div class="row mb-3 d-flex align-items-center mt-4">
+                <div class="col-12 col-md-6">
+                    <p class="card-text d-inline">Reactivos y medios de cultivo:</p>
+
+                    <span class="d-inline mb-0">LAF-02</span>
+
+                </div>
+
+                <div class="col-12 col-md-4">
+                    <div>
+                        <label for="FP133TomoLAF02M">Tomo:</label>
+                        <select class="form-select d-inline tm" id="mes" name="FP133TomoLAF02M">
+                            <option selected>Mes</option>
+                            <option value="1">Enero</option>
+                            <option value="2">Febrero</option>
+                            <option value="3">Marzo</option>
+                            <option value="4">Abril</option>
+                            <option value="5">Mayo</option>
+                            <option value="6">Junio</option>
+                            <option value="7">Julio</option>
+                            <option value="8">Agosto</option>
+                            <option value="9">Septiembre</option>
+                            <option value="10">Octubre</option>
+                            <option value="11">Noviembre</option>
+                            <option value="12">Diciembre</option>
+                        </select>
+                        <select class="form-select d-inline anio-select tm" id="anio" name="FP133TomoLAF02A">
+                            <option selected>Año</option>
+                        </select>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="row mb-3 d-flex align-items-center mt-4">
+                <div class="col-12 col-md-5">
+                    <p class="card-text d-inline">Solución reguladora de fosfato</p>
+                </div>
+
+                <div class="col-12 col-md-3">
+                    <div class="form-floating">
+                        <input type="text" name="FP133SRFPag" class="form-control form-control-sm" id="TomoLAF50" placeholder="Página">
+                        <label for="FP133SRFPag">Página</label>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-3">
+                    <div class="form-floating">
+                        <input type="text" name="FP133SRFNum" class="form-control form-control-sm" id="paginaLAF50" placeholder="Número">
+                        <label for="FP133SRFNum">Número</label>
+                    </div>
+                </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Columna para el formulario, en el lado derecho -->
+    <div class="col-md-6">
+      <div class="card h-100">
+        <div class="card-body">
+          <h5 class="text-center cct">Ver cumplimiento de controles de calidad en:</h5>
+          <form>
+            <table class="table table-bordered table-responsive">
+                <tr>
+                    <th>Bitacora/Tomo</th>
+                    <th class="text-center w-25">Página</th>
+                </tr>
+        
+                <!-- Tercera fila: 4 columnas -->
+                <tr>
+                    <td>
+                        <div class="celda-flex">
+                            <label for="valor" >LAF-45/</label>
+                            <select class="form-select d-inline tm" id="mes">
+                                <option selected>Mes</option>
+                                <option value="1">Enero</option>
+                                <option value="2">Febrero</option>
+                                <option value="3">Marzo</option>
+                                <option value="4">Abril</option>
+                                <option value="5">Mayo</option>
+                                <option value="6">Junio</option>
+                                <option value="7">Julio</option>
+                                <option value="8">Agosto</option>
+                                <option value="9">Septiembre</option>
+                                <option value="10">Octubre</option>
+                                <option value="11">Noviembre</option>
+                                <option value="12">Diciembre</option>
+                            </select>
+                            <select class="form-select d-inline anio-select tm" id="anio">
+                                <option selected>Año</option>
+                            </select>
+                        </div>
+                    </td>
+                    <td class="w-25">
+                        <div class="celda-flex">
+                            <input type="number">
+                        </div>
                     
+                </tr>
+        
+                <!-- Cuarta fila: 4 columnas -->
+                <tr>
+                    <td>
+                        <div class="celda-flex">
+                            <label for="valor">LAF-57/</label>
+                            <select class="form-select d-inline tm" id="mes" >
+                                <option selected>Mes</option>
+                                <option value="1">Enero</option>
+                                <option value="2">Febrero</option>
+                                <option value="3">Marzo</option>
+                                <option value="4">Abril</option>
+                                <option value="5">Mayo</option>
+                                <option value="6">Junio</option>
+                                <option value="7">Julio</option>
+                                <option value="8">Agosto</option>
+                                <option value="9">Septiembre</option>
+                                <option value="10">Octubre</option>
+                                <option value="11">Noviembre</option>
+                                <option value="12">Diciembre</option>
+                            </select>
+                            <select class="form-select d-inline anio-select tm" id="anio">
+                                <option selected>Año</option>
+                            </select>
+                        </div>
+                    </td>
+                    <td class="w-25">
+                        <div class="celda-flex">
+                            <input type="number">
+                        </div>
+                    </td>
+                    
+                </tr>
+            </table>
+
+
+            <table class="table table-bordered table-responsive">
+                <tr>
+                    <th>Bitacora/Tomo</th>
+                    <th class="text-center w-25">Página</th>
+                </tr>
+        
+                <!-- Tercera fila: 4 columnas -->
+                <tr>
+                    <td>
+                        <div class="celda-flex">
+                            <label for="valor">LAF-44/</label>
+                            <select class="form-select d-inline tm" id="mes">
+                                <option selected>Mes</option>
+                                <option value="1">Enero</option>
+                                <option value="2">Febrero</option>
+                                <option value="3">Marzo</option>
+                                <option value="4">Abril</option>
+                                <option value="5">Mayo</option>
+                                <option value="6">Junio</option>
+                                <option value="7">Julio</option>
+                                <option value="8">Agosto</option>
+                                <option value="9">Septiembre</option>
+                                <option value="10">Octubre</option>
+                                <option value="11">Noviembre</option>
+                                <option value="12">Diciembre</option>
+                            </select>
+                            <select class="anioselect form-select d-inline anio-select tm" id="anio">
+                                <option selected>Año</option>
+                            </select>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="celda-flex">
+                            <input type="number">
+                        </div>
+                    </td>
+                </tr>
+        
+                <tr>
+                    <td>
+                        <div class="celda-flex">
+                            <label for="valor">LAF-52/</label>
+                            <select class="form-select d-inline tm" id="mes">
+                                <option selected>Mes</option>
+                                <option value="1">Enero</option>
+                                <option value="2">Febrero</option>
+                                <option value="3">Marzo</option>
+                                <option value="4">Abril</option>
+                                <option value="5">Mayo</option>
+                                <option value="6">Junio</option>
+                                <option value="7">Julio</option>
+                                <option value="8">Agosto</option>
+                                <option value="9">Septiembre</option>
+                                <option value="10">Octubre</option>
+                                <option value="11">Noviembre</option>
+                                <option value="12">Diciembre</option>
+                            </select>
+                            <select class="form-select d-inline anio-select tm" id="anio">
+                                <option selected>Año</option>
+                            </select>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="celda-flex">
+                            <input type="number">
+                        </div>
+                    </td>
+                </tr>
+            </table>
+
+            <div>
+                <div class="card">
+                        <div class="card-body">
+                            <caption>
+                LAF-45: Bitácora de control de calidad de microbiologia,
+                LAF-44: Bitácora de control de medio ambiente, LAF-57: Bitácora de bacterias aerobias en placa,
+                LAF-52: Bitácora de mohos y levaduras
+                            </caption>
+
+                        </div>
                 </div>
-                <div>
+            </div>
 
-                    <p class="mismoRenglon">Registro de muestras: <span class="espacioLetras">LAF-50</span></p>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
 
-                    <label for="Tomo1" class="espacioToms">Tomo:</label>
-                    <input type="text" id="Tomo1" class="underline-input" placeholder="________">
+<!-- ////////////////////////////////////////////////////////////////////////////////////////////////// -->
+  <div class="row mb-5">
+    <!-- Columna para las tres cards -->
+    <div class="col-md-6 d-flex flex-column mt-3">
+      <!-- Fila para las dos primeras cards (una al lado de la otra) -->
+      <div class="card">
+        <div class="card-body">
 
-                    <label for="PaginaLAF50" class="espacioPag">Página:</label>
-                    <input type="text" id="PaginaLAF50" class="underline-input" placeholder="________">
-
+            <div class="row mb-3 d-flex align-items-center">
+                <div class="col-12 col-md-5">
+                    <p class="card-text d-inline">Agar Papa dextrosa</p>
                 </div>
-
-                <div>
-
-                    <p class="mismoRenglon">Reactivos y medios de cultivo: <span class="espacioLetras">LAF-02</span></p>
-
-                    <label for="Tomo1" class="espacioToms">Tomo:</label>
-                    <input type="text" id="T1" class="underline-input" placeholder="________">
-
+                <div class="col-12 col-md-3">
+                    <div class="form-floating">
+                        <input type="text" name="FP133APDPag" class="form-control form-control-sm" id="TomoLAF50" placeholder="Página">
+                        <label for="FP133APDPag">Página</label>
+                    </div>
                 </div>
-
-                <div class="fuentePeq">
-                    <p class="mismoRenglon">Solución reguladora de fosfato</p>
-
-                    <label for="Tomo1" class="espacioPag">Página:</label>
-                    <input type="text" id="Tomo1" class="underline-input-peque" placeholder="________">
-
-                    <label for="Tomo1" class="espacioPag">Numero:</label>
-                    <input type="text" id="Tomo1" class="underline-input-peque" placeholder="________">
-
+                <div class="col-12 col-md-3">
+                    <div class="form-floating">
+                        <input type="number" name="FP133APDNum" class="form-control form-control-sm" id="paginaLAF50" placeholder="Número">
+                        <label for="FP133APDNum">Número</label>
+                    </div>
                 </div>
+            </div>
 
-                <div class="fuentePeq">
-                    <p class="mismoRenglon">Agar Papa dextrosa</p>
-
-                    <label for="Tomo1" class="espacioPag">Página:</label>
-                    <input type="text" id="Tomo1" class="underline-input-peque" placeholder="________">
-
-                    <label for="Tomo1" class="espacioPag">Numero:</label>
-                    <input type="text" id="Tomo1" class="underline-input-peque" placeholder="________">
-
-                    <p class="mismoRenglon" style="padding-left: 40px;">Hidroxido de sodio 1.0.N</p>
-
-                    <label for="Tomo1" class="espacioPag">Página:</label>
-                    <input type="text" id="Tomo1" class="underline-input-peque" placeholder="________">
-
-                    <label for="Tomo1" class="espacioPag">Numero:</label>
-                    <input type="text" id="Tomo1" class="underline-input-peque" placeholder="________">
-
+            <div class="row mb-3 d-flex align-items-center">
+                <div class="col-12 col-md-5">
+                    <p class="card-text d-inline">Hidróxido de sodio 1.0.N</p>
                 </div>
-
-                <div class="fuentePeq">
-                    <p style="display: inline-block;">Ácido tartárico 10%</p>
-
-                    <label for="Tomo1" class="espacioPag">Página:</label>
-                    <input type="text" id="Tomo1" class="underline-input-peque" placeholder="________">
-
-                    <label for="Tomo1" class="espacioPag">Numero:</label>
-                    <input type="text" id="Tomo1" class="underline-input-peque" placeholder="________">
+                <div class="col-12 col-md-3">
+                    <div class="form-floating">
+                        <input type="text" name="FP133HSPag" class="form-control form-control-sm" id="TomoLAF50" placeholder="Página">
+                        <label for="FP133HSPag">Página</label>
+                    </div>
                 </div>
-
-                <div class="fuentePeq">
-                    <p style="display: inline-block;">Verificación de la balanza granataria LAM-12</p>
-
-                    <p style="display: inline-block;">Ver verificación mensual de la balanza en:</p>
+                <div class="col-12 col-md-3">
+                    <div class="form-floating">
+                        <input type="text" name="FP133HSNum" class="form-control form-control-sm" id="paginaLAF50" placeholder="Número">
+                        <label for="FP133HSNum">Número</label>
+                    </div>
                 </div>
+            </div>
 
-                <div>
-                    <table class="fuentePeq" style="width: 80%;">
-                        <tr>
-                            <th>Hora</th>
-                            <th>Actividad</th>
-                            <th>Ajuste de balanza</th>
-                            <th>Valor nominal</th>
-                            <th>Valor convencional</th>
-                            <th>Valor obtenido de la masa</th>
-                            <th>Diferencia absoluta</th>
-                            <th>incertidumbre aceptada</th>
-                            <th>EMT</th>
-                            <th>Criterios de aceptación</th>
-                        </tr>
-
-                        <tr>
-                            <td><input type="text"></td>
-                            <td>Verificación</td>
-                            <td><input type="text"></td>
-                            <td><input type="text"></td>
-                            <td><input type="text"></td>
-                            <td><input type="text"></td>
-                            <td><input type="text"></td>
-                            <td><input type="text"></td>
-                            <td><input type="text"></td>
-                            <td><input type="text"></td>
-                        </tr>
-
-                        <tr>
-                            <td><input type="text"></td>
-                            <td>Pesado de la(s) muestra(s)</td>
-                            <td><input type="text"></td>
-                            <td><input type="text"></td>
-                            <td><input type="text"></td>
-                            <td><input type="text"></td>
-                            <td><input type="text"></td>
-                            <td><input type="text"></td>
-                            <td><input type="text"></td>
-                            <td><input type="text"></td>
-                        </tr>
-                    </table>
+            <div class="row mb-3 d-flex align-items-center">
+                <div class="col-12 col-md-5">
+                    <p class="card-text d-inline">Ácido tartárico 10%</p>
                 </div>
+                <div class="col-12 col-md-3">
+                    <div class="form-floating">
+                        <input type="text" name="FP133ATPag" class="form-control form-control-sm" id="TomoLAF50" placeholder="Página">
+                        <label for="FP133ATPag">Página</label>
+                    </div>
+                </div>
+                <div class="col-12 col-md-3">
+                    <div class="form-floating">
+                        <input type="text" name="FP133ATNum" class="form-control form-control-sm" id="paginaLAF50" placeholder="Número">
+                        <label for="FP133ATNum">Número</label>
+                    </div>
+                </div>
+            </div>
 
-                <!--  Input con raya para usarlo mas tarde 
-                <label for="valor">Procedimiento:</label>
-                <input type="text" id="valor" class="underline-input" placeholder="________"> -->
 
-                
-                
-            </div> 
+        </div>
+      </div>
+    </div>
+    
+
+    <!-- Columna para el formulario, en el lado derecho -->
+    <div class="col-md-6 col"  style="overflow-x: scroll;">
+      <div class="card h-100">
+        <div class="card-body">
+          <h5 class="cct text-center">Lectura de placas</h5>
+          <form>
+            <table class="table table-bordered">
+                <tr class="text-center">
+                    <th>Día</th>
+                    <th>Fecha</th>
+                    <th>Hora</th>
+                </tr>
+
+                <tr>
+                    <td class="text-center">3er Día</td>
+
+                    <td><input type="date" class="form-control" id="fechaLecPla1" required></td>
+                    
+                    <td><input type="time" class="form-control" id="HoraLecPla1" required></td>
+                </tr>
+
+                <tr>
+                    <td class="text-center">4to Día</td>
+
+                    <td><input type="date" class="form-control" id="fechaLecPla2" required></td>
+                    
+                    <td><input type="time" class="form-control" id="HoraLecPla2" required></td>
+                </tr>
+
+                <tr>
+                    <td class="text-center">5to Día</td>
+                    
+                    <td><input type="date" class="form-control " id="fechaLecPla3"></td>
+                    
+                    <td><input type="time" class="form-control" id="HoraLecPla3"></td>
+                </tr>
+            </table>
+
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+ <!-- ////////////////////////////////////////////////////////////////////////////////////////////////// -->
+
+
+<div class="card  mb-3"  style="overflow-x: scroll;">
+    <div class="card-body">
+
+        <div class="row d-flex align-items-center mb-3">
+            <div class="col-12 col-md-4">
+                <h6 class="card-title mb-0">Verificación de balanza granataria LAM-12</h6>
+            </div>
+
+            <div class="col-12 col-md-8">
+                <h6 class="card-text d-inline">Ver verificación mensual de la balanza en: </h6>
+                <span class="d-inline mb-0 ms-2">LAF-02</span>
+                <label for="TomoLAF02" class="d-inline ms-2" style="font-size: 14px;">Tomo: </label>
+                <select class="form-select d-inline" id="mes" style="width: 17%; font-size: 14px;">
+                    <option selected>Mes</option>
+                    <option value="1">Enero</option>
+                    <option value="2">Febrero</option>
+                    <option value="3">Marzo</option>
+                    <option value="4">Abril</option>
+                    <option value="5">Mayo</option>
+                    <option value="6">Junio</option>
+                    <option value="7">Julio</option>
+                    <option value="8">Agosto</option>
+                    <option value="9">Septiembre</option>
+                    <option value="10">Octubre</option>
+                    <option value="11">Noviembre</option>
+                    <option value="12">Diciembre</option>
+                </select>
+                <select class="form-select d-inline anio-select" id="anio" style="width: 15%; font-size: 14px;">
+                    <option selected>Año</option>
+                </select>
+                <label for="PagLAF02" class="d-inline ms-2" style="font-size: 14px;">página: </label>
+                <input class="d-inline ipt ms-1" type="text" style="font-size: 14px;" id="PagLAF02">
+            </div>
 
         </div>
 
-        <div class="div-derecho">
+        <table class="table table-bordered celda-flex"  style="border-color: black;">
+            <tr class="">
+                <th>Hora</th>
+                <th>Actividad</th>
+                <th>Ajuste de balanza</th>
+                <th>Valor nominal</th>
+                <th>Valor convencional</th>
+                <th>Valor obtenido de la masa</th>
+                <th>Diferencia absoluta</th>
+                <th>incertidumbre aceptada</th>
+                <th>EMT</th>
+                <th>Criterios de aceptación</th>
+            </tr>
 
-            <div class="contenedor-tabla">
-                <table class="fuentePeq">
-                    <!-- Primera fila: Título -->
-                    <tr>
-                        <th colspan="4">Ver cumplimiento de controles de calidad en:</th>
-                    </tr>
-            
-                    <!-- Segunda fila: 4 columnas -->
-                    <tr>
-                        <th>Bitacora/Tomo</th>
-                        <th>Página</th>
-                        <th>Bitacora/Tomo</th>
-                        <th>Página</th>
-                    </tr>
-            
-                    <!-- Tercera fila: 4 columnas -->
-                    <tr>
-                        <td>
-                            <div class="celda-flex">
-                                <label for="valor" >LAF-45/</label>
-                                <input type="text" id="LAF-45">
-                            </div>
-                        </td>
-                        <td><input type="text"></td>
-                        <td>
-                            <div class="celda-flex">
-                                <label for="valor">LAF-44/</label>
-                                <input type="text" id="LAF-45">
-                            </div>
-                        </td>
-                        <td><input type="text"></td>
-                    </tr>
-            
-                    <!-- Cuarta fila: 4 columnas -->
-                    <tr>
-                        <td>
-                            <div class="celda-flex">
-                                <label for="valor">LAF-57/</label>
-                                <input type="text" id="LAF-45">
-                            </div>
-                        </td>
-                        <td><input type="text"></td>
-                        <td>
-                            <div class="celda-flex">
-                                <label for="valor">LAF-52/</label>
-                                <input type="text" id="LAF-45">
-                            </div>
-                        </td>
-                        <td><input type="text"></td>
-                    </tr>
-            
-                    <!-- Quinta fila: Sin columnas (título) -->
-                    <tr>
-                        <th colspan="4">LAF-45: Bitácora de control de calidad de microbiologia,
-                            LAF-44: Bitácora de control de medio ambiente, LAF-57: Bitácora de bacterias aerobias en placa,
-                            LAF-52: Bitácora de mohos y levaduras
-                        </th>
-                    </tr>
-                </table>
+            <tr>
+                <td><input type="time" class="form-control" id="fechaLecPla1" required></td>
+                <td>Verificación</td>
+                <td><input type="text"></td>
+                <td><input type="text"></td>
+                <td><input type="text"></td>
+                <td><input type="text"></td>
+                <td><input type="text"></td>
+                <td><input type="text"></td>
+                <td><input type="text"></td>
+                <td><input type="text"></td>
+            </tr>
+
+            <tr>
+                <td><input type="time" class="form-control" id="fechaLecPla1" required></td>
+                <td>Pesado de la(s) muestra(s)</td>
+                <td colspan="8"><input type="text" style="width: 100%; padding: 20px;"></td>
+            </tr>
+        </table>
+
+    </div>
+</div>
+
+<!-- ////////////////////////////////////////////////////////////////////////////////////////////////// -->
+
+<div class="card  mb-3">
+    <div class="card-body">
+
+        <div class="row d-flex align-items-center">
+            <div class="col-12 col-md-2">
+                <h6 class="card-title mb-0" style="font-size: 13px;">Uso del potenciómetro LAR-20</h6>
             </div>
 
-            <!-- Nueva tabla -->
-            <div class="contenedor-tabla">
-                <table class="tabla2 fuentePeq">
-                    <!-- Primera fila: Título -->
-                    <tr>
-                        <th colspan="3">Lectura de placas</th>
-                    </tr>
-            
-                    <!-- Segunda fila: 4 columnas -->
-                    <tr>
-                        <th>Día</th>
-                        <th>Fecha</th>
-                        <th>Hora</th>
-                    </tr>
-            
-                    <!-- Tercera fila: 4 columnas -->
-                    <tr>
-                        <td>3er Día</td>
-
-                        <td><input type="text"></td>
-                        
-                        <td><input type="text"></td>
-                    </tr>
-            
-                    <!-- Cuarta fila: 4 columnas -->
-                    <tr>
-                        <td>4to Día</td>
-
-                        <td><input type="text"></td>
-                        
-                        <td><input type="text"></td>
-                    </tr>
-            
-                    <!-- Quinta fila: Sin columnas (título) -->
-                    <tr>
-                        <td>5to Día</td>
-                        
-                        <td><input type="text"></td>
-                        
-                        <td><input type="text"></td>
-                    </tr>
-                </table>
+            <div class="col-12 col-md-5">
+                <p class="fw-bolder card-text d-inline" style="font-size: 12px;">Ver registro de preparación de Buffer de calibración / Uso y control de material de referencia </p>
             </div>
 
-        </div> 
+            <div class="col-12 col-md-5">
+                <span class="d-inline mb-0 fw-medium" style="font-size: 13px;">LAF-74GC/LAF-26CG</span>
+                <label for="TomoLAF02" class="d-inline ms-3" style="font-size: 13px;">Tomo: </label>
+                <select class="form-select d-inline mx-2" id="mes" style="width: 30%; font-size: 14px;">
+                    <option selected>Mes</option>
+                    <option value="1">Enero</option>
+                    <option value="2">Febrero</option>
+                    <option value="3">Marzo</option>
+                    <option value="4">Abril</option>
+                    <option value="5">Mayo</option>
+                    <option value="6">Junio</option>
+                    <option value="7">Julio</option>
+                    <option value="8">Agosto</option>
+                    <option value="9">Septiembre</option>
+                    <option value="10">Octubre</option>
+                    <option value="11">Noviembre</option>
+                    <option value="12">Diciembre</option>
+                </select>
+                <select class="form-select d-inline anio-select" id="anio" style="width: 20%; font-size: 14px;">
+                    <option selected>Año</option>
+                </select>
+                <div class="mt-2">
+                    <label for="PagLAF02" class="d-inline ms-5 mb-2 ms-xxl-2" style="font-size: 13px;">Página: </label>
+                    <input class="d-inline ipt ms-1 mb-2" type="text" style="font-size: 13px;" id="PagLAR20">
+                    <label for="PagLAF02" class="d-inline ms-2" style="font-size: 13px;">Numero: </label>
+                    <input class="d-inline ipt ms-1" type="text" style="font-size: 13px;" id="NumLAR20">
+                </div>
+            </div>
 
+        </div>
+
+        <table class="table table-bordered celda-flex text-center"  style="border-color: black;">
+            <tr>
+                <th rowspan="2">Hora</th>
+                <th colspan="2">Calibración</th>
+                <th colspan="3">Verificación</th>
+                <th colspan="2">Criterio de aceptación</th>
+            </tr>
+
+            <tr class="fw-semibold">
+                <td>Buffer 1</td>
+                <td>Buffer 2</td>
+                <td>Marca/número de lote</td>
+                <td>Valor real</td>
+                <td>Valor obtenido</td>
+                <td>Diferencia</td>
+                <td>Se acepta / Se rechaza</td>
+            </tr>
+            <tr>
+                <td><input type="time" class="form-control" id="fechaLecPla1" required></td>
+                <td><input type="text"></td>
+                <td><input type="text"></td>
+                <td><input type="text"></td>
+                <td><input type="text"></td>
+                <td><input type="text"></td>
+                <td><input type="text"></td>
+                <td>
+                    <select class="form-select form-select-sm" aria-label="Large select example" >
+                        <option selected style="text-align: center;">Seleciona la opcion</option>
+                        <option value="1" style="text-align: center;">Se acepta</option>
+                        <option value="2" style="text-align: center;">Se rechaza</option>
+                      </select>
+                </td>
+            </tr>
+            <tr>
+                <td><input type="time" class="form-control" id="fechaLecPla1" required></td>
+                <td colspan="2">mL añadido de Ac. Tartárico:</td>
+                <td><input type="text"></td>
+                <td colspan="2">pH final del medio acidificado:</td>
+                <td colspan="2"><input type="text"></td>
+            </tr>
+        </table>
+
+    </div>
+</div>
+
+
+ <!-- /////////////////////////////////////// Tabla de resultado de mohos inicia aquí /////////////////////////////////////////////////////////// -->
+
+
+    <div class="row">
+        <div class="col-md-12 d-flex flex-column mb-3">
+            <!-- Cards Para tabla de diluciones (Duilucion 1) -->
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="card-header text-center mb-2"><h5>Tabla de resultados de mohos</h5></div>
+                    <div>
+                        <button id="agregarFila" type="button" class="btn btn-success mb-3">
+                            <i class="bi bi-plus-circle"></i>
+                        </button>
+
+                        <button id="eliminarFila" type="button" class="btn btn-danger btn mb-3">
+                            <i class="bi bi-dash-circle"></i>
+                        </button>
+                    </div>
+
+                        <table class="table table-bordered celda-flex agregar1" style="border-color: black;">
+
+                            <tbody class="text-center">
+                                <tr>
+                                    <th rowspan="3">Clave muestra</th>
+                                    <th rowspan="3">Cantidad de muestra</th>
+                                    <th scope="col" rowspan="2">Diluciones empleadas</th>
+                                    <th scope="col" colspan="6">Directa o dilución</th>
+                                    <th scope="col" rowspan="3">Promedio</th>
+                                </tr>
+
+                                <tr>
+                                    <td colspan="2">Día 3</td>
+                                    <td colspan="2">Día 4</td>
+                                    <td colspan="2">Día 5</td>
+                                </tr>
+
+                                <tr>
+                                    <td>1</td>
+                                    <td>Placa 1</td>
+                                    <td>Placa 2</td>
+                                    <td>Placa 1</td>
+                                    <td>Placa 2</td>
+                                    <td>Placa 1</td>
+                                    <td>Placa 2</td>
+                                </tr>
+
+                                <tr>
+                                    <td>Blanco</td>
+                                    <td class="table-secondary"><input type="text" disabled>  </td>
+                                    <td class="table-secondary"><input type="text" disabled>  </td>
+                                    <td><input type="text" name="muestras[0][dia3_placa1]">  </td>
+                                    <td class="table-secondary"><input type="text" disabled>  </td>
+                                    <td><input type="text" name="muestras[0][dia4_placa1]">  </td>
+                                    <td class="table-secondary"><input type="text" disabled>  </td>
+                                    <td><input type="text" name="muestras[0][dia5_placa1]">  </td>
+                                    <td class="table-secondary"><input type="text" disabled>  </td>
+                                    <td><input type="text" name="muestras[1][promedioT1]"> </td>
+                                </tr>
+
+                                <tr>
+                                    <td><input type="text" name="muestras[0][clave]"></td>
+                                    <td><input type="text" name="muestras[0][cantidad]"></td>
+                                    <td class="tdD"><input type="checkbox" name="muestras[0][dilucion]"></td>
+                                    <td><input type="text" name="muestras[1][dia3_placa1]"></td>
+                                    <td><input type="text" name="muestras[0][dia3_placa2]"></td>
+                                    <td><input type="text" name="muestras[1][dia4_placa1]"></td>
+                                    <td><input type="text" name="muestras[0][dia4_placa2]"></td>
+                                    <td><input type="text" name="muestras[1][dia5_placa1]"></td>
+                                    <td><input type="text" name="muestras[0][dia5_placa2]"></td>
+                                    <td><input type="text" name="muestras[1][promedioT1]"></td>
+                                </tr>
+                            
+                            </tbody>
+                        </table>
+
+                </div>
+            </div>
+            
+          </div>
     </div>
 
 
+    
+ <!-- ////////////////////////////////////////////////////////////////////////////////////////////////// -->
+  
+ 
+    <div class="row">
 
+        <div class="col-md-8 mb-3">
+            <div class="row">
+                <!-- Tabla dilucion .010 -->
+                <div class="mb-3">
+                <div class="card">
+                    <div class="card-body">
+                        <table class="tabla table-bordered celda-flex agregar1" style="border-color: black;">
+                            <tbody class="text-center">
+                                <tr>
+                                    <th rowspan="2">Dilución empleada</th>
+                                    <th colspan="6">Dilución</th>
+                                    <th rowspan="3">Promedio</th>
+                                </tr>
+                                <tr>
+                                    <td colspan="2">Día 3</td>
+                                    <td colspan="2">Día 4</td>
+                                    <td colspan="2">Día 5</td>
+                                </tr>
+
+                                <tr>
+                                    <td>0.10</td>
+                                    <td>Placa 1</td>
+                                    <td>Placa 2</td>
+                                    <td>Placa 1</td>
+                                    <td>Placa 2</td>
+                                    <td>Placa 1</td>
+                                    <td>Placa 2</td>
+                                </tr>
+                                <tr>
+                                    <td><input type="text" disabled style="background-color: rgb(194, 195, 196);"></td>
+                                    <td><input type="text" disabled style="background-color: rgb(194, 195, 196);"></td>
+                                    <td><input type="text" disabled style="background-color: rgb(194, 195, 196);"></td>
+                                    <td><input type="text" disabled style="background-color: rgb(194, 195, 196);"></td>
+                                    <td><input type="text" disabled style="background-color: rgb(194, 195, 196);"></td>
+                                    <td><input type="text" disabled style="background-color: rgb(194, 195, 196);"></td>
+                                    <td><input type="text" disabled style="background-color: rgb(194, 195, 196);"></td>
+                                    <td><input type="text" disabled style="background-color: rgb(194, 195, 196);"></td>
+                                </tr>
+
+                                <tr>
+                                    <td class="TdDCh"><input type="checkbox" name="muestras[0][dilucionT2]"></td>
+                                    <td><input type="text" name="muestras[1][dia3_placa1T2]"></td>
+                                    <td><input type="text" name="muestras[0][dia3_placa2T2]"></td>
+                                    <td><input type="text" name="muestras[1][dia4_placa1T2]"></td>
+                                    <td><input type="text" name="muestras[0][dia4_placa2T2]"></td>
+                                    <td><input type="text" name="muestras[1][dia5_placa1T2]"></td>
+                                    <td><input type="text" name="muestras[0][dia5_placa2T2]"></td>
+                                    <td><input type="text" name="muestras[1][promedioT2]"></td>
+                                </tr>
+
+                            </tbody>
+                        </table>
+                    </div>   
+                </div>
+            </div>
+            <!-- Tabla dilucion .01 -->
+                <div class="mb-3">
+                    <div class="card">
+                    <div class="card-body">
+                            <table class="tabla table-bordered celda-flex agregar1" style="border-color: black;">
+                                <tbody class="text-center">
+                                    <tr>
+                                        <th rowspan="2">Dilución empleada</th>
+                                        <th colspan="6">Dilución</th>
+                                        <th rowspan="3">Promedio</th>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="2">Día 3</td>
+                                        <td colspan="2">Día 4</td>
+                                        <td colspan="2">Día 5</td>
+                                    </tr>
+    
+                                    <tr>
+                                        <td>0.01</td>
+                                        <td>Placa 1</td>
+                                        <td>Placa 2</td>
+                                        <td>Placa 1</td>
+                                        <td>Placa 2</td>
+                                        <td>Placa 1</td>
+                                        <td>Placa 2</td>
+                                    </tr>
+                                    <tr>
+                                        <td><input type="text" disabled style="background-color: rgb(194, 195, 196);"></td>
+                                        <td><input type="text" disabled style="background-color: rgb(194, 195, 196);"></td>
+                                        <td><input type="text" disabled style="background-color: rgb(194, 195, 196);"></td>
+                                        <td><input type="text" disabled style="background-color: rgb(194, 195, 196);"></td>
+                                        <td><input type="text" disabled style="background-color: rgb(194, 195, 196);"></td>
+                                        <td><input type="text" disabled style="background-color: rgb(194, 195, 196);"></td>
+                                        <td><input type="text" disabled style="background-color: rgb(194, 195, 196);"></td>
+                                        <td><input type="text" disabled style="background-color: rgb(194, 195, 196);"></td>
+                                    </tr>
+    
+                                    <tr>
+                                        <td class="TdDCh"><input type="checkbox" name="muestras[0][dilucionT2]"></td>
+                                        <td><input type="text" name="muestras[1][dia3_placa1T2]"></td>
+                                        <td><input type="text" name="muestras[0][dia3_placa2T2]"></td>
+                                        <td><input type="text" name="muestras[1][dia4_placa1T2]"></td>
+                                        <td><input type="text" name="muestras[0][dia4_placa2T2]"></td>
+                                        <td><input type="text" name="muestras[1][dia5_placa1T2]"></td>
+                                        <td><input type="text" name="muestras[0][dia5_placa2T2]"></td>
+                                        <td><input type="text" name="muestras[1][promedioT2]"></td>
+                                    </tr>
+    
+                                </tbody>
+                            </table>
+                    </div>
+                    </div>
+                </div>
+            <!-- Tabla dilucion .001 -->
+                <div class="mb-3">
+                    <div class="card">
+                    <div class="card-body">
+                            <table class="tabla table-bordered celda-flex agregar1" style="border-color: black;">
+                                <tbody class="text-center">
+                                    <tr>
+                                        <th rowspan="2">Dilución empleada</th>
+                                        <th colspan="6">Dilución</th>
+                                        <th rowspan="3">Promedio</th>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="2">Día 3</td>
+                                        <td colspan="2">Día 4</td>
+                                        <td colspan="2">Día 5</td>
+                                    </tr>
+    
+                                    <tr>
+                                        <td>0.001</td>
+                                        <td>Placa 1</td>
+                                        <td>Placa 2</td>
+                                        <td>Placa 1</td>
+                                        <td>Placa 2</td>
+                                        <td>Placa 1</td>
+                                        <td>Placa 2</td>
+                                    </tr>
+                                    <tr>
+                                        <td><input type="text" disabled style="background-color: rgb(194, 195, 196);"></td>
+                                        <td><input type="text" disabled style="background-color: rgb(194, 195, 196);"></td>
+                                        <td><input type="text" disabled style="background-color: rgb(194, 195, 196);"></td>
+                                        <td><input type="text" disabled style="background-color: rgb(194, 195, 196);"></td>
+                                        <td><input type="text" disabled style="background-color: rgb(194, 195, 196);"></td>
+                                        <td><input type="text" disabled style="background-color: rgb(194, 195, 196);"></td>
+                                        <td><input type="text" disabled style="background-color: rgb(194, 195, 196);"></td>
+                                        <td><input type="text" disabled style="background-color: rgb(194, 195, 196);"></td>
+                                    </tr>
+    
+                                    <tr>
+                                        <td class="TdDCh"><input type="checkbox" name="muestras[0][dilucionT2]"></td>
+                                        <td><input type="text" name="muestras[1][dia3_placa1T2]"></td>
+                                        <td><input type="text" name="muestras[0][dia3_placa2T2]"></td>
+                                        <td><input type="text" name="muestras[1][dia4_placa1T2]"></td>
+                                        <td><input type="text" name="muestras[0][dia4_placa2T2]"></td>
+                                        <td><input type="text" name="muestras[1][dia5_placa1T2]"></td>
+                                        <td><input type="text" name="muestras[0][dia5_placa2T2]"></td>
+                                        <td><input type="text" name="muestras[1][promedioT2]"></td>
+                                    </tr>
+    
+                                </tbody>
+                            </table>
+                    </div>
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+
+
+            <!-- Tabla de resultados de mohos-->
+
+        <div class="col-md-4 mb-3">
+            <div class="card h-100">
+            <div class="card align-items-center">
+                <div class="card-body">
+                        <table class="tabla table-bordered celda-flex agregar1 tabla-especial" style="border-color: black;">
+                            <tbody class="text-center">
+                                <tr>
+                                    <th colspan="2">Resultado</th>
+                                    <th>Diferencia entre duplicados < 5%</th>
+                                </tr>
+                                <tr>
+                                    <td><input type="text"></td>
+                                    <td>UFC/placa</td>
+                                    <td><input type="number"></td>
+                                </tr>
+                                <tr>
+                                    <td><input type="text"></td>
+                                    <td>
+                                        <div class="celda-flex">
+                                            <label for="TomoLAF02" class="d-inline ms-2" style="font-size: 14px;">UFC/ </label>
+                                            <input type="text" class="d-inline">
+                                        </div>
+                                    </td>
+                                    <td><input type="number"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                </div>
+                
+                <div>
+                   <div class="card-footer flex-grow-1">
+                        <h6>Observaciones</h6>
+                        <textarea class="form-control" placeholder="Escribe tus observaciones aquí..."></textarea></textarea>
+                    </div>
+            </div>
+
+            </div>
+            </div>
+
+        </div>
+
+    </div>
+
+<!-- //////////////////////////////////  Tabla de Levaduras inicia aquí //////////////////////////////////////////////////////////////// -->
+
+<div class="row">
+    <div class="col-md-12 d-flex flex-column mb-3">
+        <!-- Cards Para tabla de diluciones (Duilucion 1) -->
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="card-header text-center mb-2"><h5>Tabla de resultados de Levaduras</h5></div>
+                <div>
+                    <button id="agregarFila2" type="button" class="btn btn-success mb-3">
+                        <i class="bi bi-plus-circle"></i>
+                    </button>
+
+                    <button id="eliminarFila2" type="button" class="btn btn-danger btn mb-3">
+                        <i class="bi bi-dash-circle"></i>
+                    </button>
+                </div>
+
+                    <table class="table table-bordered celda-flex agregar2" style="border-color: black;">
+
+                        <tbody class="text-center">
+                            <tr>
+                                <th rowspan="3">Clave muestra</th>
+                                <th rowspan="3">Cantidad de muestra</th>
+                                <th scope="col" rowspan="2">Diluciones empleadas</th>
+                                <th scope="col" colspan="6">Directa o dilución</th>
+                                <th scope="col" rowspan="3">Promedio</th>
+                            </tr>
+
+                            <tr>
+                                <td colspan="2">Día 3</td>
+                                <td colspan="2">Día 4</td>
+                                <td colspan="2">Día 5</td>
+                            </tr>
+
+                            <tr>
+                                <td>1</td>
+                                <td>Placa 1</td>
+                                <td>Placa 2</td>
+                                <td>Placa 1</td>
+                                <td>Placa 2</td>
+                                <td>Placa 1</td>
+                                <td>Placa 2</td>
+                            </tr>
+
+                            <tr>
+                                <td>Blanco</td>
+                                <td class="table-secondary"><input type="text" disabled>  </td>
+                                <td class="table-secondary"><input type="text" disabled>  </td>
+                                <td><input type="text" name="muestras[0][dia3_placa1]">  </td>
+                                <td class="table-secondary"><input type="text" disabled>  </td>
+                                <td><input type="text" name="muestras[0][dia4_placa1]">  </td>
+                                <td class="table-secondary"><input type="text" disabled>  </td>
+                                <td><input type="text" name="muestras[0][dia5_placa1]">  </td>
+                                <td class="table-secondary"><input type="text" disabled>  </td>
+                                <td><input type="text" name="muestras[1][promedioT1]"> </td>
+                            </tr>
+
+                            <tr>
+                                <td><input type="text" name="muestras[0][clave]"></td>
+                                <td><input type="text" name="muestras[0][cantidad]"></td>
+                                <td class="tdD"><input type="checkbox" name="muestras[0][dilucion]"></td>
+                                <td><input type="text" name="muestras[1][dia3_placa1]"></td>
+                                <td><input type="text" name="muestras[0][dia3_placa2]"></td>
+                                <td><input type="text" name="muestras[1][dia4_placa1]"></td>
+                                <td><input type="text" name="muestras[0][dia4_placa2]"></td>
+                                <td><input type="text" name="muestras[1][dia5_placa1]"></td>
+                                <td><input type="text" name="muestras[0][dia5_placa2]"></td>
+                                <td><input type="text" name="muestras[1][promedioT1]"></td>
+                            </tr>
+                        
+                        </tbody>
+                    </table>
+
+            </div>
+        </div>
+        
+      </div>
+</div>
+
+
+
+<!-- Tablas de diluciones -->
+
+<div class="row">
+
+    <div class="col-md-8 mb-3">
+        <div class="row">
+            <!-- Tabla dilucion .010 -->
+            <div class="mb-3">
+            <div class="card">
+                <div class="card-body">
+                    <table class="tabla table-bordered celda-flex agregar2" style="border-color: black;">
+                        <tbody class="text-center">
+                            <tr>
+                                <th rowspan="2">Dilución empleada</th>
+                                <th colspan="6">Dilución</th>
+                                <th rowspan="3">Promedio</th>
+                            </tr>
+                            <tr>
+                                <td colspan="2">Día 3</td>
+                                <td colspan="2">Día 4</td>
+                                <td colspan="2">Día 5</td>
+                            </tr>
+
+                            <tr>
+                                <td>0.10</td>
+                                <td>Placa 1</td>
+                                <td>Placa 2</td>
+                                <td>Placa 1</td>
+                                <td>Placa 2</td>
+                                <td>Placa 1</td>
+                                <td>Placa 2</td>
+                            </tr>
+                            <tr>
+                                <td><input type="text" disabled style="background-color: rgb(194, 195, 196);"></td>
+                                <td><input type="text" disabled style="background-color: rgb(194, 195, 196);"></td>
+                                <td><input type="text" disabled style="background-color: rgb(194, 195, 196);"></td>
+                                <td><input type="text" disabled style="background-color: rgb(194, 195, 196);"></td>
+                                <td><input type="text" disabled style="background-color: rgb(194, 195, 196);"></td>
+                                <td><input type="text" disabled style="background-color: rgb(194, 195, 196);"></td>
+                                <td><input type="text" disabled style="background-color: rgb(194, 195, 196);"></td>
+                                <td><input type="text" disabled style="background-color: rgb(194, 195, 196);"></td>
+                            </tr>
+
+                            <tr>
+                                <td class="TdDCh"><input type="checkbox" name="muestras[0][dilucionT2]"></td>
+                                <td><input type="text" name="muestras[1][dia3_placa1T2]"></td>
+                                <td><input type="text" name="muestras[0][dia3_placa2T2]"></td>
+                                <td><input type="text" name="muestras[1][dia4_placa1T2]"></td>
+                                <td><input type="text" name="muestras[0][dia4_placa2T2]"></td>
+                                <td><input type="text" name="muestras[1][dia5_placa1T2]"></td>
+                                <td><input type="text" name="muestras[0][dia5_placa2T2]"></td>
+                                <td><input type="text" name="muestras[1][promedioT2]"></td>
+                            </tr>
+
+                        </tbody>
+                    </table>
+                </div>   
+            </div>
+        </div>
+        <!-- Tabla dilucion .01 -->
+            <div class="mb-3">
+                <div class="card">
+                <div class="card-body">
+                        <table class="tabla table-bordered celda-flex agregar2" style="border-color: black;">
+                            <tbody class="text-center">
+                                <tr>
+                                    <th rowspan="2">Dilución empleada</th>
+                                    <th colspan="6">Dilución</th>
+                                    <th rowspan="3">Promedio</th>
+                                </tr>
+                                <tr>
+                                    <td colspan="2">Día 3</td>
+                                    <td colspan="2">Día 4</td>
+                                    <td colspan="2">Día 5</td>
+                                </tr>
+
+                                <tr>
+                                    <td>0.01</td>
+                                    <td>Placa 1</td>
+                                    <td>Placa 2</td>
+                                    <td>Placa 1</td>
+                                    <td>Placa 2</td>
+                                    <td>Placa 1</td>
+                                    <td>Placa 2</td>
+                                </tr>
+                                <tr>
+                                    <td><input type="text" disabled style="background-color: rgb(194, 195, 196);"></td>
+                                    <td><input type="text" disabled style="background-color: rgb(194, 195, 196);"></td>
+                                    <td><input type="text" disabled style="background-color: rgb(194, 195, 196);"></td>
+                                    <td><input type="text" disabled style="background-color: rgb(194, 195, 196);"></td>
+                                    <td><input type="text" disabled style="background-color: rgb(194, 195, 196);"></td>
+                                    <td><input type="text" disabled style="background-color: rgb(194, 195, 196);"></td>
+                                    <td><input type="text" disabled style="background-color: rgb(194, 195, 196);"></td>
+                                    <td><input type="text" disabled style="background-color: rgb(194, 195, 196);"></td>
+                                </tr>
+
+                                <tr>
+                                    <td class="TdDCh"><input type="checkbox" name="muestras[0][dilucionT2]"></td>
+                                    <td><input type="text" name="muestras[1][dia3_placa1T2]"></td>
+                                    <td><input type="text" name="muestras[0][dia3_placa2T2]"></td>
+                                    <td><input type="text" name="muestras[1][dia4_placa1T2]"></td>
+                                    <td><input type="text" name="muestras[0][dia4_placa2T2]"></td>
+                                    <td><input type="text" name="muestras[1][dia5_placa1T2]"></td>
+                                    <td><input type="text" name="muestras[0][dia5_placa2T2]"></td>
+                                    <td><input type="text" name="muestras[1][promedioT2]"></td>
+                                </tr>
+
+                            </tbody>
+                        </table>
+                </div>
+                </div>
+            </div>
+        <!-- Tabla dilucion .001 -->
+            <div class="mb-3">
+                <div class="card">
+                <div class="card-body">
+                        <table class="tabla table-bordered celda-flex agregar2" style="border-color: black;">
+                            <tbody class="text-center">
+                                <tr>
+                                    <th rowspan="2">Dilución empleada</th>
+                                    <th colspan="6">Dilución</th>
+                                    <th rowspan="3">Promedio</th>
+                                </tr>
+                                <tr>
+                                    <td colspan="2">Día 3</td>
+                                    <td colspan="2">Día 4</td>
+                                    <td colspan="2">Día 5</td>
+                                </tr>
+
+                                <tr>
+                                    <td>0.001</td>
+                                    <td>Placa 1</td>
+                                    <td>Placa 2</td>
+                                    <td>Placa 1</td>
+                                    <td>Placa 2</td>
+                                    <td>Placa 1</td>
+                                    <td>Placa 2</td>
+                                </tr>
+                                <tr>
+                                    <td><input type="text" disabled style="background-color: rgb(194, 195, 196);"></td>
+                                    <td><input type="text" disabled style="background-color: rgb(194, 195, 196);"></td>
+                                    <td><input type="text" disabled style="background-color: rgb(194, 195, 196);"></td>
+                                    <td><input type="text" disabled style="background-color: rgb(194, 195, 196);"></td>
+                                    <td><input type="text" disabled style="background-color: rgb(194, 195, 196);"></td>
+                                    <td><input type="text" disabled style="background-color: rgb(194, 195, 196);"></td>
+                                    <td><input type="text" disabled style="background-color: rgb(194, 195, 196);"></td>
+                                    <td><input type="text" disabled style="background-color: rgb(194, 195, 196);"></td>
+                                </tr>
+
+                                <tr>
+                                    <td class="TdDCh"><input type="checkbox" name="muestras[0][dilucionT2]"></td>
+                                    <td><input type="text" name="muestras[1][dia3_placa1T2]"></td>
+                                    <td><input type="text" name="muestras[0][dia3_placa2T2]"></td>
+                                    <td><input type="text" name="muestras[1][dia4_placa1T2]"></td>
+                                    <td><input type="text" name="muestras[0][dia4_placa2T2]"></td>
+                                    <td><input type="text" name="muestras[1][dia5_placa1T2]"></td>
+                                    <td><input type="text" name="muestras[0][dia5_placa2T2]"></td>
+                                    <td><input type="text" name="muestras[1][promedioT2]"></td>
+                                </tr>
+
+                            </tbody>
+                        </table>
+                </div>
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+
+
+        <!-- Tabla de resultados de mohos-->
+
+    <div class="col-md-4 mb-3">
+        <div class="card h-100">
+        <div class="card align-items-center">
+            <div class="card-body">
+                    <table class="tabla table-bordered celda-flex agregar2 tabla-especial" style="border-color: black;">
+                        <tbody class="text-center">
+                            <tr>
+                                <th colspan="2">Resultado</th>
+                                <th>Diferencia entre duplicados < 5%</th>
+                            </tr>
+                            <tr>
+                                <td><input type="text"></td>
+                                <td>UFC/placa</td>
+                                <td><input type="number"></td>
+                            </tr>
+                            <tr>
+                                <td><input type="text"></td>
+                                <td>
+                                    <div class="celda-flex">
+                                        <label for="TomoLAF02" class="d-inline ms-2" style="font-size: 14px;">UFC/ </label>
+                                        <input type="text" class="d-inline">
+                                    </div>
+                                </td>
+                                <td><input type="number"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+            </div>
+            
+            <div>
+               <div class="card-footer flex-grow-1">
+                    <h6>Observaciones</h6>
+                    <textarea class="form-control" placeholder="Escribe tus observaciones aquí..."></textarea></textarea>
+                </div>
+        </div>
+
+        </div>
+        </div>
+
+    </div>
 
 </div>
 
-<script src="{% static 'js/bloquear.js' %}"></script>
 
+
+ <!-- ////////////////////////////////////////////////////////////////////////////////////////////////// -->
+    <div class="row">
+        <div class="col-md-4">
+            <!-- Card 1 -->
+            <div class="card text-bg-light mb-3">
+                <div class="card-header">Ejemplo de cálculo de resultado:</div>
+                <div class="card-body">
+                    <p class="card-text">Procedimiento de lectura ÷ Dilución empleada = Resultado</p>
+                    <p class="card-text text-center">( <input type="number" class="tmInT" id="Pl"> ) ÷ ( <input type="number" class="tmInT" id="De"> ) =
+                         <span id="ReDiv"></span></p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <!-- Card 2 -->
+            <div class="card text-bg-light mb-3">
+                <div class="card-header">Ejemplo de cálculo de resultado de superficies vivas e inertes:</div>
+                <div class="card-body">
+                    <p>(Promedio de la lectura ÷ Dilución empleada) x Volumen de medio de trasporte = Resultado</p>
+                    <p class="card-text text-center">( <input type="number" class="tmInT" id="Pl2"> ÷ <input type="number" class="tmInT" id="De2"> )
+                         x <input type="number" class="tmInT" id="Vmt"> = <span id="Rpdv"></span> </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <!-- Card 3 -->
+            <div class="card text-bg-light mb-3">
+                <div class="card-header">Ejemplo de calculo diferencial entre duplicados</div>
+                <div class="card-body center">
+
+                    <div class="fraccion">
+                        <div class="numerador">(placa1 - placa2)</div>
+                        <div class="denominador">Promedio</div>
+                    </div>
+                    <p class="d-inline">x 100 = &#8804; 5% </p>
+
+                    <div class="fraccion mt-3">
+                        <div class="numerador">&lpar;<input type="number" class="tmInT text-center" id="CP1"> - <input type="number" class="tmInT text-center" id="CP2">)</div>
+                        <div class="denominador"><input type="number" class="tmInT text-center" id="Pmd"></div>
+                    </div>
+                    <p class="d-inline">x 100 = <span id="Rp1p2pmd"></span> </p>
+                    <p class="mt-2">Clave muestra <input type="text" class="d-inline tmInT text-center" id="cmF"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+ 
+ <!-- ////////////////////////////////////////////////////////////////////////////////////////////////// -->
+            <!-- Fila para las dos primeras cards (una al lado de la otra) -->
+    <div class="row mt-4">
+                
+                <div class="col-4 mb-3">
+                    <div class="card">
+                            <div class="card-body">
+                                <div class="card-body">
+                                    <hr class="w-100 mt-5">
+                                    <p class="text-center">Analizó</p>
+                                </div>
+                            </div>
+                    </div>
+                </div>
+
+                <div class="col-4 mb-3">
+                    <div class="card">
+                            <div class="card-body">
+                                <div class="card-body">
+                                    <hr class="w-100 mt-5 text-black">
+                                    <p class="text-center">Revisó</p>
+                                </div>
+                            </div>
+                    </div>
+                </div>
+
+                <div class="col-4 mb-3">
+                    <div class="card">
+                            <div class="card-body">
+                                <div class="card-body">
+                                    <hr class="w-100 mt-5">
+                                    <p class="text-center">Autorizó</p>
+                                </div>
+                            </div>
+                    </div>
+                </div>
+    </div>
+
+    </form>
+<!-- aqui va el modal -->
+<!-- Modal de Bootstrap para confirmar eliminación -->
+<div class="modal fade" id="confirmarEliminarModal" tabindex="-1" aria-labelledby="confirmarEliminarModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmarEliminarModalLabel">Confirmar Eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                ¿Estás seguro de que deseas eliminar esta fila?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" id="confirmarEliminar">Eliminar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="confirmarEliminarModal2" tabindex="-1" aria-labelledby="confirmarEliminarModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmarEliminarModalLabel2">Confirmar Eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                ¿Estás seguro de que deseas eliminar esta fila?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" id="confirmarEliminar2">Eliminar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+     
+</div>
+
+
+
+
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'js/133.js' %}"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 {% endblock %}
