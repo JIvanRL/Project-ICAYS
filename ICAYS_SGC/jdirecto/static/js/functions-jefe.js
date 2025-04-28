@@ -407,7 +407,7 @@ function enviarFormularioAutorizado() {
     const bitacoraId = bitacoraEstado ? bitacoraEstado.value : null;
     
     if (!bitacoraId) {
-        console.error('No se pudo obtener el ID de la bitacora actual');
+        console.error('No se pudo obtener el ID de la bitácora actual');
         $('#error-message').text('Error: No se pudo obtener el ID de la bitácora').show();
         return false;
     }
@@ -887,3 +887,80 @@ function ejemplDiferencia() {
 document.getElementById('num6').addEventListener('input', ejemplDiferencia);
 document.getElementById('num7').addEventListener('input', ejemplDiferencia);
 document.getElementById('num8').addEventListener('input', ejemplDiferencia);
+
+
+function createToast(title, message, isError = false) {
+    const toastElement = document.createElement('div');
+    toastElement.className = `toast ${isError ? 'bg-danger' : 'bg-success'} text-white`;
+    toastElement.setAttribute('role', 'alert');
+    toastElement.setAttribute('aria-live', 'assertive');
+    toastElement.setAttribute('aria-atomic', 'true');
+    
+    toastElement.innerHTML = `
+        <div class="toast-header">
+            <strong class="me-auto">${title}</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+            ${message}
+        </div>
+    `;
+    
+    document.getElementById('toast-container').appendChild(toastElement);
+    return toastElement;
+}
+
+// Agregar event listeners para los botones
+document.addEventListener('DOMContentLoaded', function() {
+    // Delegación de eventos para botones de aprobar/rechazar
+    document.body.addEventListener('click', function(e) {
+        if (e.target.matches('.aprobar-btn')) {
+            const solicitudId = e.target.dataset.solicitudId;
+            if (solicitudId) {
+                interaccionSolicitud(solicitudId, 'aprobar');
+            }
+        } else if (e.target.matches('.rechazar-btn')) {
+            const solicitudId = e.target.dataset.solicitudId;
+            if (solicitudId) {
+                interaccionSolicitud(solicitudId, 'rechazar');
+            }
+        }
+    });
+});
+
+// Función helper para mostrar notificaciones
+function showNotification(title, message, isError = false) {
+    const toastContainer = document.getElementById('toast-container') || createToastContainer();
+    
+    const toast = document.createElement('div');
+    toast.className = `toast ${isError ? 'bg-danger' : 'bg-success'} text-white`;
+    toast.setAttribute('role', 'alert');
+    toast.setAttribute('aria-live', 'assertive');
+    toast.setAttribute('aria-atomic', 'true');
+    
+    toast.innerHTML = `
+        <div class="toast-header">
+            <strong class="me-auto">${title}</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+            ${message}
+        </div>
+    `;
+    
+    toastContainer.appendChild(toast);
+    const bsToast = new bootstrap.Toast(toast);
+    bsToast.show();
+    
+    toast.addEventListener('hidden.bs.toast', () => {
+        toast.remove();
+    });
+}
+
+function createToastContainer() {
+    const container = document.createElement('div');
+    container.id = 'toast-container';
+    container.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+    document.body.appendChild(container);
+    return container;
+}

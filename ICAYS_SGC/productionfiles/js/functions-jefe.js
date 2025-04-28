@@ -283,6 +283,122 @@ function enviarFormularioAutorizar() {
     
     return false;
 }
+function enviarFormularioRechazado() {
+    console.log('Iniciando cambio de estado de bitácora a rechazada...');
+    
+    // Obtener el ID de la bitácora desde el campo oculto
+    const bitacoraEstado = document.getElementById('bitacora_id');
+    const bitacoraId = bitacoraEstado ? bitacoraEstado.value : null;
+    
+    if (!bitacoraId) {
+        console.error('No se pudo obtener el ID de la bitacora actual');
+        $('#error-message').text('Error: No se pudo obtener el ID de la bitácora').show();
+        return false;
+    }
+    console.log('ID de la bitacora actual:', bitacoraId);
+    
+    // Validar que se haya seleccionado un usuario destino
+    const usuarioDestino = $('#usuario_destino').val();
+    const accion = 'rechazar';
+    
+    // Validar que se haya seleccionado un usuario destino
+    if (!usuarioDestino) {
+        $('#error-message').text('Debe seleccionar un usuario destino').show();
+        return false;
+    }
+    
+    // Obtener todos los datos del formulario principal
+    const formPrincipal = document.getElementById('form-principal');
+    if (!formPrincipal) {
+        console.error('No se encontró el formulario principal');
+        $('#error-message').text('Error: No se encontró el formulario principal').show();
+        return false;
+    }
+    
+    // Crear FormData con todos los datos del formulario
+    const formData = new FormData(formPrincipal);
+    
+    // Agregar datos adicionales necesarios para el envío
+    formData.append('accion', accion);
+    formData.append('usuario_destino', usuarioDestino);
+    
+    // Obtener observaciones (si existen)
+    const observaciones = $('#observaciones').val();
+    if (observaciones) {
+        formData.append('observaciones', observaciones);
+    }
+    
+    // Obtener el estado actual si está disponible
+    const estadoActual = document.getElementById('estado_actual');
+    if (estadoActual && estadoActual.value) {
+        formData.append('estado_actual', estadoActual.value);
+    }
+    
+    // Debug: Mostrar todos los datos que se van a enviar
+    console.log('Enviando formulario con los siguientes datos:');
+    for (let [key, value] of formData.entries()) {
+        console.log(`${key}: ${value}`);
+    }
+    
+    $.ajax({
+        url: `/jdirecto/cambia_estado_bitacora/${bitacoraId}/`,
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        success: function(response) {
+            console.log('Respuesta:', response);
+            if (response.success) {
+                // Cerrar el modal de rechazo
+                $('#Rechazar').modal('hide');
+                
+                // Actualizar los contadores inmediatamente después de cambiar el estado
+                actualizarContadoresJefe();
+                
+                // Mostrar mensaje de éxito
+                $('#mensajeExitoTextoRechazada').text(response.message || 'Bitácora rechazada correctamente');
+                $('#rechazada').modal('show');
+                
+                // Redireccionar después de mostrar el mensaje
+                $('#rechazada').on('hidden.bs.modal', function () {
+                    window.location.href = response.redirect_url || '/jdirecto/pendientes/';
+                });
+            } else {
+                const errorMsg = response.error || response.message || 'Error al procesar la bitácora';
+                $('#error-message').text(errorMsg).show();
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error al procesar:', {
+                status: xhr.status,
+                statusText: xhr.statusText,
+                responseText: xhr.responseText
+            });
+            
+            // Intentar extraer mensaje de error más detallado
+            let errorMsg = 'Error al procesar la bitácora';
+            try {
+                const errorResponse = JSON.parse(xhr.responseText);
+                if (errorResponse.error) {
+                    errorMsg = errorResponse.error;
+                } else if (errorResponse.message) {
+                    errorMsg = errorResponse.message;
+                }
+            } catch (e) {
+                console.log('No se pudo parsear la respuesta de error');
+                errorMsg += ': ' + error;
+            }
+            
+            $('#error-message').text(errorMsg).show();
+        }
+    });
+    
+    return false;
+}
 function enviarFormularioAutorizado() {
     console.log('Iniciando autorización de bitácora...');
     
@@ -642,6 +758,15 @@ document.addEventListener('DOMContentLoaded', function() {
         btnAutorizar.addEventListener('click', function(e) {
             e.preventDefault();
             enviarFormularioAutorizar();
+        });
+    }
+    
+    // Configurar botones de rechazo (si existen)
+    const btnRechazar = document.getElementById('btn-rechazar');
+    if (btnRechazar) {
+        btnRechazar.addEventListener('click', function(e) {
+            e.preventDefault();
+            enviarFormularioRechazado();
         });
     }
 });

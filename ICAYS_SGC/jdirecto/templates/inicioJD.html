@@ -38,7 +38,11 @@
             <div class="icon-text" style="font-size: 18px; color: black;">Bitácoras autorizadas</div>
         </button>
 
-        <button class="icon-container button-style" id="nuevo-registro-btn" >
+        <button class="icon-container button-style position-relative" id="nuevo-registro-btn" data-url="{% url 'jdirecto:listar_solicitudes_autorizacion' %}">
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded bg-danger shadow-sm fs-4 p-2">
+                <span id="solicitudes-contador">0</span>
+                <span class="visually-hidden">Solicitudes pendientes</span>
+            </span>
             <img src="{% static 'iconos/Imagen6.png' %}" class="img-fluid" alt="Bitácoras rechazadas">
             <div class="icon-text" style="font-size: 18px; color: black;">Solicitudes</div>
         </button>
@@ -68,4 +72,7 @@
 {% endblock %}
 {% block extra_js %}
     <script src="{% static 'js/functions-jefe.js' %}"></script>
+<script src="{% static 'js/solicitudes-contador.js' %}"></script>
+
+
 {% endblock %}

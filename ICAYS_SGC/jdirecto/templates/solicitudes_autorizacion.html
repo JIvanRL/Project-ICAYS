@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block extra_css%}
+    <link rel="stylesheet" href="{% static 'css/animaciones.css' %}">
+{% endblock%}
+{% block content %}
+<div class="container-fluid">
+    <button class="icon-container button-style custom-button mb-2" type="button" data-url="{% url 'jdirecto:inicioJefeD' %}">Regresar</button>
+</div>
+<div class="container mt-4">
+    
+        <div class="card-body">
+            <div class="row g-3">
+                {% for solicitud in solicitudes %}
+                {% if solicitud.estado == 'pendiente' %}
+                <div class="col-12 col-md-6 col-xl-4">
+                    <div class="card solicitud-card h-100 shadow-sm hover-shadow pulse-animation">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="text-muted small">{{ solicitud.fecha_solicitud|date:"d/m/Y H:i" }}</span>
+                                <span class="badge rounded-pill bg-warning text-dark">Pendiente</span>
+                            </div>
+
+                            <h6 class="fw-bold text-primary mb-3">{{ solicitud.bitacora.nombre_bita_cbap }}</h6>
+
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="avatar-sm bg-primary-subtle rounded-circle me-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                    <span class="fw-medium text-primary">{{ solicitud.solicitante.first_name|first }}</span>
+                                </div>
+                                <div>
+                                    <span class="d-block fw-medium">{{ solicitud.solicitante.first_name }} {{ solicitud.solicitante.last_name }}</span>
+                                    <small class="text-muted">Solicitante</small>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label small text-muted">Valor Actual</label>
+                                <div class="p-2 bg-light rounded">{{ solicitud.valor_actual }}</div>
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-success aprobar-btn flex-grow-1" 
+                                        data-solicitud-id="{{ solicitud.id_solicitud }}">
+                                    <i class="fas fa-check me-1"></i>Aprobar
+                                </button>
+                                <button class="btn btn-sm btn-danger rechazar-btn flex-grow-1" 
+                                        data-solicitud-id="{{ solicitud.id_solicitud }}">
+                                    <i class="fas fa-times me-1"></i>Rechazar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                {% empty %}
+                <div class="col-12">
+                    <div class="text-center py-5 text-muted">
+                        <i class="fas fa-inbox fa-3x mb-3"></i>
+                        <h5>No hay solicitudes pendientes</h5>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/solicitudes_campos.js' %}"></script>
+{% endblock %}
+

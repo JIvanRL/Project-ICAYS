@@ -10,7 +10,9 @@ from django.db import transaction
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
-from .models import ClaveMuestraCbap, ControlCalidad, Dilucion, DilucionesEmpleadas, Direct_o_Dilucion, Resultado, VerificacionBalanza, bita_cbap, Bitcoras_Cbap, CustomUser, ObservacionCampo
+from django.db.models import Q  # Agregar esta importación para Q objects
+import traceback  # Agregar esta importación para traceback
+from .models import ClaveMuestraCbap, ControlCalidad, Dilucion, DilucionesEmpleadas, Direct_o_Dilucion, Resultado, VerificacionBalanza, bita_cbap, Bitcoras_Cbap, CustomUser, ObservacionCampo, SolicitudAutorizacion, Notification
 from .forms import (
     DilucionesEmpleadasForm, DirectODilucionForm, DilucionForm,
     ControlCalidadForm, VerificacionBalanzaForm, DatosCampoCbapForm,
@@ -847,7 +849,8 @@ def obtener_campos_observaciones(request, bitacora_id):
                 'campo_tipo': obs.campo_tipo,
                 'observacion': obs.observacion,
                 'fecha_edicion': obs.fecha_edicion.strftime('%Y-%m-%d %H:%M:%S') if obs.fecha_edicion else '',
-                'editado_por': f"{obs.editado_por.first_name} {obs.editado_por.last_name}" if obs.editado_por else ''
+                'editado_por': f"{obs.editado_por.first_name} {obs.editado_por.last_name}" if obs.editado_por else '',
+                'estado': obs.estado or 'pendiente'  # Añadimos el estado, default 'pendiente'
             })
         
         return JsonResponse({
@@ -3029,3 +3032,101 @@ def guardar_campos_corregidos(request):
             'success': False,
             'message': f'Error al guardar el campo corregido: {str(e)}'
         }, status=500)
+
+@login_required
+@require_POST
+def solicitar_autorizacion_api(request, bitacora_id=None):
+    try:
+        # Obtener la bitácora usando el ID desde POST o URL
+        bitacora_id = bitacora_id or request.POST.get('bitacora_id')
+        if not bitacora_id:
+            return JsonResponse({
+                'success': False,
+                'message': 'ID de bitácora no proporcionado',
+            }, status=400)
+
+        bitacora = Bitcoras_Cbap.objects.select_related('nombre_bita_cbap').get(
+            nombre_bita_cbap__id_cbap=bitacora_id
+        )
+
+        # Validar datos requeridos
+        campo_id = request.POST.get('campo_id')
+        campo_nombre = request.POST.get('campo_nombre')
+        valor_actual = request.POST.get('valor_actual')
+        solicitante_id = request.POST.get('solicitante_id')
+
+        if not all([campo_id, solicitante_id]):
+            return JsonResponse({
+                'success': False,
+                'message': 'Faltan campos requeridos',
+                'missing_fields': {
+                    'campo_id': not campo_id,
+                    'solicitante_id': not solicitante_id
+                }
+            }, status=400)
+
+        # Obtener el solicitante
+        try:
+            solicitante = CustomUser.objects.get(id_user=solicitante_id)
+            
+            # Buscar el supervisor del área del solicitante
+            supervisor = CustomUser.objects.filter(
+                rol_user__name_rol='Jefe de Laboratorio',
+                area_user=solicitante.area_user
+            ).first()
+            
+            if not supervisor:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'No se encontró un supervisor para el área del solicitante'
+                }, status=400)
+
+            # Crear la solicitud de autorización
+            solicitud = SolicitudAutorizacion.objects.create(
+                bitacora=bitacora,
+                campo_id=campo_id,
+                campo_nombre=campo_nombre,
+                valor_actual=valor_actual,
+                solicitante=solicitante,
+                supervisor=supervisor,  # Agregar el supervisor
+                estado='pendiente'
+            )
+
+            # Crear notificación para el supervisor en lugar del solicitante
+            Notification.objects.create(
+                recipient=supervisor,  # Cambiar destinatario al supervisor
+                message=f'Nueva solicitud de autorización de {solicitante.first_name} para editar campo {campo_nombre} en bitácora {bitacora_id}',
+                type='solicitud_autorizacion',
+                related_bitacora=bitacora
+            )
+
+            return JsonResponse({
+                'success': True,
+                'message': 'Solicitud de autorización creada correctamente',
+                'solicitud_id': solicitud.id_solicitud
+            })
+
+        except CustomUser.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'message': 'Solicitante no encontrado'
+            }, status=404)
+
+    except Bitcoras_Cbap.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'message': f'Bitácora no encontrada (ID: {bitacora_id})',
+            'debug_info': {
+                'posted_id': request.POST.get('bitacora_id'),
+                'url_id': bitacora_id
+            }
+        }, status=404)
+    except Exception as e:
+        logger.error(f"Error al procesar solicitud de autorización: {str(e)}")
+        import traceback
+        logger.error(traceback.format_exc())
+        return JsonResponse({
+            'success': False,
+            'message': f'Error al procesar la solicitud: {str(e)}'
+        }, status=500)
+

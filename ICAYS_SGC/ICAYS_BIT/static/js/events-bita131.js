@@ -207,9 +207,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 hiddenInput.name = `${campo}_${rowIndex}`;
                 hiddenInput.value = '0';
 
-                newCell.appendChild(checkboxInput); /////////////////aqui me quede leyendo
-                newCell.appendChild(hiddenInput);   ////// aqui mas abajo
-            } else if (campo === 'medicion_c_m') {          // estaba checando como hacerle para que automaticamente se ponga 1ml o 10g
+                newCell.appendChild(checkboxInput);
+                newCell.appendChild(hiddenInput);
+            } else if (campo === 'medicion_c_m') {
                 // Crear un select para el campo medicion_c_m
                 const selectInput = document.createElement('select');
                 selectInput.name = `${campo}_${rowIndex}`;
@@ -465,101 +465,6 @@ document.addEventListener('DOMContentLoaded', function () {
         input.setAttribute('readonly', true);
     });
 
-    // function ResultadoCalculo(fila) {
-    //     const resultadoInput = fila.querySelector('[name^="resultado_r_"]');
-    //     if (!resultadoInput) return;
-
-    //     // Obtener la medición seleccionada
-    //     const medicionSelect = fila.querySelector('.medicion-select');
-    //     const medicionValue = medicionSelect ? medicionSelect.value : '';
-
-    //     // Verificar si hay medición seleccionada
-    //     if (!medicionValue) {
-    //         mostrarModal('Advertencia', 'No se ha seleccionado ninguna medición.');
-    //         resultadoInput.value = '0**';
-    //         return;
-    //     }
-
-    //     // Obtener estado de los checkboxes de dilución
-    //     const dE1 = fila.querySelector('[name^="dE_1_"]:checked');
-    //     const dE2 = fila.querySelector('[name^="dE_2_"]:checked');
-    //     const dE3 = fila.querySelector('[name^="dE_3_"]:checked');
-    //     const dE4 = fila.querySelector('[name^="dE_4_"]:checked');
-
-    //     // Obtener los tres promedios
-    //     const promedio1 = parseFloat(fila.querySelector('.promedio').value.replace('**', '')) || 0;
-    //     const promedio2 = parseFloat(fila.querySelector('.promedio2').value.replace('**', '')) || 0;
-    //     const promedio3 = parseFloat(fila.querySelector('.promedio3').value.replace('**', '')) || 0;
-
-    //     // Determinar qué promedio usar (prioridad: 1 > 2 > 3)
-    //     let promedioSeleccionado = 0;
-    //     if (promedio1 >= 25 && promedio1 <= 250) {
-    //         promedioSeleccionado = promedio1;
-    //     } else if (promedio2 >= 25 && promedio2 <= 250) {
-    //         promedioSeleccionado = promedio2;
-    //     } else if (promedio3 >= 25 && promedio3 <= 250) {
-    //         promedioSeleccionado = promedio3;
-    //     } else {
-    //         // Si ningún promedio está en rango, usar el mayor
-    //         promedioSeleccionado = Math.max(promedio1, promedio2, promedio3);
-    //     }
-
-    //     // Para mediciones que requieren volumen (Vm)
-    //     const requiereVm = ['Vivas', 'Inertes', 'Blancos'].includes(medicionValue);
-    //     let vm = 1; // Valor por defecto
-
-    //     if (requiereVm) {
-    //         // Verificar si ya tenemos Vm almacenado en la fila
-    //         if (!fila.dataset.vm) {
-    //             mostrarModalVolumen((vmInput) => {
-    //                 if (vmInput && !isNaN(vmInput)) {
-    //                     fila.dataset.vm = vmInput;
-    //                     calcularResultadoFinal();
-    //                 } else {
-    //                     resultadoInput.value = '0**';
-    //                 }
-    //             });
-    //             return; // Salir temporalmente hasta que se ingrese Vm
-    //         } else {
-    //             vm = parseFloat(fila.dataset.vm);
-    //         }
-    //     }
-
-    //     calcularResultadoFinal();
-
-    //     function calcularResultadoFinal() {
-    //         let resultado = 0;
-    //         let factorDilucion = 1; // Valor por defecto
-
-    //         // Determinar el factor de dilución basado en los checkboxes marcados
-    //         if (dE1) {
-    //             factorDilucion = 1;
-    //         } else if (dE2) {
-    //             factorDilucion = 0.1;
-    //         } else if (dE3) {
-    //             factorDilucion = 0.01;
-    //         } else if (dE4) {
-    //             factorDilucion = 0.001;
-    //         } else {
-    //             // Ninguna dilución seleccionada
-    //             resultadoInput.value = '0**';
-    //             return;
-    //         }
-
-    //         // Calcular el resultado según el tipo de medición
-    //         if (medicionValue === 'Alimentos' || medicionValue === 'Aguas') {
-    //             resultado = promedioSeleccionado / factorDilucion;
-    //         } else {
-    //             resultado = (promedioSeleccionado / factorDilucion) * vm;
-    //         }
-
-    //         // Asignar el resultado formateado
-    //         resultadoInput.value = resultado > 0 ? formatearResultado(resultado) : '0**';
-        
-    //         // Calcular la diferencia entre duplicados después de asignar el resultado
-    //         calcularDiferenciaEntreDuplicados(fila);
-    //     }
-    // }
     function ResultadoCalculo(fila) {
         const resultadoInput = fila.querySelector('[name^="resultado_r_"]');
         let r1 = 0, r2 = 0, r3 = 0, resultado = 0, VMH = 0;
@@ -1117,52 +1022,6 @@ document.addEventListener('DOMContentLoaded', function () {
         diferenciaInput.style.color = esAceptable ? "green" : "red";
     }
 
-    // function redondearNumero(num) {
-    //     // Convertimos el número en una cadena para separar los dígitos
-    //     //let numStr = valor.toString();
-    //     let numStr = Array.from(str, num => `[${num}]`);
-
-    //     // Caso cuando el número tiene más de 2 cifras
-    //     if (numStr.length > 2) {
-    //         let cientos = parseInt(numStr.charAt(0)); // Primer dígito (centenas)
-    //         let decenas = parseInt(numStr.charAt(1)); // Segundo dígito (decenas)
-    //         let unidades = parseInt(numStr.charAt(2)); // Tercer dígito (unidades)
-
-    //         if (unidades > 5) {
-    //             decenas += 1; // Aumentamos el segundo dígito
-    //             unidades = 0; // El tercer dígito se pone a 0
-
-    //             if (decenas === 10) {
-    //                 decenas = 0; // Si el segundo dígito es 9, lo reseteamos
-    //                 cientos += 1; // Aumentamos el primer dígito
-    //             }
-    //         }
-
-    //         // Comprobamos si el primer dígito es 10, lo corregimos
-    //         if (cientos >= 10) {
-    //             cientos = 9;
-    //         }
-
-    //         // Volvemos a formar el número con los tres dígitos
-    //         return parseInt(`${cientos}${decenas}${unidades}`);
-    //     }
-    //     // Caso cuando el número tiene 2 cifras
-    //     else if (numStr.length === 2) {
-    //         let decenas = parseInt(numStr.charAt(0)); // Primer dígito (decenas)
-    //         let unidades = parseInt(numStr.charAt(1)); // Segundo dígito (unidades)
-
-    //         if (unidades > 5) {
-    //             decenas += 1; // Aumentamos el primer dígito
-    //             unidades = 0; // El segundo dígito se pone a 0
-    //         } else {
-    //             unidades = 0; // El segundo dígito se pone a 0 si es menor o igual a 5
-    //         }
-
-    //         return parseInt(`${decenas}${unidades}`);
-    //     }
-    //     // Si es un número de una sola cifra, simplemente lo retornamos como está
-    //     return num;
-    // }
     function redondearNumero(numero) {
         // Convertir el número a string para manipular dígitos
         const numStr = Math.floor(numero).toString(); // Usamos Math.floor para evitar decimales
@@ -1209,7 +1068,99 @@ document.addEventListener('DOMContentLoaded', function () {
         alert(`${titulo}\n${mensaje}`);
     }
 
+    function calcularPromedio(placa1Input, placa2Input, promedioInput) {
+        // Obtener valores y limpiar posibles "---"
+        let valor1 = placa1Input.value.replace('---', '').trim();
+        let valor2 = placa2Input.value.replace('---', '').trim();
+        
+        // Convertir a números, usar 0 si está vacío
+        valor1 = valor1 ? parseFloat(valor1) : 0;
+        valor2 = valor2 ? parseFloat(valor2) : 0;
 
+        // Calcular promedio solo si al menos uno de los valores es diferente de 0
+        if (valor1 > 0 || valor2 > 0) {
+            const promedio = (valor1 + valor2) / 2;
+            promedioInput.value = promedio.toFixed(2);
+        } else {
+            promedioInput.value = '---';
+        }
+
+        // Disparar evento de cambio para actualizar cálculos dependientes
+        promedioInput.dispatchEvent(new Event('change'));
+    }
+
+    // Modificar el evento de cambio en las placas
+    function configurarEventosCalculo() {
+        document.querySelectorAll('.placa1, .placa2, .placa3, .placa4, .placa5, .placa6').forEach(input => {
+            input.addEventListener('change', function() {
+                const rowIndex = this.closest('tr').rowIndex;
+                console.log('Valor cambiado en placa:', this.value, 'Row:', rowIndex);
+
+                // Identificar qué par de placas cambió y calcular su promedio
+                if (this.classList.contains('placa1') || this.classList.contains('placa2')) {
+                    const placa1 = this.closest('tr').querySelector('.placa1');
+                    const placa2 = this.closest('tr').querySelector('.placa2');
+                    const promedio = this.closest('tr').querySelector('.promedio');
+                    calcularPromedio(placa1, placa2, promedio);
+                }
+                else if (this.classList.contains('placa3') || this.classList.contains('placa4')) {
+                    const placa3 = this.closest('tr').querySelector('.placa3');
+                    const placa4 = this.closest('tr').querySelector('.placa4');
+                    const promedio2 = this.closest('tr').querySelector('.promedio2');
+                    calcularPromedio(placa3, placa4, promedio2);
+                }
+                else if (this.classList.contains('placa5') || this.classList.contains('placa6')) {
+                    const placa5 = this.closest('tr').querySelector('.placa5');
+                    const placa6 = this.closest('tr').querySelector('.placa6');
+                    const promedio3 = this.closest('tr').querySelector('.promedio3');
+                    calcularPromedio(placa5, placa6, promedio3);
+                }
+
+                // Recalcular resultado y diferencia cada vez que cambie un valor
+                calcularResultadoYDiferencia(this.closest('tr'));
+            });
+        });
+    }
+
+    function calcularResultadoYDiferencia(row) {
+        // Obtener todos los promedios
+        const promedio1 = parseFloat(row.querySelector('.promedio')?.value.replace('---', '') || 0);
+        const promedio2 = parseFloat(row.querySelector('.promedio2')?.value.replace('---', '') || 0);
+        const promedio3 = parseFloat(row.querySelector('.promedio3')?.value.replace('---', '') || 0);
+
+        // Obtener campos de resultado y diferencia
+        const resultadoInput = row.querySelector('.resultado');
+        const diferenciaInput = row.querySelector('.diferencia');
+
+        // Calcular resultado (el mayor de los promedios)
+        const promedios = [promedio1, promedio2, promedio3].filter(p => p > 0);
+        if (promedios.length > 0) {
+            const resultado = Math.max(...promedios);
+            resultadoInput.value = resultado.toFixed(2);
+        } else {
+            resultadoInput.value = '---';
+        }
+
+        // Calcular diferencia entre duplicados
+        const placa1 = parseFloat(row.querySelector('.placa1')?.value.replace('---', '') || 0);
+        const placa2 = parseFloat(row.querySelector('.placa2')?.value.replace('---', '') || 0);
+        
+        if (placa1 > 0 && placa2 > 0) {
+            const promedio = (placa1 + placa2) / 2;
+            const diferencia = Math.abs(placa1 - placa2) / promedio * 100;
+            diferenciaInput.value = diferencia.toFixed(2);
+        } else {
+            diferenciaInput.value = '---';
+        }
+    }
+
+    // Configurar eventos cuando el DOM esté listo
+    configurarEventosCalculo();
+    
+    // Hacer cálculo inicial para todas las filas
+    document.querySelectorAll('#tabla-body tr').forEach(row => {
+        calcularResultadoYDiferencia(row);
+    });
 
 });
 

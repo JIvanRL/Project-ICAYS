@@ -1,0 +1,126 @@
+.hover-shadow {
+    transition: all 0.3s ease;
+}
+
+.hover-shadow:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15) !important;
+}
+
+.btn {
+    transition: all 0.2s;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.badge {
+    font-weight: 500;
+    padding: 0.5em 1em;
+}
+
+.avatar-sm {
+    font-size: 16px;
+}
+
+/* Animación pulsante para cards pendientes */
+.pulse-animation {
+    animation: heartbeat 1.5s ease-in-out infinite;
+    position: relative;
+}
+
+@keyframes heartbeat {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.9);
+        border-color: rgba(220, 53, 69, 0.7);
+    }
+    25% {
+        transform: scale(1.03);
+        box-shadow: 0 0 25px 0 rgba(220, 53, 69, 0.8);
+        border-color: rgba(255, 0, 0, 1);
+    }
+    50% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.9);
+        border-color: rgba(220, 53, 69, 0.7);
+    }
+    75% {
+        transform: scale(1.03);
+        box-shadow: 0 0 25px 0 rgba(220, 53, 69, 0.8);
+        border-color: rgba(255, 0, 0, 1);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.9);
+        border-color: rgba(220, 53, 69, 0.7);
+    }
+}
+
+/* Hacer las animaciones más específicas para las cards */
+.solicitud-card.pulse-animation {
+    animation: heartbeat 1.5s ease-in-out infinite;
+    position: relative;
+    pointer-events: auto; /* Asegurar que los eventos del mouse funcionen */
+    cursor: default;
+}
+
+/* Especificar las animaciones solo para las cards de solicitudes */
+.solicitud-card.card.pulse-animation {
+    border: 3px solid rgba(255, 0, 0, 0.7);
+    overflow: hidden;
+    z-index: 1; /* Asegurar que la card esté por encima */
+}
+
+.solicitud-card.card.pulse-animation::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle, rgba(255, 0, 0, 0.15) 0%, transparent 70%);
+    opacity: 0;
+    animation: glow 1.5s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Asegurar que los botones dentro de las cards sean clickeables */
+.solicitud-card .btn {
+    position: relative;
+    z-index: 10;
+    pointer-events: auto !important;
+}
+
+.solicitud-card {
+    position: relative;
+    z-index: 1;
+}
+
+.card-body {
+    position: relative;
+    z-index: 5;
+}
+
+/* Asegurar que los elementos interactivos estén por encima de las animaciones */
+.d-flex.gap-2 {
+    position: relative;
+    z-index: 15;
+}
+
+/* Remover animaciones de los botones de navegación */
+.icon-container.button-style {
+    animation: none !important;
+    transform: none !important;
+    pointer-events: auto !important;
+    cursor: pointer !important;
+}
+
+/* Mejora el hover para que no interfiera con la animación */
+.table tr.pulse-animation:hover {
+    background-color: rgba(220, 53, 69, 0.1) !important;
+    transition: background-color 0.3s ease;
+}

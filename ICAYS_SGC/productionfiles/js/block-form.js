@@ -1,6 +1,7 @@
 /**
  * Script para bloquear los elementos de entrada de datos en la página de revisión de bitácoras,
  * pero mantener funcionales todos los botones y la apariencia visual normal.
+ * También mantiene funcional el modal de observaciones.
  */
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Inicializando bloqueo de elementos de entrada para revisión...');
@@ -16,31 +17,40 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
+        // Obtener el modal de observaciones para excluirlo
+        const modalObservaciones = document.getElementById('observacionesModal');
+        
         // Seleccionar solo los elementos de entrada de datos (no los botones)
         const elementosEntrada = form.querySelectorAll('input, select, textarea');
         console.log(`Encontrados ${elementosEntrada.length} elementos de entrada para deshabilitar`);
         
-        // Deshabilitar todos los elementos de entrada
+        // Deshabilitar todos los elementos de entrada excepto los del modal
         elementosEntrada.forEach(element => {
-            // Deshabilitar el elemento
-            element.disabled = true;
-            element.readOnly = true;
+            // Verificar si el elemento está dentro del modal de observaciones
+            const estaEnModal = modalObservaciones && modalObservaciones.contains(element);
             
-            // Para checkboxes y radios, también los hacemos no clickeables
-            if (element.type === 'checkbox' || element.type === 'radio') {
-                element.style.pointerEvents = 'none';
-                // También deshabilitar el label asociado
-                if (element.id) {
-                    const label = document.querySelector(`label[for="${element.id}"]`);
-                    if (label) {
-                        label.style.pointerEvents = 'none';
+            // Solo deshabilitar si NO está en el modal
+            if (!estaEnModal) {
+                // Deshabilitar el elemento
+                element.disabled = true;
+                element.readOnly = true;
+                
+                // Para checkboxes y radios, también los hacemos no clickeables
+                if (element.type === 'checkbox' || element.type === 'radio') {
+                    element.style.pointerEvents = 'none';
+                    // También deshabilitar el label asociado
+                    if (element.id) {
+                        const label = document.querySelector(`label[for="${element.id}"]`);
+                        if (label) {
+                            label.style.pointerEvents = 'none';
+                        }
                     }
                 }
+                
+                // Solo cambiar el cursor para indicar que está deshabilitado
+                // pero mantener los colores originales
+                element.style.cursor = 'not-allowed';
             }
-            
-            // Solo cambiar el cursor para indicar que está deshabilitado
-            // pero mantener los colores originales
-            element.style.cursor = 'not-allowed';
         });
         
         // Agregar una clase al formulario para indicar visualmente que está bloqueado

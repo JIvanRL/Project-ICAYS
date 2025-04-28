@@ -25,5 +25,9 @@ urlpatterns = [
     path('obtener_campos_observaciones/<int:bitacora_id>/', views.obtener_campos_observaciones, name='obtener_campos_observaciones'),
      # Agregar esta URL para eliminar observaciones
     path('eliminar_campo_observacion/', views.eliminar_campo_observacion, name='eliminar_campo_observacion'),
-
+    # URL para cambiar estado de campos observados
+    path('cambiar-estado-campo-observacion/', views.cambiar_estado_campo_observacion, name='cambiar_estado_campo_observacion'),
+    path('solicitudes-autorizacion/', views.listar_solicitudes_autorizacion, name='listar_solicitudes_autorizacion'),
+    path('solicitudes-autorizacion/<int:solicitud_id>/procesar/', views.procesar_solicitud_autorizacion, name='procesar_solicitud_autorizacion'),
+    path('api/solicitudes/contador/', views.contar_solicitudes_pendientes, name='contar_solicitudes'),
 ]

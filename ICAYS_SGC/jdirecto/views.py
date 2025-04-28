@@ -8,7 +8,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from login.views import role_required
-from ICAYS_BIT.models import Bitcoras_Cbap, CustomUser, bita_cbap, tableBlanco, ObservacionCampo
+from ICAYS_BIT.models import Bitcoras_Cbap, CustomUser, bita_cbap, tableBlanco, ObservacionCampo, SolicitudAutorizacion, Notification
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
@@ -853,3 +853,144 @@ def eliminar_campo_observacion(request):
             'success': False,
             'message': f'Error al eliminar la observación: {str(e)}'
         }, status=500)
+
+@login_required
+@csrf_exempt
+@require_POST
+def cambiar_estado_campo_observacion(request):
+    """
+    Vista para cambiar el estado de una observación de campo.
+    """
+    try:
+        data = json.loads(request.body) if request.content_type == 'application/json' else request.POST
+        campo_id = data.get('campo_id')
+        nuevo_estado = data.get('estado')
+        bitacora_id = data.get('bitacora_id')
+
+        logger.debug(f"Intentando cambiar estado: campo_id={campo_id}, nuevo_estado={nuevo_estado}, bitacora_id={bitacora_id}")
+
+        if not nuevo_estado:
+            return JsonResponse({
+                'success': False,
+                'message': 'Se requiere especificar el nuevo estado'
+            }, status=400)
+
+        # Actualizamos los estados válidos para incluir 'aceptado'
+        estados_validos = ['pendiente', 'editado', 'aprobado', 'rechazado']
+        if nuevo_estado not in estados_validos:
+            return JsonResponse({
+                'success': False,
+                'message': f'Estado no válido. Estados permitidos: {", ".join(estados_validos)}'
+            }, status=400)
+
+        try:
+            # Primero intentamos buscar por bitácora y campo_id
+            if bitacora_id:
+                observacion = ObservacionCampo.objects.get(
+                    bitacora__nombre_bita_cbap__id_cbap=bitacora_id,
+                    campo_id=campo_id
+                )
+            else:
+                # Si no hay bitacora_id, buscamos solo por campo_id
+                observacion = ObservacionCampo.objects.get(campo_id=campo_id)
+
+            # Guardar el estado anterior para el log
+            estado_anterior = observacion.estado
+            
+            # Actualizar el estado
+            observacion.estado = nuevo_estado
+            observacion.save()
+
+            logger.info(f"Estado de observación cambiado: {estado_anterior} -> {nuevo_estado} para campo {campo_id}")
+
+            return JsonResponse({
+                'success': True,
+                'message': f'Estado cambiado a {nuevo_estado} correctamente'
+            })
+
+        except ObservacionCampo.DoesNotExist:
+            logger.error(f"No se encontró la observación para campo_id={campo_id}")
+            return JsonResponse({
+                'success': False,
+                'message': 'Observación no encontrada'
+            }, status=404)
+
+    except Exception as e:
+        logger.error(f"Error al cambiar estado de observación: {str(e)}")
+        import traceback
+        logger.error(traceback.format_exc())
+        return JsonResponse({
+            'success': False,
+            'message': str(e)
+        }, status=500)
+        
+@login_required
+def listar_solicitudes_autorizacion(request):
+    # Obtener solo solicitudes pendientes donde el usuario actual es el supervisor
+    solicitudes = SolicitudAutorizacion.objects.filter(
+        supervisor=request.user,
+        estado='pendiente'  # Agregar este filtro
+    ).select_related('bitacora', 'solicitante').order_by('-fecha_solicitud')
+    
+    return render(request, 'solicitudes_autorizacion.html', {
+        'solicitudes': solicitudes
+    })
+
+@login_required
+def contar_solicitudes_pendientes(request):
+    """Vista para obtener el conteo de solicitudes pendientes para el supervisor."""
+    try:
+        count = SolicitudAutorizacion.objects.filter(
+            supervisor=request.user,
+            estado='pendiente'
+        ).count()
+        
+        return JsonResponse({
+            'success': True,
+            'count': count
+        })
+    except Exception as e:
+        logger.error(f"Error al contar solicitudes pendientes: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
+
+@login_required
+@require_POST
+def procesar_solicitud_autorizacion(request, solicitud_id):
+    try:
+        solicitud = SolicitudAutorizacion.objects.get(
+            id_solicitud=solicitud_id,
+            supervisor=request.user
+        )
+        
+        accion = request.POST.get('accion')
+        if accion not in ['aprobar', 'rechazar']:
+            return JsonResponse({
+                'success': False,
+                'message': 'Acción inválida'
+            }, status=400)
+            
+        solicitud.estado = 'aprobada' if accion == 'aprobar' else 'rechazada'
+        solicitud.save()
+        
+        # Crear notificación para el solicitante
+        Notification.objects.create(
+            recipient=solicitud.solicitante,
+            message=f'Su solicitud para editar el campo {solicitud.campo_nombre} ha sido {solicitud.estado}',
+            type='respuesta_solicitud',
+            related_bitacora=solicitud.bitacora
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'Solicitud {solicitud.estado} correctamente'
+        })
+        
+    except SolicitudAutorizacion.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'message': 'Solicitud no encontrada'
+        }, status=404)
+

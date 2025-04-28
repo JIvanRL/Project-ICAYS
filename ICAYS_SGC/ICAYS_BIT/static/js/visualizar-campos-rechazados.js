@@ -1,1637 +1,1341 @@
 /**
- * Script para hacer los campos seleccionables y vincularlos con el modal de retroalimentación
- * 
+status * Script para visualizar campos rechazados, permitir correcciones y guardar observaciones.
+ *
  * Funcionalidad principal:
- * 1. Convierte campos de formulario en seleccionables
- * 2. Permite agregar observaciones a cada campo
- * 3. Muestra un resumen de todas las observaciones
- * 4. Proporciona feedback visual al usuario
- * 5. Guarda los campos seleccionados y sus observaciones
+ * 1. Carga observaciones existentes desde el servidor.
+ * 2. Crea overlays interactivos sobre los campos con observaciones.
+ * 3. Permite al usuario hacer clic en un campo (overlay) para abrir un modal.
+ * 4. En el modal, el usuario puede ver la observación original y editar el valor del campo.
+ * 5. Guarda el valor editado y la información asociada (historial) en el servidor.
+ * 6. Actualiza visualmente el campo en el formulario (color de fondo/borde).
+ * 7. Proporciona un resumen de todas las observaciones.
  */
 
-// Espera a que el DOM esté completamente cargado antes de ejecutar el script
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('Inicializando script de campos seleccionables...');
-    
-    // =============================================
-    // 1. OBTENER REFERENCIAS A ELEMENTOS DEL DOM
-    // =============================================
-    
-    // Modal que contiene el formulario de observaciones
-    const observacionesModal = document.getElementById('observacionesModal');
-    
-    // Textarea donde se escriben las observaciones
-    const observacionesText = document.getElementById('observacionesText');
-    
-    // Botón para guardar las observaciones
+(function () {
+    'use strict'; // Habilita el modo estricto
+
+    // --------------------------------------------
+    // 1. CONSTANTES Y REFERENCIAS AL DOM
+    // ---------------------------------------------
+    const observacionesModalElement = document.getElementById('observacionesModal');
+    const observacionesModalGeneralElement = document.getElementById('observacionesModalGeneral');
+    const observacionesTextElement = document.getElementById('observacionesText');
+    const observacionesTextGeneralElement = document.getElementById('observacionesTextGeneral');
     const guardarObservacionesBtn = document.getElementById('guardarObservaciones');
-    
-    // Botón para cerrar el modal (elemento con clase 'close')
-    const closeBtn = document.querySelector('.close');
-    
+    const guardarObservacionesGeneralBtn = document.getElementById('guardarObservacionesGeneral');
+    const btnResumenObservaciones = document.getElementById('btnResumenObservaciones');
+    const bitacoraId = document.getElementById('bitacora_id')?.value;
+    const usuarioId = document.getElementById('usuario_id_actual')?.value || '0'; // Cambiar de usuario_id a usuario_id_actual
+    const usuarioNombre = document.getElementById('usuario_nombre')?.value || 'Usuario'; // Nombre del usuario
+    const CAMPOS_CON_PERMISO_ESPECIAL = ['resultado_r', 'ufC_placa_r', 'diferencia_r']; // Prefijos de campos que requieren permiso
+
+    // Instancias de Modales Bootstrap (se inicializan cuando se necesitan)
+    let observacionesModalInstance = null;
+    let observacionesModalGeneralInstance = null;
+
     // =============================================
     // 2. VARIABLES DE ESTADO
     // =============================================
-    
-    // Almacena la referencia al campo actualmente seleccionado
     let campoSeleccionado = null;
-    
-    // Almacena el ID del campo seleccionado (si no tiene ID, se genera uno)
     let campoSeleccionadoId = null;
-    
-    // Almacena el nombre del campo (obtenido del atributo name o id)
-    let campoSeleccionadoNombre = null;
-    
-    // Objeto que almacena todas las observaciones por campo
-    // Estructura: { "campoId1": "observacion1", "campoId2": "observacion2" }
-    let observacionesPorCampo = {};
-    
-    // Array que almacena los IDs de los campos seleccionados
-    // Estructura: ["campoId1", "campoId2", ...]
-    let camposSeleccionados = [];
-    
-    // Indica si estamos en modo resumen (true) o edición (false)
-    let modoResumen = false;
-    
-    // ID de la bitácora actual
-    const bitacoraId = document.getElementById('bitacora_id')?.value;
-    // Agregar estilos CSS
-    agregarEstilosCSS();
+    let observacionesPorCampo = {}; // { campoId: { observacion, valor_original, valor_actual, campo_nombre, campo_tipo, historial_ediciones, contador_ediciones, estado }, ... }
+    let mapaCamposFormulario = {}; // Almacena referencias a los campos del formulario { campoId: elemento }
+
     // =============================================
-    // 1. OBTENER REFERENCIAS A ELEMENTOS DEL DOM
+    // 3. FUNCIONES AUXILIARES
     // =============================================
-    
-    
-    // Modal para observaciones generales
-    observacionesModalGeneral = document.getElementById('observacionesModalGeneral');
-    
-    // Textarea para observaciones generales
-    observacionesTextGeneral = document.getElementById('observacionesTextGeneral');
-    
-    // Botón para guardar observaciones generales
-    guardarObservacionesGeneralBtn = document.getElementById('guardarObservacionesGeneral');
-    
-    // Botones para cerrar los modales (elementos con clase 'close')
-    const closeBtns = document.querySelectorAll('.close');
-    closeBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            cerrarModalObservaciones();
-            cerrarModalObservacionesGeneral();
-        });
-    });
-    
-    // Resto del código de inicialización...
-    
-    // Configurar evento para el botón de guardar observaciones generales
-    if (guardarObservacionesGeneralBtn) {
-        guardarObservacionesGeneralBtn.addEventListener('click', function() {
-            guardarObservacionGeneral();
-        });
-    }
-    
-    // Configurar evento para el botón de resumen de observaciones
-    const btnResumenObservaciones = document.getElementById('btnResumenObservaciones');
-    if (btnResumenObservaciones) {
-        btnResumenObservaciones.addEventListener('click', function() {
-            abrirModalResumenObservaciones();
-        });
-    }
-    
-    // Hacer campos seleccionables
-    hacerCamposSeleccionables();
-    
-    // =============================================
-    // 3. FUNCIÓN PRINCIPAL - HACER CAMPOS SELECCIONABLES
-    // =============================================
-    
+
     /**
-     * Convierte todos los campos de formulario relevantes en seleccionables
-     * agregando overlays transparentes que capturan los clics.
+     * Muestra un mensaje temporal al usuario.
+     * @param {string} mensaje - Texto a mostrar.
+     * @param {boolean} esError - Indica si es un mensaje de error.
+     * @param {number} duracion - Duración en milisegundos.
      */
-    function hacerCamposSeleccionables() {
-        console.log('Configurando campos seleccionables...');
-        
-        // Selecciona todos los inputs (excepto botones), selects y textareas
-        const todosLosCampos = document.querySelectorAll(
-            'input:not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="hidden"]), ' +
-            'select, ' +
-            'textarea:not(#observacionesText)' // Excluye el textarea del modal
-        );
-        
-        // Filtra los campos para excluir los que no deben ser seleccionables
-        const campos = Array.from(todosLosCampos).filter(campo => {
-            // Excluye campos dentro del modal de firma
-            if (campo.closest('.modal-firma') || 
-                campo.closest('#modalFirma') || 
-                campo.id === 'firma_input' ||
-                campo.id === 'password' || 
-                campo.name === 'password') {
-                console.log('Excluyendo campo del modal de firma:', campo.id || campo.name);
-                return false;
-            }
-            
-            // Excluye campos dentro del modal de observaciones
-            if (campo.closest('.modalOB') || 
-                campo.closest('#observacionesModal')) {
-                console.log('Excluyendo campo del modal de observaciones:', campo.id || campo.name);
-                return false;
-            }
-            
-            // Excluye el select de usuario_destino
-            if (campo.id === 'usuario_destino' || 
-                campo.name === 'usuario_destino') {
-                console.log('Excluyendo select de usuario_destino');
-                return false;
-            }
-            
-            return true;
-        });
-        
-        console.log(`Encontrados ${campos.length} campos para hacer seleccionables`);
-        
-        // Almacenamos todos los campos en un mapa para acceder a ellos después
-        // cuando tengamos las observaciones de la base de datos
-        window.todosCamposFormulario = {};
-        campos.forEach(campo => {
-            // Agrega clase CSS para estilización visual
-            campo.classList.add('campo-seleccionable');
-            
-            // Guardamos referencia al campo usando su ID o nombre
-            const campoId = campo.id || campo.name || '';
-            if (campoId) {
-                window.todosCamposFormulario[campoId] = campo;
-            }
-        });
-        
-        console.log('Campos seleccionables configurados correctamente');
-        
-        // Cargar datos guardados si existen
-        // Esto creará los overlays solo para campos con observaciones
-        cargarDatosGuardados();
+    function mostrarMensaje(mensaje, esError = false, duracion = 3000) {
+        console.log(`Mensaje (${esError ? 'Error' : 'Info'}): ${mensaje}`);
+        let mensajeDiv = document.querySelector('.mensaje-flotante');
+        if (mensajeDiv) {
+            mensajeDiv.remove();
+        }
+
+        mensajeDiv = document.createElement('div');
+        mensajeDiv.className = `mensaje-flotante ${esError ? 'mensaje-error' : ''}`;
+        mensajeDiv.textContent = mensaje;
+        document.body.appendChild(mensajeDiv);
+
+        setTimeout(() => {
+            mensajeDiv.classList.add('desaparecer');
+            setTimeout(() => {
+                if (mensajeDiv.parentNode) { // Verificar si aún existe antes de remover
+                    mensajeDiv.remove();
+                }
+            }, 500); // Tiempo para la animación de desaparición
+        }, duracion);
     }
-    
-    // =============================================
-    // 5. FUNCIONES PARA MANEJAR EL MODAL
-    // =============================================
-    
- /**
- * Abre el modal de observaciones y prepara el textarea
- * @param {string} labelText - Texto del label asociado al campo (para la plantilla)
- */
-function abrirModalObservaciones(labelText = '') {
-    console.log('Abriendo modal de observaciones...');
-    
-    const modalElement = document.getElementById('observacionesModal');
-    if (modalElement) {
-        const observacionesModal = new bootstrap.Modal(modalElement);
-        
-        // Actualiza el título del modal
-        const tituloModal = document.getElementById('observacionesTitulo');
-        if (tituloModal) {
-            if (modoResumen) {
-                tituloModal.textContent = 'Resumen de observaciones';
-            } else {
-                tituloModal.textContent = 'Tienes observaciones';
-            }
-        }
-        
-        // Actualiza la información del campo seleccionado
-        const campoSeleccionadoInfo = document.getElementById('campoSeleccionadoInfo');
-        const campoSeleccionadoNombre = document.getElementById('campoSeleccionadoNombre');
-        
-        if (campoSeleccionadoInfo && campoSeleccionadoNombre) {
-            if (campoSeleccionado && !modoResumen) {
-                campoSeleccionadoInfo.style.display = 'block';
-                let nombreMostrado = labelText || campoSeleccionado.name || campoSeleccionado.id || 'Campo';
-                campoSeleccionadoNombre.textContent = nombreMostrado;
-                
-                const tipoCampo = obtenerTipoCampoLegible(campoSeleccionado);
-                if (tipoCampo) {
-                    campoSeleccionadoNombre.textContent += ` (${tipoCampo})`;
-                }
-            } else {
-                campoSeleccionadoInfo.style.display = 'none';
-            }
-        }
-        
-        // Obtener y mostrar la observación y el valor actual
-        const comentarioObservacion = document.getElementById('comentarioObservacion');
-        const textoObservacion = document.getElementById('textoObservacion');
-        const observacionesText = document.getElementById('observacionesText');
-        
-        if (comentarioObservacion && textoObservacion && observacionesText) {
-            if (!modoResumen && campoSeleccionadoId && observacionesPorCampo[campoSeleccionadoId]) {
-                comentarioObservacion.style.display = 'block';
-                
-                let observacion = '';
-                if (typeof observacionesPorCampo[campoSeleccionadoId] === 'object') {
-                    observacion = observacionesPorCampo[campoSeleccionadoId].observacion || '';
-                } else {
-                    observacion = observacionesPorCampo[campoSeleccionadoId] || '';
-                }
-                
-                textoObservacion.textContent = observacion;
-                
-                let valorActualInterfaz = obtenerValorCampo(campoSeleccionado);
-                observacionesText.value = valorActualInterfaz;
-                observacionesText.readOnly = false;
-                
-                personalizarPlaceholderSegunTipoCampo(observacionesText, campoSeleccionado);
-            } else if (!modoResumen) {
-                comentarioObservacion.style.display = 'none';
-                
-                if (campoSeleccionado) {
-                    let valorActualInterfaz = obtenerValorCampo(campoSeleccionado);
-                    observacionesText.value = valorActualInterfaz;
-                    observacionesText.readOnly = false;
-                    personalizarPlaceholderSegunTipoCampo(observacionesText, campoSeleccionado);
-                } else {
-                    observacionesText.value = '';
-                    observacionesText.readOnly = false;
-                    observacionesText.placeholder = "Ingrese un valor...";
-                }
-            } else if (modoResumen) {
-                comentarioObservacion.style.display = 'none';
-                mostrarResumenObservaciones();
-            }
-        }
-        
-        // Configura el botón de guardar según el modo
-        if (guardarObservacionesBtn) {
-            guardarObservacionesBtn.style.display = modoResumen ? 'none' : 'inline-block';
-        }
-        
-        // Mostrar el modal usando Bootstrap
-        observacionesModal.show();
-        console.log('Modal abierto correctamente');
-    } else {
-        console.error('No se encontró el modal de observaciones');
-        alert('Error: No se pudo abrir el modal de observaciones');
-    }
-}
 
     /**
-    * Cierra el modal de observaciones y limpia la selección
-    */
-   function cerrarModalObservaciones() {
-       console.log('Cerrando modal de observaciones...');
-       const modalElement = document.getElementById('observacionesModal');
-       if (modalElement) {
-           const modal = bootstrap.Modal.getInstance(modalElement);
-           if (modal) {
-               modal.hide();
-           }
-           campoSeleccionado = null;
-           modoResumen = false;
-           console.log('Modal cerrado correctamente');
-       }
-   }
-    /**
- * Cierra el modal de observaciones generales
- */
-function cerrarModalObservacionesGeneral() {
-    console.log('Cerrando modal de observaciones generales...');
-    const modalElement = document.getElementById('observacionesModalGeneral');
-    if (modalElement) {
-        const modal = bootstrap.Modal.getInstance(modalElement);
-        if (modal) {
-            modal.hide();
-        }
-        console.log('Modal de observaciones generales cerrado correctamente');
-    }
-}
-
-/**
- * Guarda una observación general
- */
-function guardarObservacionGeneral() {
-    console.log('Guardando observación general...');
-    
-    // Obtener el texto de la observación general
-    const observacionGeneral = observacionesTextGeneral ? observacionesTextGeneral.value : '';
-    
-    // Guardar la observación general
-    observacionesPorCampo['observacion_general'] = {
-        observacion: observacionGeneral,
-        campo_nombre: 'Observación General',
-        campo_tipo: 'general',
-        valor_original: ''
-    };
-    
-    // Guardar la observación general en el servidor
-    guardarCampoEnServidor('observacion_general');
-    
-    // Cerrar el modal y mostrar mensaje de éxito
-    cerrarModalObservacionesGeneral();
-    mostrarMensaje('Observación general guardada correctamente');
-    
-    console.log('Observación general guardada');
-}
-
-
-function abrirModalResumenObservaciones() {
-    console.log('Abriendo modal de resumen de observaciones...');
-    
-    const modalElement = document.getElementById('observacionesModalGeneral');
-    if (modalElement) {
-        const observacionesModalGeneral = new bootstrap.Modal(modalElement);
-        
-        // Actualiza el título del modal
-        const tituloModal = document.getElementById('observacionesTituloGeneral');
-        if (tituloModal) {
-            tituloModal.textContent = 'Resumen de Observaciones';
-        }
-        
-        // Ocultar la sección de comentario individual
-        const comentarioObservacionGeneral = document.getElementById('comentarioObservacionGeneral');
-        if (comentarioObservacionGeneral) {
-            comentarioObservacionGeneral.style.display = 'none';
-        }
-        
-        // Construir el texto del resumen
-        let todasLasObservaciones = "RESUMEN DE OBSERVACIONES:\n\n";
-        
-        // Agregar contenido del resumen...
-        if (observacionesPorCampo['observacion_general']) {
-            todasLasObservaciones += "OBSERVACIÓN GENERAL:\n";
-            if (typeof observacionesPorCampo['observacion_general'] === 'object') {
-                todasLasObservaciones += observacionesPorCampo['observacion_general'].observacion + "\n\n";
-            } else {
-                todasLasObservaciones += observacionesPorCampo['observacion_general'] + "\n\n";
+     * Realiza una petición AJAX genérica.
+     * Asume que getCookie está disponible globalmente.
+     * @param {string} url - URL del endpoint.
+     * @param {string} method - Método HTTP (GET, POST, etc.).
+     * @param {object} [data] - Datos a enviar (para POST).
+     * @returns {Promise<object>} - Promesa que resuelve con la respuesta JSON.
+     */
+    function ajaxRequest(url, method = 'GET', data = null) {
+        return new Promise((resolve, reject) => {
+            // Asegurarse de que la URL comience con /
+            if (!url.startsWith('/')) {
+                url = '/' + url;
             }
-        }
-        
-        // Contadores para estadísticas
-        let totalCampos = 0;
-        let camposCorregidos = 0;
-        
-        // Primera pasada: contar campos y verificar estados
-        for (const [campoId, datos] of Object.entries(observacionesPorCampo)) {
-            if (campoId !== 'observacion_general') {
-                totalCampos++;
-                
-                // Un campo está corregido si:
-                // 1. Tiene un valor actual diferente al original
-                // 2. No tiene observación activa
-                const tieneObservacionActiva = datos.observacion && datos.observacion.trim() !== '';
-                const valorCambiado = datos.valor_actual !== datos.valor_original;
-                
-                // Un campo está corregido si no tiene observación activa y su valor ha cambiado
-                if (!tieneObservacionActiva && valorCambiado) {
-                    camposCorregidos++;
-                }
+
+            const headers = {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': getCookie('csrftoken')
+            };
+
+            // Si es FormData, no establecer Content-Type
+            // Si no es FormData, establecer application/json
+            if (!(data instanceof FormData)) {
+                headers['Content-Type'] = 'application/json';
             }
-        }
-        
-        // Agrega las observaciones por campo
-        let contador = 1;
-        for (const [campoId, datos] of Object.entries(observacionesPorCampo)) {
-            if (campoId !== 'observacion_general') {
-                const campo = document.getElementById(campoId);
-                let nombreCampo = campoId;
-                let estadoCorreccion = "⚠️ No corregido";
-                let valorActual = '';
-                let valorOriginal = '';
-                
-                // Obtener valor original de los datos almacenados
-                if (typeof datos === 'object') {
-                    valorOriginal = datos.valor_original || '---';
-                }
-                
-                // Obtener el valor actual del campo en el formulario
-                if (campo) {
-                    valorActual = obtenerValorActualCampo(campo);
-                } else {
-                    // Si no se encuentra el campo, usar el valor actual almacenado
-                    valorActual = datos.valor_actual || valorOriginal;
-                }
-                
-                const corregido = verificarCampoCorregido(campoId);
-                if (corregido) {
-                    estadoCorreccion = "✅ Corregido";
-                }
-                
-                if (typeof datos === 'object') {
-                    nombreCampo = datos.campo_nombre || campoId;
-                    
-                    // Formatea la observación para el resumen incluyendo siempre ambos valores
-                    todasLasObservaciones += `${contador}. Campo: "${nombreCampo}" - ${estadoCorreccion}\n`;
-                    todasLasObservaciones += `   Valor original: ${valorOriginal}\n`;
-                    todasLasObservaciones += `   Valor actual: ${valorActual}\n`;
-                    todasLasObservaciones += `   Observación: ${datos.observacion || ''}\n\n`;
-                } else {
-                    if (campo && campo.id) {
-                        const label = document.querySelector(`label[for="${campo.id}"]`);
-                        if (label) {
-                            nombreCampo = label.textContent;
-                        } else {
-                            nombreCampo = campo.name || campo.id;
-                        }
+
+            const config = {
+                url: url,
+                type: method,
+                headers: headers,
+                success: (response) => {
+                    console.log('Respuesta exitosa:', response);
+                    resolve(response);
+                },
+                error: (xhr, status, error) => {
+                    console.error('Error detallado:', {
+                        status: xhr.status,
+                        statusText: xhr.statusText,
+                        responseText: xhr.responseText,
+                        error: error
+                    });
+
+                    let errorMessage;
+                    try {
+                        const errorData = JSON.parse(xhr.responseText);
+                        errorMessage = errorData.message || errorData.error || 'Error del servidor';
+                    } catch (e) {
+                        errorMessage = `Error ${xhr.status}: ${xhr.statusText || error}`;
                     }
-                    
-                    todasLasObservaciones += `${contador}. Campo: "${nombreCampo}" - ${estadoCorreccion}\n`;
-                    todasLasObservaciones += `   ${datos}\n\n`;
+
+                    reject(new Error(errorMessage));
                 }
+            };
+
+            // Manejar los datos según el tipo
+            if (data) {
+                if (data instanceof FormData) {
+                    config.processData = false;
+                    config.contentType = false;
+                    config.data = data;
+                } else {
+                    config.data = JSON.stringify(data);
+                }
+            }
+
+            // Log de depuración
+            console.log('Configuración de la petición:', {
+                url: config.url,
+                method: config.type,
+                headers: config.headers,
+                data: data instanceof FormData ? 
+                    Object.fromEntries(data.entries()) : 
+                    data
+            });
+
+            $.ajax(config);
+        });
+    }
+
+    /**
+     * Obtiene el valor de un campo según su tipo.
+     * @param {HTMLElement} campo - El campo.
+     * @returns {string} - El valor formateado.
+     */
+    function obtenerValorCampo(campo) {
+        if (!campo) return '';
+        switch (campo.type || campo.tagName.toLowerCase()) {
+            case 'checkbox': return campo.checked ? 'Seleccionado' : 'No seleccionado';
+            case 'radio': return campo.checked ? 'Seleccionado' : 'No seleccionado';
+            case 'select':
+            case 'select-one': return campo.options[campo.selectedIndex]?.text || '';
+            case 'date':
+            case 'time': return campo.value || '---';
+            default: return campo.value || '';
+        }
+    }
+
+    /**
+     * Obtiene una descripción legible del tipo de campo.
+     * @param {HTMLElement} campo - El campo.
+     * @returns {string} - Descripción legible.
+     */
+    function obtenerTipoCampoLegible(campo) {
+        if (!campo) return 'Desconocido';
+        const tipo = campo.type || campo.tagName.toLowerCase();
+        const tiposLegibles = {
+            'text': 'Texto', 'number': 'Número', 'date': 'Fecha', 'time': 'Hora',
+            'checkbox': 'Casilla', 'radio': 'Opción', 'select': 'Lista',
+            'select-one': 'Lista', 'textarea': 'Área de texto', 'email': 'Correo',
+            'tel': 'Teléfono', 'password': 'Contraseña', 'file': 'Archivo', 'hidden': 'Oculto'
+        };
+        return tiposLegibles[tipo] || tipo.charAt(0).toUpperCase() + tipo.slice(1);
+    }
+
+    /**
+     * Personaliza el placeholder del textarea de edición.
+     * @param {HTMLTextAreaElement} textarea - El textarea.
+     * @param {HTMLElement} campo - El campo asociado.
+     */
+    function personalizarPlaceholderSegunTipoCampo(textarea, campo) {
+        if (!textarea || !campo) return;
+        const tipo = campo.type || campo.tagName.toLowerCase();
+        const placeholders = {
+            'text': 'Ingrese el nuevo texto...', 'number': 'Ingrese el nuevo número...',
+            'date': 'Ingrese la nueva fecha (YYYY-MM-DD)...', 'time': 'Ingrese la nueva hora (HH:MM)...',
+            'checkbox': 'Escriba "Seleccionado" o "No seleccionado"...',
+            'radio': 'Escriba "Seleccionado" o "No seleccionado"...',
+            'select': 'Escriba una de las opciones disponibles...',
+            'select-one': 'Escriba una de las opciones disponibles...',
+            'textarea': 'Ingrese el nuevo texto...', 'email': 'Ingrese el nuevo correo...',
+            'tel': 'Ingrese el nuevo teléfono...'
+        };
+        textarea.placeholder = placeholders[tipo] || 'Ingrese el nuevo valor...';
+    }
+
+    /**
+     * Verifica si un campo está corregido (valor actual diferente al original).
+     * @param {string} campoId - ID del campo.
+     * @returns {boolean} - True si está corregido.
+     */
+    function verificarCampoCorregido(campoId) {
+        const datos = observacionesPorCampo[campoId];
+        if (!datos) return false;
+        const valorOriginal = (datos.valor_original || '').trim();
+        const valorActual = (datos.valor_actual || valorOriginal).trim(); // Si valor_actual es nulo, usa el original
+        return valorActual !== valorOriginal;
+    }
+
+    /**
+     * Obtiene el nombre descriptivo del campo (Label > Name > ID).
+     * @param {HTMLElement} campo - El elemento del campo.
+     * @returns {string} - El nombre descriptivo.
+     */
+    function obtenerNombreDescriptivoCampo(campo) {
+        if (!campo) return 'Campo Desconocido';
+        if (campo.id) {
+            const label = document.querySelector(`label[for="${campo.id}"]`);
+            if (label && label.textContent.trim()) {
+                return label.textContent.trim();
+            }
+        }
+        return campo.name || campo.id || 'Campo sin Identificador';
+    }
+
+    /**
+     * Verifica si el usuario tiene permiso para editar un campo específico.
+     * @param {string} campoId - ID del campo a verificar.
+     * @returns {boolean} - True si el usuario tiene permiso.
+     */
+    function tienePermisoEdicion(campoId) {
+        // Verificar si el campo requiere permiso especial
+        const requierePermiso = CAMPOS_CON_PERMISO_ESPECIAL.some(prefijo => campoId.startsWith(prefijo));
+        if (!requierePermiso) return true; // No requiere permiso, editable
+
+        // Verificar si el usuario tiene el rol necesario (ejemplo: 'admin', 'editor')
+        const rolUsuario = document.getElementById('rol_usuario')?.value || 'normal';
+        return ['admin', 'editor'].includes(rolUsuario); // Ajustar roles según necesidad
+    }
+
+    /**
+     * Deshabilita o habilita los campos de una fila de la tabla.
+     * @param {HTMLElement} fila - La fila de la tabla a modificar.
+     * @param {boolean} [deshabilitar=true] - Indica si se deben deshabilitar o habilitar los campos.
+     */
+    function toggleFilaEdicion(fila, deshabilitar = true) {
+        const inputs = fila.querySelectorAll('input, select, textarea');
+        inputs.forEach(input => {
+            input.readOnly = deshabilitar;
+            input.disabled = deshabilitar; // Para selects y otros elementos
+            input.classList.toggle('form-control-plaintext', deshabilitar); // Estilo visual
+        });
+    }
+
+    // =============================================
+    // 4. FUNCIONES DE MANEJO DE DATOS (CARGA/GUARDADO)
+    // =============================================
+
+    /**
+     * Carga los datos guardados (observaciones y correcciones) desde el servidor.
+     */
+    async function cargarDatosGuardados() {
+        if (!bitacoraId) {
+            console.error('No se pudo obtener el ID de la bitácora para cargar datos.');
+            return;
+        }
+        console.log('Cargando datos guardados para bitácora ID:', bitacoraId);
+        mostrarMensaje('Cargando observaciones...', false, 5000);
+
+        try {
+            const response = await ajaxRequest(`/microbiologia/obtener_campos_observaciones/${bitacoraId}/`, 'GET');
+            console.log('Datos recibidos del servidor:', response);
+            if (response.success) {
+                procesarDatosCargados(response.observaciones_individuales || []);
+                mostrarMensaje('Observaciones cargadas.', false);
+            } else {
+                console.warn('No se pudieron cargar los datos:', response.message);
+                mostrarMensaje('Advertencia: ' + (response.message || 'No se encontraron observaciones.'), true);
+            }
+        } catch (error) {
+            console.error('Error al cargar datos:', error);
+            mostrarMensaje(error.message || 'Error al cargar datos.', true);
+        } finally {
+            actualizarContadorObservaciones();
+        }
+    }
+
+    /**
+     * Procesa los datos cargados del servidor, actualiza el estado y crea overlays.
+     * @param {Array} observaciones - Array de objetos de observación desde el backend.
+     */
+    function procesarDatosCargados(observaciones) {
+        observacionesPorCampo = {}; // Limpiar estado previo
+
+        observaciones.forEach(obs => {
+            const campoId = obs.campo_id;
+            // Almacenar datos en el estado local
+            observacionesPorCampo[campoId] = {
+                observacion: obs.observacion || '',
+                valor_original: obs.valor_original || '',
+                valor_actual: obs.valor_actual || obs.valor_original || '',
+                campo_nombre: obs.campo_nombre || 'Campo sin nombre',
+                campo_tipo: obs.campo_tipo || 'desconocido',
+                historial_ediciones: obs.historial_ediciones || [],
+                contador_ediciones: obs.contador_ediciones || 0,
+                estado: obs.estado || 'pendiente' // Asegurar que siempre haya un estado
+            };
+
+            // Si no es la observación general, buscar el campo y crear overlay
+            if (campoId !== 'observacion_general') {
+                const campo = mapaCamposFormulario[campoId];
+                if (campo) {
+                    crearOverlayParaCampo(campo, campoId);
+                    // Actualizar visualmente el campo con el valor cargado
+                    actualizarCampoVisualmente(
+                        campo, 
+                        observacionesPorCampo[campoId].valor_actual,
+                        observacionesPorCampo[campoId].estado === 'editado'
+                    );
+                }
+            }
+        });
+
+        console.log('Estado de observacionesPorCampo actualizado:', observacionesPorCampo);
+    }
+
+    /**
+     * Guarda los datos de un campo específico (corrección/observación) en el servidor.
+     * @param {string} campoIdAGuardar - El ID del campo a guardar.
+     */
+    async function guardarCampoEnServidor(campoIdAGuardar) {
+        // Validaciones iniciales con logs detallados
+        console.log('Iniciando guardado de campo:', {
+            bitacoraId,
+            campoIdAGuardar,
+            datosCampo: observacionesPorCampo[campoIdAGuardar]
+        });
+
+        if (!bitacoraId) {
+            console.error('Error: Falta ID de bitácora', { bitacoraId });
+            mostrarMensaje('Error: Falta ID de bitácora.', true);
+            return;
+        }
+
+        if (!campoIdAGuardar) {
+            console.error('Error: Falta ID de campo', { campoIdAGuardar });
+            mostrarMensaje('Error: Falta ID de campo.', true);
+            return;
+        }
+
+        const datosCampo = observacionesPorCampo[campoIdAGuardar];
+        if (!datosCampo) {
+            console.error('Error: No hay datos para el campo', { campoIdAGuardar });
+            mostrarMensaje('Error: Datos locales no encontrados.', true);
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('bitacora_id', bitacoraId);
+        formData.append('campo_id', campoIdAGuardar);
+        formData.append('campo_nombre', datosCampo.campo_nombre || 'Campo sin nombre');
+        formData.append('valor_original', datosCampo.valor_original || '');
+        formData.append('valor_actual', datosCampo.valor_actual || datosCampo.valor_original || '');
+        formData.append('campo_tipo', datosCampo.campo_tipo || 'desconocido');
+        formData.append('observacion', datosCampo.observacion || '');
+        formData.append('editado_por', usuarioNombre);
+        formData.append('historial_ediciones', JSON.stringify(datosCampo.historial_ediciones || []));
+        formData.append('contador_ediciones', datosCampo.contador_ediciones || 0);
+
+        try {
+            const response = await ajaxRequest(
+                '/microbiologia/guardar_campos_corregidos/',
+                'POST',
+                formData
+            );
+
+            console.log('Respuesta del servidor:', response);
+            
+            if (response.success) {
+                mostrarMensaje('Campo guardado correctamente.', false);
+                // Actualizar estado local si el servidor devuelve datos actualizados
+                if (response.historial) {
+                    observacionesPorCampo[campoIdAGuardar].historial_ediciones = response.historial;
+                    observacionesPorCampo[campoIdAGuardar].contador_ediciones = response.contador || 0;
+                }
+                return true;
+            } else {
+                throw new Error(response.message || 'Error al guardar el campo');
+            }
+        } catch (error) {
+            console.error('Error detallado al guardar:', error);
+            mostrarMensaje(error.message || 'Error al guardar el campo.', true);
+            throw error;
+        }
+    }
+
+    async function enviarSolicitudAutorizacion(supervisorId) {
+        try {
+            if (!campoSeleccionado || !campoSeleccionadoId) {
+                throw new Error('No hay campo seleccionado');
+            }
+
+            // Verificar que tengamos un ID de usuario válido
+            if (!usuarioId || usuarioId === '0') {
+                console.error('ID de usuario actual:', usuarioId); // Para debug
+                throw new Error('ID de usuario no disponible');
+            }
+
+            const datosCampo = observacionesPorCampo[campoSeleccionadoId] || {};
+            
+            const formData = new FormData();
+            formData.append('bitacora_id', bitacoraId);
+            formData.append('campo_id', campoSeleccionadoId);
+            formData.append('campo_nombre', datosCampo.campo_nombre || obtenerNombreDescriptivoCampo(campoSeleccionado));
+            formData.append('valor_actual', obtenerValorCampo(campoSeleccionado));
+            formData.append('solicitante_id', usuarioId.toString());  // Usar el ID actualizado
+            formData.append('supervisor_id', supervisorId.toString());
+            formData.append('estado', 'pendiente');
+
+            // Log para debug
+            console.log('Datos de la solicitud:', {
+                bitacora_id: bitacoraId,
+                campo_id: campoSeleccionadoId,
+                solicitante_id: usuarioId,
+                supervisor_id: supervisorId,
+                valor_actual: obtenerValorCampo(campoSeleccionado)
+            });
+
+            const response = await ajaxRequest(
+                '/microbiologia/api/solicitar-autorizacion/',
+                'POST',
+                formData
+            );
+
+            if (response.success) {
+                mostrarMensaje('Solicitud enviada correctamente', false);
+                return response;
+            } else {
+                throw new Error(response.message || 'Error al procesar la solicitud');
+            }
+
+        } catch (error) {
+            console.error('Error al enviar solicitud:', error);
+            mostrarMensaje('Error al enviar la solicitud: ' + error.message, true);
+            throw error;
+        }
+    }
+
+    async function cargarSupervisores(selectElement) {
+        try {
+            const response = await ajaxRequest('/microbiologia/api/usuarios/', 'GET');
+            const supervisores = response.filter(user => user.rol === 'Jefe de Laboratorio');
+            
+            selectElement.innerHTML = '<option value="">Seleccione un supervisor...</option>';
+            supervisores.forEach(supervisor => {
+                const option = document.createElement('option');
+                option.value = supervisor.id;  // Usar el id del supervisor
+                option.textContent = `${supervisor.nombre} ${supervisor.apellido} - ${supervisor.area}`;
+                selectElement.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Error al cargar supervisores:', error);
+            mostrarMensaje('Error al cargar lista de supervisores', true);
+        }
+    }
+
+    function mostrarModalPermiso() {
+        console.log('Mostrando modal de permiso:', {
+            campoSeleccionado: campoSeleccionado,
+            campoSeleccionadoId: campoSeleccionadoId
+        });
+
+        if (!campoSeleccionado || !campoSeleccionadoId) {
+            console.error('No hay campo seleccionado para solicitar permiso', {
+                campo: campoSeleccionado,
+                id: campoSeleccionadoId
+            });
+            mostrarMensaje('Error: No se pudo identificar el campo', true);
+            return;
+        }
+
+        const modalHTML = `
+        <input type="hidden" id="usuario_id" value="{{ request.user.id_user }}">
+            <div class="modal fade" id="modalPermiso" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header bg-warning">
+                            <h5 class="modal-title">
+                                <i class="fas fa-lock me-2"></i>
+                                Campo Protegido
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="text-center mb-4">
+                                <i class="fas fa-shield-alt fa-3x text-warning mb-3"></i>
+                                <h6 class="fw-bold">Solicitud de Autorización</h6>
+                            </div>
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Este campo requiere autorización para ser modificado.
+                            </div>
+                            
+                            <!-- Selector de supervisor -->
+                            <div class="form-group mb-3">
+                                <label for="supervisor_id" class="form-label">Seleccionar Supervisor:</label>
+                                <select id="supervisor_id" class="form-select" required>
+                                    <option value="">Seleccione un supervisor...</option>
+                                </select>
+                            </div>
+
+                            <input type="hidden" id="modal_campo_id" value="${campoSeleccionadoId}">
+                            <div class="d-flex justify-content-center gap-2 mt-4">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                    <i class="fas fa-times me-2"></i>Cancelar
+                                </button>
+                                <button type="button" class="btn btn-warning" id="btnSolicitarPermiso">
+                                    <i class="fas fa-paper-plane me-2"></i>Enviar Solicitud
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Remover modal anterior si existe
+        const modalAnterior = document.getElementById('modalPermiso');
+        if (modalAnterior) {
+            modalAnterior.remove();
+        }
+
+        // Agregar nuevo modal al DOM
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        
+        // Obtener referencias
+        const modalElement = document.getElementById('modalPermiso');
+        const btnSolicitar = document.getElementById('btnSolicitarPermiso');
+        const supervisorSelect = document.getElementById('supervisor_id');
+        
+        // Cargar supervisores
+        cargarSupervisores(supervisorSelect);
+        
+        // Crear instancia de modal
+        const modalPermiso = new bootstrap.Modal(modalElement);
+        
+        // Configurar eventos
+        btnSolicitar.onclick = async () => {
+            const supervisorId = supervisorSelect.value;
+            if (!supervisorId) {
+                mostrarMensaje('Por favor seleccione un supervisor', true);
+                return;
+            }
+
+            try {
+                btnSolicitar.disabled = true;
+                btnSolicitar.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Enviando...';
+                
+                const response = await enviarSolicitudAutorizacion(supervisorId);
+                modalPermiso.hide();
+                
+                if (response.success) {
+                    mostrarNotificacionSolicitud('success', 'Solicitud enviada', 'Su solicitud ha sido enviada al supervisor.');
+                    
+                    // Marcar el campo visualmente como "en espera de aprobación"
+                    if (campoSeleccionado) {
+                        campoSeleccionado.classList.add('esperando-aprobacion');
+                        crearOverlayEsperaAprobacion(campoSeleccionado);
+                    }
+                } else {
+                    mostrarNotificacionSolicitud('error', 'Error', response.message || 'Error al enviar la solicitud');
+                }
+            } catch (error) {
+                console.error('Error al enviar solicitud:', error);
+                mostrarNotificacionSolicitud('error', 'Error', error.message || 'Error al procesar la solicitud');
+            } finally {
+                btnSolicitar.disabled = false;
+                btnSolicitar.innerHTML = '<i class="fas fa-paper-plane me-2"></i>Enviar Solicitud';
+            }
+        };
+
+        modalPermiso.show();
+    }
+
+    function mostrarNotificacionSolicitud(tipo, titulo, mensaje) {
+        const notificacion = document.createElement('div');
+        notificacion.className = `alert alert-${tipo === 'success' ? 'success' : 'danger'} notification-popup`;
+        notificacion.innerHTML = `
+            <h6 class="alert-heading">
+                <i class="fas fa-${tipo === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+                ${titulo}
+            </h6>
+            <p class="mb-0">${mensaje}</p>
+        `;
+
+        // Estilos para la notificación emergente
+        Object.assign(notificacion.style, {
+            position: 'fixed',
+            top: '20px',
+            right: '20px',
+            zIndex: '9999',
+            minWidth: '300px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+            animation: 'slideIn 0.5s ease-out'
+        });
+
+        document.body.appendChild(notificacion);
+
+        // Remover después de 5 segundos
+        setTimeout(() => {
+            notificacion.style.animation = 'slideOut 0.5s ease-out';
+            setTimeout(() => notificacion.remove(), 500);
+        }, 5000);
+    }
+
+    function crearOverlayEsperaAprobacion(campo) {
+        const overlay = document.createElement('div');
+        overlay.className = 'overlay-espera-aprobacion';
+        overlay.innerHTML = `
+            <div class="overlay-content">
+                <i class="fas fa-clock text-warning"></i>
+                <span>Esperando aprobación...</span>
+            </div>
+        `;
+        
+        campo.parentElement.style.position = 'relative';
+        campo.parentElement.appendChild(overlay);
+    }
+
+    // Agregar estilos CSS necesarios
+    const styles = document.createElement('style');
+    styles.textContent = `
+        .esperando-aprobacion {
+            background-color: #fff3cd !important;
+            border-color: #ffeeba !important;
+        }
+
+        .overlay-espera-aprobacion {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 243, 205, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 5;
+        }
+
+        .overlay-content {
+            text-align: center;
+            color: #856404;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+
+        .notification-popup {
+            border-radius: 8px;
+            border-left: 4px solid;
+        }
+    `;
+    document.head.appendChild(styles);
+
+    // =============================================
+    // 5. FUNCIONES DE MANEJO DE LA INTERFAZ (UI)
+    // =============================================
+
+    /**
+     * Identifica campos relevantes y los almacena en `mapaCamposFormulario`.
+     */
+    function identificarCamposDelFormulario() {
+        console.log('Identificando campos del formulario...');
+        mapaCamposFormulario = {}; // Limpiar mapa
+        
+        const selectoresExcluidos = [
+            '[type="button"]', '[type="submit"]', '[type="reset"]', '[type="hidden"]',
+            '#observacionesText', '#observacionesTextGeneral', // Textareas de los modales
+            '#password', '[name="password"]', // Campos de contraseña (firma)
+            '#usuario_destino', '[name="usuario_destino"]', // Select de usuario destino
+            '.modal-firma input', '.modal-firma select', '.modal-firma textarea', // Campos dentro del modal de firma
+            '.modalOB input', '.modalOB select', '.modalOB textarea', // Campos dentro del modal de observaciones
+            '#bitacora_id', '#usuario_id', '#usuario_nombre' // Campos de metadatos
+        ].join(', ');
+
+        // Primero, buscar campos con IDs específicos que sabemos que necesitamos
+        const camposEspecificos = ['resultado_r', 'ufC_placa_r', 'diferencia_r'];
+        camposEspecificos.forEach(prefijo => {
+            const campos = document.querySelectorAll(`[id^="${prefijo}"]`);
+            campos.forEach(campo => {
+                if (campo.id) {
+                    mapaCamposFormulario[campo.id] = campo;
+                    console.log(`Campo específico encontrado: ${campo.id}`);
+                }
+            });
+        });
+
+        // Luego, buscar el resto de los campos
+        const campos = document.querySelectorAll(`input:not(${selectoresExcluidos}), select:not(${selectoresExcluidos}), textarea:not(${selectoresExcluidos})`);
+
+        campos.forEach((campo, index) => {
+            let campoId = campo.id || campo.name;
+            
+            // Si no tiene ID ni name, generar uno basado en su tipo y posición
+            if (!campoId) {
+                const tipo = campo.type || campo.tagName.toLowerCase();
+                campoId = `campo_${tipo}_${index}`;
+                campo.id = campoId; // Asignar el ID generado al elemento
+                console.warn(`Campo sin ID/name encontrado. ID generado: ${campoId}`, campo);
+            }
+
+            if (!mapaCamposFormulario[campoId]) {
+                mapaCamposFormulario[campoId] = campo;
+                console.log(`Campo registrado: ${campoId} (${campo.type || campo.tagName.toLowerCase()})`);
+            }
+        });
+
+        console.log(`Identificados ${Object.keys(mapaCamposFormulario).length} campos únicos:`, 
+            Object.keys(mapaCamposFormulario));
+    }
+
+    /**
+     * Crea un overlay interactivo sobre un campo específico.
+     * @param {HTMLElement} campo - El elemento del campo del formulario.
+     * @param {string} campoId - El ID o nombre del campo.
+     */
+    function crearOverlayParaCampo(campo, campoId) {
+        console.log('Creando overlay para campo:', { campoId, campo });
+        if (!campo || !campo.parentNode) {
+            console.error('Campo no válido o sin padre:', { campoId, campo });
+            return;
+        }
+
+        // Establecer el ID en el campo si no lo tiene
+        if (!campo.id) {
+            campo.id = campoId;
+        }
+
+        // Remover overlay existente si hay uno
+        const existingOverlay = campo.parentNode.querySelector(`.campo-overlay[data-target-field="${campoId}"]`);
+        if (existingOverlay) {
+            existingOverlay.remove();
+        }
+
+        const datosCampo = observacionesPorCampo[campoId];
+        console.log('Datos del campo:', datosCampo);
+
+        // Hacer el campo base interactivo si tiene observaciones o está pendiente
+        if (datosCampo && (datosCampo.estado === 'pendiente' || datosCampo.observacion)) {
+            campo.style.backgroundColor = '#ffebee';
+            campo.style.pointerEvents = 'auto';
+            campo.style.cursor = 'pointer';
+            campo.classList.add('tiene-observacion');
+
+            // Añadir evento click directamente al campo también
+            campo.onclick = function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Click en campo:', { campoId, estado: datosCampo.estado });
+                
+                // Establecer el campo seleccionado antes de verificar permisos
+                campoSeleccionado = campo;
+                campoSeleccionadoId = campoId;
+                
+                if (!tienePermisoEdicion(campoId)) {
+                    mostrarModalPermiso();
+                } else {
+                    abrirModalObservaciones(datosCampo.estado);
+                }
+            };
+        }
+
+        // Crear overlay
+        const overlay = document.createElement('div');
+        overlay.className = 'campo-overlay';
+        overlay.dataset.targetField = campoId;
+        overlay.dataset.estado = datosCampo?.estado || 'pendiente';
+
+        // Estilos del overlay
+        overlay.style.position = 'absolute';
+        overlay.style.top = '0';
+        overlay.style.left = '0';
+        overlay.style.width = '100%';
+        overlay.style.height = '100%';
+        overlay.style.cursor = 'pointer';
+        overlay.style.zIndex = '10';
+        overlay.style.backgroundColor = 'transparent';
+        
+        // Añadir borde y fondo si está pendiente
+        if (datosCampo?.estado === 'pendiente') {
+            overlay.style.border = '2px solid #ff5252';
+            overlay.style.boxSizing = 'border-box';
+        }
+
+        // Asegurar que el contenedor tenga posición relativa
+        if (window.getComputedStyle(campo.parentNode).position === 'static') {
+            campo.parentNode.style.position = 'relative';
+        }
+
+        // Modificar el evento click del overlay
+        overlay.onclick = function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            console.log('Click en overlay:', {
+                campoId,
+                estado: datosCampo?.estado,
+                observacion: datosCampo?.observacion
+            });
+            
+            // Establecer el campo seleccionado antes de verificar permisos
+            campoSeleccionado = campo;
+            campoSeleccionadoId = campoId;
+            
+            if (!tienePermisoEdicion(campoId)) {
+                mostrarModalPermiso();
+            } else {
+                abrirModalObservaciones(datosCampo?.estado || 'pendiente');
+            }
+        };
+
+        campo.parentNode.appendChild(overlay);
+    }
+
+    /**
+     * Actualiza visualmente el campo en el formulario (valor y estilo).
+     * @param {HTMLElement} campo - El campo a actualizar.
+     * @param {string} valorEditado - El valor actual del campo.
+     * @param {boolean} estaCorregido - Indica si el campo está corregido.
+     */
+    function actualizarCampoVisualmente(campo, valorEditado, estaCorregido) {
+        console.log('Actualizando campo visualmente:', {
+            campoId: campo?.id || campo?.name,
+            valorEditado,
+            estaCorregido
+        });
+        if (!campo) return;
+        const tipoCampo = campo.type || campo.tagName.toLowerCase();
+        const datosCampo = observacionesPorCampo[campo.id || campo.name];
+        
+        // 1. Actualizar el valor visible del campo
+        try {
+            switch (tipoCampo) {
+                case 'checkbox':
+                case 'radio':
+                    campo.checked = valorEditado.toLowerCase() === 'seleccionado';
+                    break;
+                case 'select':
+                case 'select-one':
+                    Array.from(campo.options).some((opcion, index) => {
+                        if (opcion.text === valorEditado) {
+                            campo.selectedIndex = index;
+                            return true;
+                        }
+                        return false;
+                    });
+                    break;
+                case 'date':
+                    if (valorEditado && valorEditado !== '---') {
+                        try {
+                            const fecha = new Date(valorEditado.replace(/-/g, '/'));
+                            if (!isNaN(fecha.getTime())) {
+                                const yyyy = fecha.getFullYear();
+                                const mm = String(fecha.getMonth() + 1).padStart(2, '0');
+                                const dd = String(fecha.getDate()).padStart(2, '0');
+                                campo.value = `${yyyy}-${mm}-${dd}`;
+                            } else {
+                                campo.value = valorEditado;
+                            }
+                        } catch (e) {
+                            campo.value = valorEditado;
+                        }
+                    } else {
+                        campo.value = '';
+                    }
+                    break;
+                case 'time':
+                    if (valorEditado && valorEditado !== '---') {
+                        const match = valorEditado.match(/(\d{1,2}):(\d{2})/);
+                        if (match) {
+                            campo.value = `${match[1].padStart(2, '0')}:${match[2]}`;
+                        } else {
+                            campo.value = valorEditado;
+                        }
+                    } else {
+                        campo.value = '';
+                    }
+                    break;
+                default:
+                    campo.value = valorEditado;
+                    break;
+            }
+
+            // Disparar eventos de cambio para activar los cálculos
+            campo.dispatchEvent(new Event('change', { bubbles: true }));
+            campo.dispatchEvent(new Event('input', { bubbles: true }));
+            
+            // Si es un campo numérico, también disparar el evento blur
+            if (campo.type === 'number' || campo.classList.contains('placa1') || 
+                campo.classList.contains('placa2') || campo.classList.contains('placa3') ||
+                campo.classList.contains('placa4') || campo.classList.contains('placa5') ||
+                campo.classList.contains('placa6')) {
+                campo.dispatchEvent(new Event('blur', { bubbles: true }));
+            }
+
+        } catch (error) {
+            console.error('Error al actualizar valor visual del campo:', campo.id || campo.name, error);
+        }
+
+        // 2. Actualizar clases CSS según el estado
+        campo.classList.remove('tiene-observacion', 'corregido'); // Limpiar clases previas
+
+        // Remover overlay existente si hay uno
+        const existingOverlay = campo.parentNode?.querySelector(`.campo-overlay[data-target-field="${campo.id || campo.name}"]`);
+        if (existingOverlay) {
+            existingOverlay.remove();
+        }
+
+        if (datosCampo) {
+            switch (datosCampo.estado) {
+                case 'pendiente':
+                    campo.classList.add('tiene-observacion'); // Rojo
+                    // Asegurar que el campo sea interactivo
+                    campo.style.pointerEvents = 'auto';
+                    break;
+                case 'editado':
+                    campo.classList.add('corregido'); // Verde
+                    // Asegurar que el campo sea interactivo
+                    campo.style.pointerEvents = 'auto';
+                    break;
+                case 'aprobado':
+                    // Remover todas las clases de estado y deshabilitar interacción
+                    campo.style.pointerEvents = 'none';
+                    campo.style.backgroundColor = 'transparent';
+                    campo.style.cursor = 'default';
+                    break;
+                case 'rechazado':
+                    campo.classList.add('tiene-observacion'); // Rojo
+                    // Asegurar que el campo sea interactivo
+                    campo.style.pointerEvents = 'auto';
+                    break;
+                default:
+                    if ((datosCampo.observacion || '').trim() !== '') {
+                        campo.classList.add('tiene-observacion');
+                        campo.style.pointerEvents = 'auto';
+                    }
+            }
+        }
+
+        console.log(`Campo ${campo.id || campo.name} actualizado visualmente. Estado: ${datosCampo?.estado}`);
+    }
+
+    // =============================================
+    // 6. FUNCIONES DE MANEJO DE MODALES
+    // =============================================
+
+    /**
+     * Abre el modal de observaciones individuales.
+     */
+    function abrirModalObservaciones(estado = 'pendiente') {
+        console.log('Abriendo modal con estado:', estado);
+        
+        if (!observacionesModalElement || !campoSeleccionadoId) {
+            console.error('Error: Faltan elementos necesarios para abrir el modal');
+            return;
+        }
+
+        const datosCampo = observacionesPorCampo[campoSeleccionadoId];
+        if (!datosCampo) {
+            console.error('Error: No hay datos para el campo');
+            return;
+        }
+
+        // Verificar si el campo puede ser editado según su estado
+        if (datosCampo.estado === 'aprobado') {
+            console.log('Campo aprobado, no se puede editar');
+            mostrarMensaje('Este campo ya está aprobado y no puede ser editado.', true);
+            return;
+        }
+
+        // Crear instancia del modal si no existe
+        if (!observacionesModalInstance) {
+            observacionesModalInstance = new bootstrap.Modal(observacionesModalElement, {
+                keyboard: false,
+                backdrop: 'static'
+            });
+        }
+
+        const observacionOriginal = datosCampo.observacion || '';
+        const valorActual = datosCampo.valor_actual || obtenerValorCampo(campoSeleccionado);
+        const nombreCampo = datosCampo.campo_nombre || obtenerNombreDescriptivoCampo(campoSeleccionado);
+        const tipoCampo = obtenerTipoCampoLegible(campoSeleccionado);
+
+        // Actualizar elementos del modal
+        document.getElementById('observacionesModalLabel').textContent = 'Corregir Campo';
+        
+        const campoInfo = document.getElementById('campoSeleccionadoInfo');
+        const campoNombreSpan = document.getElementById('campoSeleccionadoNombre');
+        if (campoInfo && campoNombreSpan) {
+            campoInfo.style.display = 'block';
+            campoNombreSpan.textContent = `${nombreCampo} (${tipoCampo})`;
+        }
+
+        const comentarioDiv = document.getElementById('comentarioObservacion');
+        const textoObservacionSpan = document.getElementById('textoObservacion');
+        if (comentarioDiv && textoObservacionSpan) {
+            if (observacionOriginal) {
+                comentarioDiv.style.display = 'block';
+                textoObservacionSpan.textContent = observacionOriginal;
+            } else {
+                comentarioDiv.style.display = 'none';
+            }
+        }
+
+        if (observacionesTextElement) {
+            observacionesTextElement.value = valorActual;
+            observacionesTextElement.readOnly = false;
+            personalizarPlaceholderSegunTipoCampo(observacionesTextElement, campoSeleccionado);
+        }
+
+        // Mostrar botón de guardar
+        if (guardarObservacionesBtn) {
+            guardarObservacionesBtn.style.display = 'inline-block';
+        }
+
+        // Mostrar el modal con manejo de errores mejorado
+        try {
+            observacionesModalInstance.show();
+            console.log('Modal mostrado correctamente');
+        } catch (error) {
+            console.error('Error al mostrar modal:', error);
+            // Fallback a jQuery
+            try {
+                $(observacionesModalElement).modal('show');
+            } catch (jqError) {
+                console.error('Error en fallback jQuery:', jqError);
+                mostrarMensaje('Error al abrir el modal de observaciones', true);
+            }
+        }
+    }
+
+    /**
+     * Cierra el modal de observaciones individuales.
+     */
+    function cerrarModalObservaciones() {
+        if (observacionesModalInstance) {
+            observacionesModalInstance.hide();
+        }
+        // Limpiar selección
+        campoSeleccionado = null;
+        campoSeleccionadoId = null;
+    }
+
+    /**
+     * Abre el modal general (para observación general o resumen).
+     * @param {boolean} esResumen - Indica si se debe mostrar el resumen.
+     */
+    function abrirModalGeneral(esResumen = false) {
+        if (!observacionesModalGeneralElement) {
+            console.error('Elemento del modal general no encontrado.');
+            mostrarMensaje('Error: No se pudo abrir el modal general.', true);
+            return;
+        }
+        if (!observacionesModalGeneralInstance) {
+            observacionesModalGeneralInstance = new bootstrap.Modal(observacionesModalGeneralElement);
+        }
+
+        const tituloModal = document.getElementById('observacionesTituloGeneral');
+        const comentarioDiv = document.getElementById('comentarioObservacionGeneral'); // Asumiendo que existe para general
+
+        if (esResumen) {
+            if (tituloModal) tituloModal.textContent = 'Resumen de Observaciones';
+            if (comentarioDiv) comentarioDiv.style.display = 'none';
+            if (observacionesTextGeneralElement) {
+                observacionesTextGeneralElement.value = generarTextoResumen();
+                observacionesTextGeneralElement.readOnly = true;
+            }
+            if (guardarObservacionesGeneralBtn) guardarObservacionesGeneralBtn.style.display = 'none';
+            console.log('Abriendo modal en modo Resumen.');
+
+        } else { // Modo Observación General
+            if (tituloModal) tituloModal.textContent = 'Agregar Observación General';
+            if (comentarioDiv) comentarioDiv.style.display = 'none'; // No aplica comentario previo para general
+            if (observacionesTextGeneralElement) {
+                observacionesTextGeneralElement.value = observacionesPorCampo['observacion_general']?.observacion || '';
+                observacionesTextGeneralElement.readOnly = false;
+                observacionesTextGeneralElement.placeholder = 'Escriba aquí una observación general sobre la bitácora...';
+            }
+            if (guardarObservacionesGeneralBtn) guardarObservacionesGeneralBtn.style.display = 'inline-block';
+            console.log('Abriendo modal para Observación General.');
+        }
+
+        observacionesModalGeneralInstance.show();
+    }
+
+    /**
+     * Cierra el modal de observaciones generales.
+     */
+    function cerrarModalObservacionesGeneral() {
+        if (observacionesModalGeneralInstance) {
+            observacionesModalGeneralInstance.hide();
+        }
+    }
+
+    /**
+     * Genera el texto para el resumen de observaciones.
+     * @returns {string} - El texto del resumen.
+     */
+    function generarTextoResumen() {
+        let resumen = "RESUMEN DE OBSERVACIONES:\n\n";
+        let contador = 1;
+        let hayObservaciones = false;
+
+        // Observación General
+        const obsGeneral = observacionesPorCampo['observacion_general'];
+        if (obsGeneral && (obsGeneral.observacion || '').trim()) {
+            resumen += `OBSERVACIÓN GENERAL:\n${obsGeneral.observacion.trim()}\n\n`;
+            hayObservaciones = true;
+        }
+
+        // Observaciones por Campo
+        for (const [id, datos] of Object.entries(observacionesPorCampo)) {
+            if (id !== 'observacion_general' && (datos.observacion || '').trim()) {
+                hayObservaciones = true;
+                const nombreCampo = datos.campo_nombre || id;
+                const valorOriginal = datos.valor_original || '---';
+                const valorActual = datos.valor_actual || valorOriginal; // Mostrar valor actual o el original si no hay actual
+                const observacion = datos.observacion.trim();
+                const estaCorregido = verificarCampoCorregido(id);
+                const estado = estaCorregido ? '(Corregido)' : '(Pendiente)';
+
+                resumen += `${contador}. Campo: "${nombreCampo}" ${estado}\n`;
+                resumen += `   Valor Original: ${valorOriginal}\n`;
+                if (estaCorregido) { // Solo mostrar valor actual si cambió
+                    resumen += `   Valor Corregido: ${valorActual}\n`;
+                }
+                resumen += `   Observación: ${observacion}\n\n`;
                 contador++;
             }
         }
-        
-        if (totalCampos === 0 && !observacionesPorCampo['observacion_general']) {
-            todasLasObservaciones += "No hay observaciones específicas registradas.\n";
-        } else {
-            todasLasObservaciones += "RESUMEN ESTADÍSTICO:\n";
-            todasLasObservaciones += `Total de campos con observaciones: ${totalCampos}\n`;
-            todasLasObservaciones += `Campos corregidos: ${camposCorregidos} (${Math.round(camposCorregidos/totalCampos*100)}%)\n`;
-            todasLasObservaciones += `Campos pendientes: ${totalCampos - camposCorregidos} (${Math.round((totalCampos-camposCorregidos)/totalCampos*100)}%)\n`;
-        }
-        
-        // Mostrar el resumen en el textarea del modal general
-        if (observacionesTextGeneral) {
-            observacionesTextGeneral.value = todasLasObservaciones;
-            observacionesTextGeneral.readOnly = true;
-        }
-        
-        // Ocultar el botón de guardar en el modal general cuando se muestra el resumen
-        if (guardarObservacionesGeneralBtn) {
-            guardarObservacionesGeneralBtn.style.display = 'none';
-        }
-        
-        // Mostrar el modal usando Bootstrap
-        observacionesModalGeneral.show();
-        console.log('Modal de resumen abierto correctamente');
-    } else {
-        console.error('No se encontró el modal de observaciones generales');
-        alert('Error: No se pudo abrir el modal de resumen de observaciones');
-    }
-}
 
-// Función auxiliar para obtener el valor actual de cualquier tipo de campo
-function obtenerValorActualCampo(campo) {
-    if (!campo) return '';
-    
-    switch (campo.type || campo.tagName.toLowerCase()) {
-        case 'checkbox':
-        case 'radio':
-            return campo.checked ? 'Seleccionado' : 'No seleccionado';
-            
-        case 'select':
-        case 'select-one':
-            const opcion = campo.options[campo.selectedIndex];
-            return opcion ? opcion.text : '';
-            
-        case 'textarea':
-            return campo.value || '';
-            
-        default:
-            return campo.value || '';
+        if (!hayObservaciones) {
+            resumen += "No hay observaciones registradas.\n";
+        }
+        return resumen;
     }
-}
 
     // =============================================
-    // 6. FUNCIÓN PARA GUARDAR OBSERVACIONES
+    // 7. LÓGICA DE GUARDADO (ACCIONES DE BOTONES)
     // =============================================
-    
+
     /**
-     * Guarda la observación para el campo seleccionado actualmente
-     * y actualiza la interfaz de usuario
+     * Guarda la corrección realizada en el modal de observaciones individuales.
      */
-    function guardarObservacion() {
-        console.log('Guardando observación...');
-        
-        // Caso para observación general (cuando no hay campo seleccionado)
-        if (!campoSeleccionado) {
-            console.log('No hay campo seleccionado, guardando como observación general');
-            observacionesPorCampo['observacion_general'] = {
-                observacion: observacionesText.value,
-                campo_nombre: 'Observación General',
-                campo_tipo: 'general',
-                valor_original: ''
-            };
-            
-            // Guardar la observación general como un campo especial
-            guardarCampoEnServidor('observacion_general');
-            
-            cerrarModalObservaciones();
-            mostrarMensaje('Observación general guardada correctamente');
+    async function guardarCorreccionCampo() {
+        if (!campoSeleccionado || !campoSeleccionadoId || !observacionesTextElement) {
+            console.error('No hay campo seleccionado o falta el textarea para guardar.');
             return;
         }
-        
-        // Obtener el valor actual del textarea (que ahora puede haber sido editado por el usuario)
-        const observacionesText = document.getElementById('observacionesText');
-        let valorEditado = observacionesText ? observacionesText.value : '';
-        
-        // Obtener el valor original del campo seleccionado (para referencia)
-        let valorOriginal = '';
-        
-        // Si es la primera vez que se guarda este campo, almacenar el valor original
-        if (!observacionesPorCampo[campoSeleccionadoId]) {
-            valorOriginal = obtenerValorCampo(campoSeleccionado);
-        } else if (observacionesPorCampo[campoSeleccionadoId].valor_original) {
-            // Si ya existe, mantener el valor original
-            valorOriginal = observacionesPorCampo[campoSeleccionadoId].valor_original;
-        }
-        
-        // Obtener el nombre del campo
-        let nombreCampo = campoSeleccionado.name || campoSeleccionado.id || 'Campo sin nombre';
-        // Intentar obtener un nombre más descriptivo desde el label
-        if (campoSeleccionado.id) {
-            const label = document.querySelector(`label[for="${campoSeleccionado.id}"]`);
-            if (label) {
-                nombreCampo = label.textContent.trim();
-            }
-        }
-        
-        // Obtener la observación actual (comentario)
-        const textoObservacion = document.getElementById('textoObservacion');
-        let observacion = textoObservacion ? textoObservacion.textContent : '';
-        
-        // Si no hay observación en el elemento textoObservacion, intentar obtenerla del objeto observacionesPorCampo
-        if (!observacion && observacionesPorCampo[campoSeleccionadoId]) {
-            if (typeof observacionesPorCampo[campoSeleccionadoId] === 'object') {
-                observacion = observacionesPorCampo[campoSeleccionadoId].observacion || '';
-            } else {
-                observacion = observacionesPorCampo[campoSeleccionadoId] || '';
-            }
-        }
-        
-        // Verificar si el valor ha cambiado
-        const valorHaCambiado = valorEditado !== valorOriginal;
-        
-        // Obtener el historial de ediciones existente o crear uno nuevo
-        let historialEdiciones = [];
-        let contadorEdiciones = 0;
-        
-        if (observacionesPorCampo[campoSeleccionadoId] && observacionesPorCampo[campoSeleccionadoId].historial_ediciones) {
-            historialEdiciones = observacionesPorCampo[campoSeleccionadoId].historial_ediciones;
-            contadorEdiciones = observacionesPorCampo[campoSeleccionadoId].contador_ediciones || 0;
-        }
-        
-        // Si el valor ha cambiado, agregar una nueva entrada al historial
+
+        const valorEditado = observacionesTextElement.value;
+        const datosOriginales = observacionesPorCampo[campoSeleccionadoId] || {};
+        const valorOriginal = datosOriginales.valor_original !== undefined ? datosOriginales.valor_original : obtenerValorCampo(campoSeleccionado);
+        const observacion = datosOriginales.observacion || '';
+        const nombreCampo = datosOriginales.campo_nombre || obtenerNombreDescriptivoCampo(campoSeleccionado);
+        const tipoCampo = datosOriginales.campo_tipo || (campoSeleccionado.type || campoSeleccionado.tagName.toLowerCase());
+        let historial = datosOriginales.historial_ediciones || [];
+        let contador = datosOriginales.contador_ediciones || 0;
+        const valorHaCambiado = valorEditado.trim() !== (valorOriginal || '').trim();
+
         if (valorHaCambiado) {
-            contadorEdiciones++;
-            
-            // Obtener información del usuario actual (puedes obtenerla del DOM o de una variable global)
-            const usuarioId = document.getElementById('usuario_id')?.value || '0';
-            const usuarioNombre = document.getElementById('usuario_nombre')?.value || 'Usuario';
-            
-            // Crear nueva entrada en el historial
-            const nuevaEdicion = {
-                numero_edicion: contadorEdiciones,
+            contador++;
+            historial.push({
+                numero_edicion: contador,
                 valor_anterior: valorOriginal,
                 valor_nuevo: valorEditado,
                 usuario_id: usuarioId,
                 usuario_nombre: usuarioNombre,
                 fecha_edicion: new Date().toISOString()
-            };
-            
-            // Agregar la nueva edición al historial
-            historialEdiciones.push(nuevaEdicion);
+            });
         }
-        
-        // Guarda los datos manteniendo el valor original intacto
+
+        // Actualizar estado local con el nuevo estado
         observacionesPorCampo[campoSeleccionadoId] = {
-            ...observacionesPorCampo[campoSeleccionadoId],
+            ...datosOriginales,
             observacion: observacion,
-            valor_original: valorOriginal, // Mantener el valor original
-            valor_actual: valorEditado,    // Actualizar solo el valor actual
+            valor_original: valorOriginal,
+            valor_actual: valorEditado,
             campo_nombre: nombreCampo,
-            campo_tipo: campoSeleccionado.type || campoSeleccionado.tagName.toLowerCase(),
-            historial_ediciones: historialEdiciones,
-            contador_ediciones: contadorEdiciones
+            campo_tipo: tipoCampo,
+            historial_ediciones: historial,
+            contador_ediciones: contador,
+            estado: valorHaCambiado ? 'editado' : datosOriginales.estado, // Cambiar estado a 'editado' si el valor cambió
+            corregido: valorHaCambiado
         };
-        
-        // Verificar si el campo ha sido corregido (valor actual ≠ valor original)
-        const corregido = verificarCampoCorregido(campoSeleccionadoId);
-        
-        // Actualizar visualmente el campo en el formulario principal
-        actualizarCampoVisualmente(campoSeleccionado, valorEditado, corregido);
-        
-        // Agregar overlay al campo si no lo tiene ya
-        if (!campoSeleccionado.parentNode.querySelector('.campo-overlay')) {
-            // Código para agregar overlay (sin cambios)...
-        }
-        
-        // Agrega el campo a la lista de campos seleccionados si no está ya
-        if (!camposSeleccionados.includes(campoSeleccionadoId)) {
-            camposSeleccionados.push(campoSeleccionadoId);
-            console.log('Campo agregado a la lista de seleccionados:', campoSeleccionadoId);
-        }
-        
-        // Actualiza el contador de observaciones
-        actualizarContadorObservaciones();
-        
-        // Cierra el modal y muestra mensaje de éxito
-        cerrarModalObservaciones();
-        mostrarMensaje('Valor guardado correctamente');
-        
-        // Guardar este campo específico en el servidor
-        guardarCampoEnServidor(campoSeleccionadoId);
-        
-        console.log('Valor guardado para campo:', campoSeleccionadoId, 'valor original:', valorOriginal, 'valor editado:', valorEditado, 'corregido:', corregido);
-    }
-/**
- * Actualiza visualmente el campo en el formulario principal con el valor editado
- * @param {HTMLElement} campo - El campo a actualizar
- * @param {string} valorEditado - El nuevo valor para el campo
- * @param {boolean} corregido - Indica si el campo está corregido
- */
-function actualizarCampoVisualmente(campo, valorEditado, corregido) {
-    if (!campo) return;
-    
-    const tipoCampo = campo.type || campo.tagName.toLowerCase();
-    
-    try {
-        switch (tipoCampo) {
-            case 'checkbox':
-                // Para checkboxes, el valor editado debe ser "Seleccionado" o "No seleccionado"
-                campo.checked = valorEditado.toLowerCase() === 'seleccionado';
-                break;
-                
-            case 'radio':
-                // Para radio buttons, el valor editado debe ser "Seleccionado" o "No seleccionado"
-                campo.checked = valorEditado.toLowerCase() === 'seleccionado';
-                break;
-                
-            case 'select':
-            case 'select-one':
-                // Para selects, buscar la opción que coincida con el texto
-                const opciones = campo.options;
-                let encontrado = false;
-                
-                for (let i = 0; i < opciones.length; i++) {
-                    if (opciones[i].text === valorEditado) {
-                        campo.selectedIndex = i;
-                        encontrado = true;
-                        break;
-                    }
-                }
-                
-                // Si no se encontró una coincidencia exacta, intentar con una coincidencia parcial
-                if (!encontrado) {
-                    for (let i = 0; i < opciones.length; i++) {
-                        if (opciones[i].text.includes(valorEditado) || valorEditado.includes(opciones[i].text)) {
-                            campo.selectedIndex = i;
-                            break;
-                        }
-                    }
-                }
-                break;
-                
-            case 'date':
-                // Para campos de fecha, asegurarse de que el formato sea YYYY-MM-DD
-                if (valorEditado && valorEditado !== '---') {
-                    // Intentar convertir diferentes formatos de fecha a YYYY-MM-DD
-                    try {
-                        const fecha = new Date(valorEditado);
-                        if (!isNaN(fecha.getTime())) {
-                            const yyyy = fecha.getFullYear();
-                            const mm = String(fecha.getMonth() + 1).padStart(2, '0');
-                            const dd = String(fecha.getDate()).padStart(2, '0');
-                            campo.value = `${yyyy}-${mm}-${dd}`;
-                        } else {
-                            campo.value = valorEditado;
-                        }
-                    } catch (e) {
-                        campo.value = valorEditado;
-                    }
-                } else {
-                    campo.value = '';
-                }
-                break;
-                
-            case 'time':
-                // Para campos de hora, asegurarse de que el formato sea HH:MM
-                if (valorEditado && valorEditado !== '---') {
-                    // Intentar convertir diferentes formatos de hora a HH:MM
-                    const horaRegex = /(\d{1,2}):(\d{2})(?::(\d{2}))?/;
-                    const match = valorEditado.match(horaRegex);
-                    
-                    if (match) {
-                        const hh = String(match[1]).padStart(2, '0');
-                        const mm = match[2];
-                        campo.value = `${hh}:${mm}`;
-                    } else {
-                        campo.value = valorEditado;
-                    }
-                } else {
-                    campo.value = '';
-                }
-                break;
-                
-            case 'textarea':
-                // Para textareas, simplemente establecer el valor
-                campo.value = valorEditado;
-                break;
-                
-            default:
-                // Para inputs de texto y otros tipos, establecer el valor directamente
-                campo.value = valorEditado;
-                break;
-        }
 
-        // Obtener el ID del campo
-        const campoId = campo.id || campo.name;
-        const datos = observacionesPorCampo[campoId];
+        // Actualizar UI y guardar en servidor
+        actualizarCampoVisualmente(campoSeleccionado, valorEditado, valorHaCambiado);
 
-        // Verificar si el campo tiene observación y si ha sido modificado
-        const tieneObservacion = datos?.observacion ? true : false;
-        const valorHaCambiado = valorEditado !== datos?.valor_original;
-
-        // Aplicar estilo según el estado
-        if (tieneObservacion && !valorHaCambiado) {
-            // Si tiene observación y no ha sido modificado: ROJO
-            campo.classList.remove('corregido');
-            campo.classList.add('tiene-observacion');
-            campo.style.backgroundColor = 'rgba(220, 53, 69, 0.1)';
-        } else if (valorHaCambiado) {
-            // Si el valor ha cambiado: VERDE
-            campo.classList.remove('tiene-observacion');
-            campo.classList.add('corregido');
-            campo.style.backgroundColor = 'rgba(40, 167, 69, 0.1)';
-        }
-
-        campo.style.transition = 'background-color 0.5s';
-        
-        console.log(`Campo ${campoId} actualizado:`, {
-            tieneObservacion,
-            valorOriginal: datos?.valor_original,
-            valorActual: valorEditado,
-            valorHaCambiado
-        });
-    } catch (error) {
-        console.error('Error al actualizar visualmente el campo:', error);
-    }
-}
-
-/**
- * Verifica si un campo está corregido
- * @param {string} campoId - ID del campo a verificar
- * @returns {boolean} - Indica si el campo está corregido
- */
-function verificarCampoCorregido(campoId) {
-    if (!observacionesPorCampo[campoId]) return false;
-    
-    const datos = observacionesPorCampo[campoId];
-    
-    // Verificar si tiene observación y si el valor ha cambiado
-    const tieneObservacion = datos.observacion ? true : false;
-    const valorCambiado = datos.valor_actual !== datos.valor_original;
-    
-    // Un campo está corregido si ha sido modificado, sin importar si tiene observación
-    return valorCambiado;
-}
-
-    // Reemplaza la función guardarCampoEnServidor con esta versión mejorada
-function guardarCampoEnServidor(campoId) {
-    // Depuración del ID de bitácora
-    console.log('bitacoraId:', bitacoraId);
-    console.log('tipo de bitacoraId:', typeof bitacoraId);
-    
-    // Verificar el elemento HTML que contiene el ID de la bitácora
-    const bitacoraIdElement = document.getElementById('bitacora_id');
-    if (bitacoraIdElement) {
-        console.log('Elemento bitacora_id encontrado:', bitacoraIdElement);
-        console.log('Valor del elemento:', bitacoraIdElement.value);
-    } else {
-        console.log('Elemento bitacora_id NO encontrado');
-    }
-    
-    // Usar el valor del elemento si está disponible, o el valor de la variable global
-    const bitacoraIdFinal = bitacoraIdElement ? bitacoraIdElement.value : bitacoraId;
-    
-    if (!bitacoraIdFinal) {
-        console.error('No se pudo obtener el ID de la bitácora');
-        mostrarMensaje('Error: No se pudo obtener el ID de la bitácora', true);
-        return;
-    }
-    
-    if (!campoId) {
-        console.error('No se especificó un ID de campo');
-        mostrarMensaje('Error: No se especificó un ID de campo', true);
-        return;
-    }
-    
-    // Obtener los datos del campo
-    const datosCampo = observacionesPorCampo[campoId];
-    if (!datosCampo) {
-        console.error('No se encontraron datos para el campo:', campoId);
-        mostrarMensaje('Error: No se encontraron datos para el campo', true);
-        return;
-    }
-    
-    console.log('Guardando campo en el servidor:', campoId, datosCampo);
-    
-    // Obtener el nombre del usuario que está editando (si está disponible)
-    const usuarioActual = document.getElementById('usuario_actual')?.value || 'Usuario desconocido';
-    
-    // Crear objeto con los datos a guardar
-    const datos = {
-        bitacora_id: bitacoraIdFinal,
-        campo_id: campoId,
-        campo_nombre: datosCampo.campo_nombre || 'Campo sin nombre',
-        valor_original: datosCampo.valor_original || '',
-        valor_actual: datosCampo.valor_actual || datosCampo.valor_original || '',
-        campo_tipo: datosCampo.campo_tipo || 'desconocido',
-        observacion: datosCampo.observacion || '',
-        editado_por: usuarioActual,
-        historial_ediciones: JSON.stringify(datosCampo.historial_ediciones || []),
-        contador_ediciones: datosCampo.contador_ediciones || 0,
-        csrfmiddlewaretoken: getCookie('csrftoken')
-    };
-    
-    // Imprimir los datos que se enviarán para depuración
-    console.log('Datos que se enviarán al servidor:', datos);
-    
-    // Mostrar indicador de carga
-    mostrarMensaje('Guardando campo...', false);
-    
-    // Enviar datos al servidor mediante AJAX
-    $.ajax({
-        url: '/microbiologia/guardar_campos_corregidos/',
-        type: 'POST',
-        data: datos,
-        dataType: 'json',
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRFToken': getCookie('csrftoken')
-        },
-        success: function(response) {
-            console.log('Respuesta del servidor (éxito):', response);
-            mostrarMensaje('Campo guardado correctamente', false);
+        try {
+            await guardarCampoEnServidor(campoSeleccionadoId);
             
-            // Si la respuesta incluye historial, actualizar el objeto local
-            if (response.historial) {
-                observacionesPorCampo[campoId].historial_ediciones = response.historial;
-                observacionesPorCampo[campoId].contador_ediciones = response.contador || 0;
-            }
+            // Actualizar visualmente después de guardar exitosamente
+            crearOverlayParaCampo(campoSeleccionado, campoSeleccionadoId);
             
-            // Verificar si el campo ha sido corregido
-            const campo = document.getElementById(campoId);
-            if (campo) {
-                const corregido = verificarCampoCorregido(campoId);
-                
-                // Actualizar la clase del campo según si está corregido o no
-                if (corregido) {
-                    campo.classList.remove('tiene-observacion');
-                    campo.classList.add('corregido');
-                } else {
-                    campo.classList.remove('corregido');
-                    campo.classList.add('tiene-observacion');
-                }
-                
-                // Actualizar el objeto observacionesPorCampo con el estado corregido
-                observacionesPorCampo[campoId].corregido = corregido;
-            }
-            
-            // Actualizar el contador de observaciones
+            cerrarModalObservaciones();
             actualizarContadorObservaciones();
-        },
-        error: function(xhr, status, error) {
-            console.error('Error al guardar campo:', error);
-            console.error('Estado de la respuesta:', xhr.status);
-            console.error('Texto de la respuesta:', xhr.responseText);
-            
-            try {
-                const respuesta = xhr.responseJSON || (xhr.responseText ? JSON.parse(xhr.responseText) : {});
-                console.error('Respuesta del servidor (error):', respuesta);
-                mostrarMensaje('Error al guardar campo: ' + (respuesta.message || error), true);
-            } catch (e) {
-                console.error('No se pudo parsear la respuesta como JSON:', e);
-                mostrarMensaje('Error al guardar campo: ' + error, true);
-            }
+        } catch (error) {
+            console.error("Error durante el guardado, el modal permanecerá abierto.", error);
         }
-    });
-}
-    
-    /**
-     * Carga los datos guardados previamente desde el servidor
-     * Obtiene las observaciones y campos seleccionados directamente de la tabla ObservacionCampo
-     */
-    function cargarDatosGuardados() {
-        if (!bitacoraId) {
-            console.error('No se pudo obtener el ID de la bitácora');
-            return;
-        }
-        
-        console.log('Cargando datos guardados para bitácora ID:', bitacoraId);
-        
-        // Mostrar indicador de carga si es necesario
-        const loadingIndicator = document.getElementById('loading-indicator');
-        if (loadingIndicator) {
-            loadingIndicator.style.display = 'block';
-        }
-        
-        // Realizar petición AJAX para obtener los datos
-        $.ajax({
-            url: `/microbiologia/obtener_campos_observaciones/${bitacoraId}/`,
-            type: 'GET',
-            dataType: 'json',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            success: function(response) {
-                console.log('Respuesta del servidor:', response);
-                
-                if (response.success) {
-                    // Limpiar datos actuales
-                    observacionesPorCampo = {};
-                    camposSeleccionados = [];
-                    
-                    // Cargar observaciones individuales desde la tabla ObservacionCampo
-                    if (response.observaciones_individuales && response.observaciones_individuales.length > 0) {
-                        console.log(`Cargando ${response.observaciones_individuales.length} observaciones desde la BD`);
-                        
-                        response.observaciones_individuales.forEach(obs => {
-                            // Actualizar el objeto observacionesPorCampo con los datos de la BD
-                            observacionesPorCampo[obs.campo_id] = {
-                                observacion: obs.observacion || '',
-                                valor_original: obs.valor_original || '',
-                                valor_actual: obs.valor_actual || obs.valor_original || '',
-                                campo_nombre: obs.campo_nombre || 'Campo sin nombre',
-                                campo_tipo: obs.campo_tipo || 'desconocido',
-                                historial_ediciones: obs.historial_ediciones || [],
-                                contador_ediciones: obs.contador_ediciones || 0
-                            };
-                            
-                            // Agregar el campo a la lista de seleccionados si no está ya
-                            if (!camposSeleccionados.includes(obs.campo_id)) {
-                                camposSeleccionados.push(obs.campo_id);
-                            }
-                            
-                            // Buscar el campo en el DOM y crear overlay solo para campos con observaciones
-                            let campo = document.getElementById(obs.campo_id);
-                            if (!campo) {
-                                // Intentar buscar por nombre si no se encuentra por ID
-                                const camposPorNombre = document.getElementsByName(obs.campo_id);
-                                if (camposPorNombre.length > 0) {
-                                    campo = camposPorNombre[0];
-                                } else if (window.todosCamposFormulario && window.todosCamposFormulario[obs.campo_id]) {
-                                    // Intentar obtener del mapa de campos
-                                    campo = window.todosCamposFormulario[obs.campo_id];
-                                }
-                            }
-                            
-                            if (campo && obs.campo_id !== 'observacion_general') {
-                                console.log(`Creando overlay para campo con observación: ${obs.campo_id}`);
-                                
-                                // Verificar si el campo ha sido corregido
-                                const corregido = obs.valor_actual && obs.valor_actual !== obs.valor_original;
-                                
-                                // Aplicar clase según si está corregido o no
-                                if (corregido) {
-                                    campo.classList.remove('tiene-observacion');
-                                    campo.classList.add('corregido');
-                                } else {
-                                    campo.classList.remove('corregido');
-                                    campo.classList.add('tiene-observacion');
-                                }
-                                
-                                // Actualizar el valor visual del campo
-                                actualizarCampoVisualmente(campo, obs.valor_actual || obs.valor_original, corregido);
-                                
-                                // Verificar si ya tiene un overlay
-                                if (!campo.parentNode.querySelector('.campo-overlay')) {
-                                    // Crea un div transparente que cubrirá el campo para capturar clics
-                                    const overlay = document.createElement('div');
-                                    overlay.className = 'campo-overlay';
-                                    
-                                    // Estilos para el overlay (cubre completamente el campo)
-                                    overlay.style.position = 'absolute';
-                                    overlay.style.top = '0';
-                                    overlay.style.left = '0';
-                                    overlay.style.width = '100%';
-                                    overlay.style.height = '100%';
-                                    overlay.style.cursor = 'pointer';
-                                    overlay.style.zIndex = '100'; // Asegura que esté por encima del campo
-                                    overlay.style.backgroundColor = 'transparent'; // Fondo transparente
-                                    overlay.style.border = 'none'; // Sin borde
-                                    
-                                    // Asegura que el campo tenga posición relativa para el overlay
-                                    if (getComputedStyle(campo).position === 'static') {
-                                        campo.style.position = 'relative';
-                                    }
-                                    
-                                    // Agrega el overlay como hijo del contenedor del campo
-                                    campo.parentNode.style.position = 'relative';
-                                    campo.parentNode.appendChild(overlay);
-                                    
-                                    // Asocia el overlay con el campo mediante atributo data
-                                    overlay.dataset.targetField = campo.id || campo.name || '';
-                                    
-                                    // Agrega el evento click al overlay
-                                    overlay.addEventListener('click', function(e) {
-                                        // Previene el comportamiento por defecto y la propagación
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        
-                                        console.log('Overlay clickeado para campo:', this.dataset.targetField);
-                                        
-                                        // Encuentra el campo asociado al overlay
-                                        const campoAsociado = document.getElementById(this.dataset.targetField) || 
-                                                             document.getElementsByName(this.dataset.targetField)[0];
-                                        
-                                        if (!campoAsociado) {
-                                            console.error('No se pudo encontrar el campo asociado al overlay');
-                                            return;
-                                        }
-                                        
-                                        // Deselecciona todos los campos
-                                        document.querySelectorAll('.campo-seleccionado').forEach(c => {
-                                            c.classList.remove('campo-seleccionado');
-                                        });
-                                        
-                                        // Selecciona el campo actual
-                                        campoAsociado.classList.add('campo-seleccionado');
-                                        
-                                        // Actualiza las variables de estado
-                                        campoSeleccionado = campoAsociado;
-                                        campoSeleccionadoId = campoAsociado.id || 'campo-sin-id-' + Math.random().toString(36).substr(2, 9);
-                                        campoSeleccionadoNombre = campoAsociado.name || campoAsociado.id || 'Campo sin nombre';
-                                        
-                                        // Obtiene el texto del label asociado si existe
-                                        let labelText = 'Campo';
-                                        if (campoAsociado.id) {
-                                            const label = document.querySelector(`label[for="${campoAsociado.id}"]`);
-                                            if (label) {
-                                                labelText = label.textContent;
-                                            }
-                                        }
-                                        
-                                        // Establece modo edición
-                                        modoResumen = false;
-                                        
-                                        // Abre el modal de observaciones con el nombre del campo
-                                        abrirModalObservaciones(labelText);
-                                        
-                                        console.log('Modal de observaciones abierto para campo:', campoSeleccionadoId);
-                                    });
-                                    
-                                    // NO APLICAR ESTILOS ADICIONALES AQUÍ
-                                    // Eliminar cualquier estilo inline que pueda estar interfiriendo
-                                    campo.style.removeProperty('borderColor');
-                                    campo.style.removeProperty('backgroundColor');
-                                }
-                            } else if (obs.campo_id !== 'observacion_general') {
-                                console.warn(`No se encontró el elemento con ID o nombre: ${obs.campo_id}`);
-                            }
-                        });
-                        
-                        console.log('Observaciones individuales cargadas:', observacionesPorCampo);
-                        console.log('Campos seleccionados cargados:', camposSeleccionados);
-                    } else {
-                        console.log('No se encontraron observaciones individuales para esta bitácora');
-                    }
-                    
-                    // Cargar observación general si existe
-                    const observacionGeneral = response.observaciones_individuales?.find(obs => obs.campo_id === 'observacion_general');
-                    if (observacionGeneral) {
-                        observacionesPorCampo['observacion_general'] = {
-                            observacion: observacionGeneral.observacion || '',
-                            campo_nombre: 'Observación General',
-                            campo_tipo: 'general',
-                            valor_original: ''
-                        };
-                        console.log('Observación general cargada');
-                    }
-                    
-                    // Actualizar contador de observaciones
-                    actualizarContadorObservaciones();
-                } else {
-                    console.warn('No se pudieron cargar los datos:', response.message);
-                    mostrarMensaje('No se pudieron cargar los datos: ' + response.message, true);
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error('Error al cargar datos:', error);
-                console.error('Respuesta del servidor:', xhr.responseText);
-                mostrarMensaje('Error al cargar datos: ' + error, true);
-            },
-            complete: function() {
-                // Ocultar indicador de carga si es necesario
-                if (loadingIndicator) {
-                    loadingIndicator.style.display = 'none';
-                }
-            }
-        });
-    }
-    
-    /**
-     * Obtiene el valor de una cookie por su nombre
-     * @param {string} name - Nombre de la cookie
-     * @returns {string} - Valor de la cookie
-     */
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
     }
 
-    // =============================================
-    // 8. FUNCIONES AUXILIARES
-    // =============================================
-    
     /**
-     * Muestra un resumen de todas las observaciones en el modal
+     * Guarda la observación general introducida en el modal general.
      */
-    function mostrarResumenObservaciones() {
-        // Construye el texto del resumen
-        let todasLasObservaciones = "RESUMEN DE OBSERVACIONES:\n\n";
-        
-        // Agrega la observación general si existe
-        if (observacionesPorCampo['observacion_general']) {
-            todasLasObservaciones += "OBSERVACIÓN GENERAL:\n";
-            // Verifica si es un objeto o un string
-            if (typeof observacionesPorCampo['observacion_general'] === 'object') {
-                todasLasObservaciones += observacionesPorCampo['observacion_general'].observacion + "\n\n";
-            } else {
-                todasLasObservaciones += observacionesPorCampo['observacion_general'] + "\n\n";
-            }
-        }
-        
-        // Contadores para estadísticas
-        let totalCampos = 0;
-        let camposCorregidos = 0;
-        
-        // Primera pasada: contar campos y verificar estados
-        for (const [campoId, datos] of Object.entries(observacionesPorCampo)) {
-            if (campoId !== 'observacion_general') {
-                totalCampos++;
-                
-                // Un campo está corregido si:
-                // 1. Tiene un valor actual diferente al original
-                // 2. No tiene observación activa
-                const tieneObservacionActiva = datos.observacion && datos.observacion.trim() !== '';
-                const valorCambiado = datos.valor_actual !== datos.valor_original;
-                
-                // Un campo está corregido si no tiene observación activa y su valor ha cambiado
-                if (!tieneObservacionActiva && valorCambiado) {
-                    camposCorregidos++;
-                }
-            }
-        }
-        
-        // Agrega las observaciones por campo
-        let contador = 1;
-        for (const [campoId, datos] of Object.entries(observacionesPorCampo)) {
-            if (campoId !== 'observacion_general') {
-                const campo = document.getElementById(campoId);
-                let nombreCampo = campoId;
-                let estadoCorreccion = "⚠️ No corregido";
-                let valorActual = '';
-                let valorOriginal = '';
-                
-                // Obtener valor original de los datos almacenados
-                if (typeof datos === 'object') {
-                    valorOriginal = datos.valor_original || '---';
-                }
-                
-                // Obtener el valor actual del campo en el formulario
-                if (campo) {
-                    valorActual = obtenerValorActualCampo(campo);
-                } else {
-                    // Si no se encuentra el campo, usar el valor actual almacenado
-                    valorActual = datos.valor_actual || valorOriginal;
-                }
-                
-                const corregido = verificarCampoCorregido(campoId);
-                if (corregido) {
-                    estadoCorreccion = "✅ Corregido";
-                }
-                
-                if (typeof datos === 'object') {
-                    nombreCampo = datos.campo_nombre || campoId;
-                    
-                    // Formatea la observación para el resumen incluyendo siempre ambos valores
-                    todasLasObservaciones += `${contador}. Campo: "${nombreCampo}" - ${estadoCorreccion}\n`;
-                    todasLasObservaciones += `   Valor original: ${valorOriginal}\n`;
-                    todasLasObservaciones += `   Valor actual: ${valorActual}\n`;
-                    todasLasObservaciones += `   Observación: ${datos.observacion || ''}\n\n`;
-                } else {
-                    if (campo && campo.id) {
-                        const label = document.querySelector(`label[for="${campo.id}"]`);
-                        if (label) {
-                            nombreCampo = label.textContent;
-                        } else {
-                            nombreCampo = campo.name || campo.id;
-                        }
-                    }
-                    
-                    todasLasObservaciones += `${contador}. Campo: "${nombreCampo}" - ${estadoCorreccion}\n`;
-                    todasLasObservaciones += `   ${datos}\n\n`;
-                }
-                contador++;
-            }
-        }
-        
-        // Mensaje si no hay observaciones
-        if (totalCampos === 0 && !observacionesPorCampo['observacion_general']) {
-            todasLasObservaciones += "No hay observaciones específicas registradas.\n";
-        } else {
-            // Agregar resumen estadístico
-            todasLasObservaciones += "RESUMEN ESTADÍSTICO:\n";
-            todasLasObservaciones += `Total de campos con observaciones: ${totalCampos}\n`;
-            todasLasObservaciones += `Campos corregidos: ${camposCorregidos} (${Math.round(camposCorregidos/totalCampos*100)}%)\n`;
-            todasLasObservaciones += `Campos pendientes: ${totalCampos - camposCorregidos} (${Math.round((totalCampos-camposCorregidos)/totalCampos*100)}%)\n`;
-        }
-        
-        // Muestra el resumen en el textarea y abre el modal
-        if (observacionesText) {
-            observacionesText.value = todasLasObservaciones;
-        }
-        
-        if (observacionesModal) {
-            observacionesModal.style.display = 'block';
-            
-            // Oculta el botón de guardar en modo resumen
-            if (guardarObservacionesBtn) {
-                guardarObservacionesBtn.style.display = 'none';
-            }
-        }
+    function guardarObservacionGeneral() {
+        if (!observacionesTextGeneralElement) return;
+        const observacionTexto = observacionesTextGeneralElement.value.trim();
+
+        // Actualizar estado local
+        observacionesPorCampo['observacion_general'] = {
+            observacion: observacionTexto,
+            campo_nombre: 'Observación General',
+            campo_tipo: 'general',
+            valor_original: '', // No aplica
+            valor_actual: '', // No aplica
+            historial_ediciones: [], // No aplica
+            contador_ediciones: 0, // No aplica
+            corregido: false // No aplica
+        };
+
+        // Guardar en servidor
+        guardarCampoEnServidor('observacion_general');
+        cerrarModalObservacionesGeneral();
+        mostrarMensaje('Observación general guardada.', false);
+        actualizarContadorObservaciones();
     }
-    
-    /**
-     * Actualiza el contador de observaciones en el botón de retroalimentación
-     * Considera la estructura de datos donde observacionesPorCampo contiene objetos
-     * y los datos provienen de la base de datos
-     */
-    function actualizarContadorObservaciones() {
-        const observacionesBtn = document.getElementById('btnResumenObservaciones');
-        if (!observacionesBtn) {
-            console.warn('No se encontró el botón de retroalimentación para actualizar el contador');
-            return;
-        }
-        
-        // Filtra las claves para contar solo campos reales (excluyendo observación general)
-        const camposConObservacion = Object.keys(observacionesPorCampo).filter(key => {
-            return key !== 'observacion_general';
-        });
-        
-        // Cuenta total de campos con observaciones
-        const totalCampos = camposConObservacion.length;
-        
-        // Actualiza el texto del botón
-        observacionesBtn.textContent = `Retroalimentación (${totalCampos})`;
-        
-        // Cambia el estilo del botón si hay observaciones
-        if (totalCampos > 0) {
-            observacionesBtn.classList.add('tiene-observaciones');
-        } else {
-            observacionesBtn.classList.remove('tiene-observaciones');
-        }
-        
-        console.log('Contador de observaciones actualizado:', totalCampos, 'campos con observaciones');
-        
-        // Opcional: Actualizar un contador global visible en la interfaz si existe
-        const contadorGlobal = document.getElementById('contador-observaciones-global');
-        if (contadorGlobal) {
-            contadorGlobal.textContent = totalCampos.toString();
-            contadorGlobal.style.display = totalCampos > 0 ? 'inline-block' : 'none';
-        }
-    }
-    
-    /**
-     * Muestra un mensaje temporal al usuario
-     * @param {string} mensaje - Texto a mostrar
-     * @param {boolean} esError - Indica si es un mensaje de error
-     */
-    function mostrarMensaje(mensaje, esError = false) {
-        console.log('Mostrando mensaje:', mensaje);
-        
-        // Elimina mensaje existente si hay uno
-        let mensajeDiv = document.querySelector('.mensaje-flotante');
-        if (mensajeDiv) {
-            document.body.removeChild(mensajeDiv);
-        }
-        
-        // Crea nuevo elemento para el mensaje
-        mensajeDiv = document.createElement('div');
-        mensajeDiv.className = 'mensaje-flotante';
-        if (esError) {
-            mensajeDiv.classList.add('mensaje-error');
-        }
-        mensajeDiv.textContent = mensaje;
-        document.body.appendChild(mensajeDiv);
-        
-        // Configura temporizador para desvanecer y eliminar el mensaje
-        setTimeout(() => {
-            mensajeDiv.classList.add('desaparecer');
-            setTimeout(() => {
-                if (document.body.contains(mensajeDiv)) {
-                    document.body.removeChild(mensajeDiv);
-                }
-            }, 500);
-        }, 3000);
-    }
-    
+
     // =============================================
     // 8. CONFIGURACIÓN DE EVENTOS
     // =============================================
-    
-    // Evento para el botón de cerrar del modal
-    if (closeBtn) {
-        closeBtn.addEventListener('click', function() {
-            cerrarModalObservaciones();
-        });
-        console.log('Evento de cierre del modal configurado');
-    } else {
-        console.error('No se encontró el botón de cierre del modal');
-    }
-    
-    // Evento para el botón de guardar observaciones
-    if (guardarObservacionesBtn) {
-        guardarObservacionesBtn.addEventListener('click', function() {
-            guardarObservacion();
-        });
-        console.log('Evento de guardar observaciones configurado');
-    } else {
-        console.error('No se encontró el botón de guardar observaciones');
-    }
-    
-    // =============================================
-    // 9. MODIFICACIÓN DEL BOTÓN DE RETROALIMENTACIÓN
-    // =============================================
-    
-    const observacionesBtn = document.getElementById('observacionesBtn');
-    if (observacionesBtn) {
-        // Clona el botón para evitar problemas con eventos existentes
-        const nuevoBtn = observacionesBtn.cloneNode(true);
-        observacionesBtn.parentNode.replaceChild(nuevoBtn, observacionesBtn);
-        
-        // Agrega nuevo evento al botón clonado
-        nuevoBtn.addEventListener('click', function() {
-            console.log('Botón de retroalimentación clickeado');
-            
-            // Prepara para mostrar todas las observaciones
-            campoSeleccionado = null;
-            campoSeleccionadoId = null;
-            
-            // Establece modo resumen
-            modoResumen = true;
-            
-            // Verificar si tenemos observaciones cargadas
-            const hayObservaciones = Object.keys(observacionesPorCampo).length > 0;
-            
-            if (!hayObservaciones) {
-                // Si no hay observaciones cargadas, intentamos cargarlas desde el servidor
-                console.log('No hay observaciones cargadas, intentando cargar desde el servidor...');
-                
-                // Mostrar indicador de carga
-                const loadingIndicator = document.getElementById('loading-indicator');
-                if (loadingIndicator) {
-                    loadingIndicator.style.display = 'block';
-                } else {
-                    mostrarMensaje('Cargando observaciones...', false);
+
+    function configurarEventListeners() {
+        // Botón Guardar en Modal Individual
+        if (guardarObservacionesBtn) {
+            guardarObservacionesBtn.addEventListener('click', guardarCorreccionCampo);
+        }
+
+        // Botón Guardar en Modal General
+        if (guardarObservacionesGeneralBtn) {
+            guardarObservacionesGeneralBtn.addEventListener('click', guardarObservacionGeneral);
+        }
+
+        // Botón Resumen/Retroalimentación
+        if (btnResumenObservaciones) {
+            const nuevoBtnResumen = btnResumenObservaciones.cloneNode(true);
+            if (btnResumenObservaciones.parentNode) {
+                btnResumenObservaciones.parentNode.replaceChild(nuevoBtnResumen, btnResumenObservaciones);
+                nuevoBtnResumen.addEventListener('click', () => abrirModalGeneral(true)); // Abrir en modo resumen
+            }
+        }
+
+        // Botones de cierre de los modales (usando delegación si son muchos)
+        document.body.addEventListener('click', function(event) {
+            if (event.target.matches('.modal .btn-close, .modal [data-bs-dismiss="modal"]')) {
+                if (event.target.closest('#observacionesModal')) {
+                    cerrarModalObservaciones(); // Limpia campoSeleccionado
                 }
-                
-                // Realizar petición AJAX para obtener las observaciones
-                $.ajax({
-                    url: `/microbiologia/obtener_campos_observaciones/${bitacoraId}/`,
-                    type: 'GET',
-                    dataType: 'json',
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    success: function(response) {
-                        console.log('Respuesta del servidor:', response);
-                        
-                        if (response.success) {
-                            // Cargar observaciones individuales desde la tabla ObservacionCampo
-                            if (response.observaciones_individuales && response.observaciones_individuales.length > 0) {
-                                console.log(`Cargando ${response.observaciones_individuales.length} observaciones desde la BD`);
-                                
-                                // Limpiar datos actuales
-                                observacionesPorCampo = {};
-                                camposSeleccionados = [];
-                                
-                                response.observaciones_individuales.forEach(obs => {
-                                    // Actualizar el objeto observacionesPorCampo con los datos de la BD
-                                    observacionesPorCampo[obs.campo_id] = {
-                                        observacion: obs.observacion || '',
-                                        valor_original: obs.valor_original || '',
-                                        campo_nombre: obs.campo_nombre || 'Campo sin nombre',
-                                        campo_tipo: obs.campo_tipo || 'desconocido'
-                                    };
-                                    
-                                    // Agregar el campo a la lista de seleccionados si no está ya
-                                    if (!camposSeleccionados.includes(obs.campo_id)) {
-                                        camposSeleccionados.push(obs.campo_id);
-                                    }
-                                });
-                                
-                                // Ahora que tenemos las observaciones, mostrar el resumen
-                                mostrarResumenObservaciones();
-                            } else {
-                                // No hay observaciones, mostrar mensaje
-                                observacionesText.value = "No hay observaciones registradas para esta bitácora.";
-                                observacionesModal.style.display = 'block';
-                                
-                                // Ocultar el botón de guardar en modo resumen
-                                if (guardarObservacionesBtn) {
-                                    guardarObservacionesBtn.style.display = 'none';
-                                }
-                            }
-                        } else {
-                            console.warn('No se pudieron cargar los datos:', response.message);
-                            mostrarMensaje('No se pudieron cargar los datos: ' + response.message, true);
-                            
-                            // Mostrar mensaje de error en el modal
-                            observacionesText.value = "Error al cargar las observaciones: " + response.message;
-                            observacionesModal.style.display = 'block';
-                            
-                            // Ocultar el botón de guardar en modo resumen
-                            if (guardarObservacionesBtn) {
-                                guardarObservacionesBtn.style.display = 'none';
-                            }
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        console.error('Error al cargar datos:', error);
-                        console.error('Respuesta del servidor:', xhr.responseText);
-                        mostrarMensaje('Error al cargar datos: ' + error, true);
-                        
-                        // Mostrar mensaje de error en el modal
-                        observacionesText.value = "Error al cargar las observaciones: " + error;
-                        observacionesModal.style.display = 'block';
-                        
-                        // Ocultar el botón de guardar en modo resumen
-                        if (guardarObservacionesBtn) {
-                            guardarObservacionesBtn.style.display = 'none';
-                        }
-                    },
-                    complete: function() {
-                        // Ocultar indicador de carga
-                        if (loadingIndicator) {
-                            loadingIndicator.style.display = 'none';
-                        }
-                    }
-                });
-            } else {
-                // Ya tenemos observaciones cargadas, mostrar el resumen directamente
-                mostrarResumenObservaciones();
             }
         });
-        console.log('Evento del botón de retroalimentación configurado');
-    } else {
-        console.error('No se encontró el botón de retroalimentación');
+
+        console.log('Event listeners configurados.');
     }
-    
- /**
- * Agregar estilos CSS para los campos corregidos
- */
-function agregarEstilosCSS() {
-    const style = document.createElement('style');
-    style.textContent = `
-        /* Estilo para campos con observaciones (rojo) */
-        .tiene-observacion {
-            border: 2px solid #dc3545 !important;
-            background-color: rgba(220, 53, 69, 0.1) !important;
-        }
-        
-        /* Estilo para campos corregidos (verde) */
-        .corregido {
-            border: 2px solid rgb(18, 210, 63) !important;
-            background-color: rgba(40, 167, 69, 0.1) !important;
-        }
-        
-        /* Para checkboxes y radio buttons */
-        input[type="checkbox"].tiene-observacion,
-        input[type="radio"].tiene-observacion {
-            outline: 2px solid #dc3545 !important;
-        }
-        
-        input[type="checkbox"].corregido,
-        input[type="radio"].corregido {
-            outline: 2px solid #28a745 !important;
-        }
-        
-        /* Para selects */
-        select.tiene-observacion {
-            border: 2px solid #dc3545 !important;
-            background-color: rgba(220, 53, 69, 0.1) !important;
-        }
-        
-        select.corregido {
-            border: 2px solid #28a745 !important;
-            background-color: rgba(40, 167, 69, 0.1) !important;
-        }
-    `;
-    document.head.appendChild(style);
-}
-
-/**
- * Obtiene el valor de un campo según su tipo
- * @param {HTMLElement} campo - El campo del que se quiere obtener el valor
- * @returns {string} - El valor del campo formateado según su tipo
- */
-function obtenerValorCampo(campo) {
-    if (!campo) return '';
-    
-    switch (campo.type || campo.tagName.toLowerCase()) {
-        case 'checkbox':
-            return campo.checked ? 'Seleccionado' : 'No seleccionado';
-            
-        case 'radio':
-            return campo.checked ? 'Seleccionado' : 'No seleccionado';
-            
-        case 'select':
-        case 'select-one':
-            const opcionSeleccionada = campo.options[campo.selectedIndex];
-            return opcionSeleccionada ? opcionSeleccionada.text : '';
-            
-        case 'date':
-            return campo.value || '---';
-            
-        case 'time':
-            return campo.value || '---';
-            
-        default:
-            return campo.value || '';
-    }
-}
-
-/**
- * Obtiene una descripción legible del tipo de campo
- * @param {HTMLElement} campo - El campo del que se quiere obtener el tipo
- * @returns {string} - Descripción legible del tipo de campo
- */
-function obtenerTipoCampoLegible(campo) {
-    if (!campo) return 'Desconocido';
-    
-    const tipo = campo.type || campo.tagName.toLowerCase();
-    
-    const tiposLegibles = {
-        'text': 'Texto',
-        'number': 'Número',
-        'date': 'Fecha',
-        'time': 'Hora',
-        'checkbox': 'Casilla de verificación',
-        'radio': 'Opción',
-        'select': 'Lista desplegable',
-        'select-one': 'Lista desplegable',
-        'textarea': 'Área de texto',
-        'email': 'Correo electrónico',
-        'tel': 'Teléfono',
-        'password': 'Contraseña',
-        'file': 'Archivo',
-        'hidden': 'Oculto'
-    };
-    
-    return tiposLegibles[tipo] || tipo.charAt(0).toUpperCase() + tipo.slice(1);
-}
-
-/**
- * Personaliza el placeholder del textarea según el tipo de campo
- * @param {HTMLTextAreaElement} textarea - El textarea a personalizar
- * @param {HTMLElement} campo - El campo asociado
- */
-function personalizarPlaceholderSegunTipoCampo(textarea, campo) {
-    if (!textarea || !campo) return;
-    
-    const tipo = campo.type || campo.tagName.toLowerCase();
-    const placeholders = {
-        'text': 'Ingrese el nuevo texto...',
-        'number': 'Ingrese el nuevo número...',
-        'date': 'Ingrese la nueva fecha (YYYY-MM-DD)...',
-        'time': 'Ingrese la nueva hora (HH:MM)...',
-        'checkbox': 'Escriba "Seleccionado" o "No seleccionado"...',
-        'radio': 'Escriba "Seleccionado" o "No seleccionado"...',
-        'select': 'Escriba una de las opciones disponibles...',
-        'select-one': 'Escriba una de las opciones disponibles...',
-        'textarea': 'Ingrese el nuevo texto...',
-        'email': 'Ingrese el nuevo correo electrónico...',
-        'tel': 'Ingrese el nuevo número de teléfono...'
-    };
-    
-    textarea.placeholder = placeholders[tipo] || 'Ingrese el nuevo valor...';
-}
 
     // =============================================
-    // 11. EXPONER FUNCIONES GLOBALMENTE
+    // 9. INICIALIZACIÓN
     // =============================================
-    
-    // Exponer la función para obtener observaciones y campos seleccionados
-    window.obtenerObservacionesYCampos = function() {
+
+    function inicializar() {
+        console.log('Inicializando script de visualización de campos rechazados...');
+        if (!bitacoraId) {
+            console.error("¡Error Crítico! No se encontró el ID de la bitácora en el DOM (elemento #bitacora_id). El script no puede funcionar.");
+            mostrarMensaje("Error: Falta ID de bitácora. Funcionalidad limitada.", true, 10000);
+            return; // Detener inicialización si falta el ID
+        }
+
+        identificarCamposDelFormulario();
+        configurarEventListeners();
+        cargarDatosGuardados(); // Carga datos y crea overlays necesarios
+
+        // Deshabilitar filas al cargar la página
+        const filas = document.querySelectorAll('#tabla-body tr');
+        filas.forEach(fila => {
+            const primerCampo = fila.querySelector('input, select, textarea');
+            if (primerCampo) {
+                const campoId = primerCampo.id || primerCampo.name;
+                if (campoId && CAMPOS_CON_PERMISO_ESPECIAL.some(prefijo => campoId.startsWith(prefijo))) {
+                    toggleFilaEdicion(fila, true); // Deshabilitar al inicio
+                }
+            }
+        });
+
+        console.log('Script inicializado correctamente.');
+    }
+
+    // Ejecutar inicialización cuando el DOM esté listo
+    document.addEventListener('DOMContentLoaded', inicializar);
+
+    // =============================================
+    // 10. EXPOSICIÓN GLOBAL (SI ES NECESARIO)
+    // =============================================
+
+    window.obtenerObservacionesYCampos = function () {
         return {
-            observaciones: observacionesPorCampo,
-            camposSeleccionados: camposSeleccionados
+            observaciones: observacionesPorCampo
         };
     };
-    
-    // =============================================
-    // 12. INICIALIZACIÓN FINAL
-    // =============================================
-    
-    // Inicia la funcionalidad principal
-    hacerCamposSeleccionables();
-    
-    console.log('Script de campos seleccionables inicializado correctamente');
-});
+
+})(); // Fin de la IIFE

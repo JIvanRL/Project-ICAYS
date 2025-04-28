@@ -1,134 +1,50 @@
-/* Estilos para campos rechazados */
-.campo-rechazado {
-    border: 3px solid #b21f2d !important; /* Borde más grueso y rojo más oscuro */
-    box-shadow: 0 0 8px rgba(178, 31, 45, 0.7) !important; /* Sombra más pronunciada y oscura */
-    background-color: rgba(220, 53, 69, 0.05) !important;
-}
-
-/* Estilos para campos corregidos */
-.corregido {
-    border: 3px solid #1e7e34 !important; /* Borde más grueso y verde más oscuro */
-    box-shadow: 0 0 8px rgba(30, 126, 52, 0.7) !important; /* Sombra más pronunciada y oscura */
-    background-color: rgba(40, 167, 69, 0.05) !important;
-}
-
-/* Estilos para campos con observaciones (no corregidos) */
+/* Estilo para campos con observaciones (rojo) */
 .tiene-observacion {
-    border: 3px solid #b21f2d !important; /* Borde más grueso y rojo más oscuro */
-    box-shadow: 0 0 8px rgba(178, 31, 45, 0.7) !important; /* Sombra más pronunciada y oscura */
-    background-color: rgba(220, 53, 69, 0.05) !important;
+    border: 2px solid #dc3545 !important; /* Rojo Bootstrap */
+    background-color: rgba(220, 53, 69, 0.1) !important;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
-/* Efecto de parpadeo para resaltar un campo */
-@keyframes parpadeo {
-    0% { box-shadow: 0 0 5px rgba(178, 31, 45, 0.5); }
-    50% { box-shadow: 0 0 15px rgba(178, 31, 45, 0.8); }
-    100% { box-shadow: 0 0 5px rgba(178, 31, 45, 0.5); }
+/* Estilo para campos corregidos (verde) */
+.corregido {
+    border: 2px solid #198754 !important; /* Verde Bootstrap */
+    background-color: rgba(25, 135, 84, 0.1) !important;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
-.campo-parpadeo {
-    animation: parpadeo 0.5s ease-in-out 4;
-    border: 3px solid #b21f2d !important; /* Borde más grueso y rojo más oscuro */
-}
-
-/* Estilos para el contenedor de observaciones */
-#contenedor-observaciones {
-    margin-top: 20px;
-    margin-bottom: 20px;
-}
-
-/* Estilos para las filas de la tabla */
-#contenedor-observaciones table tbody tr {
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-}
-
-#contenedor-observaciones table tbody tr:hover {
-    background-color: rgba(0, 123, 255, 0.1);
-}
-
-/* Estilo para la fila activa */
-#contenedor-observaciones table tbody tr.table-active {
-    background-color: rgba(0, 123, 255, 0.2);
-}
-
-/* Estilos para el contador de observaciones */
-#contador-observaciones {
-    font-size: 0.9rem;
-    padding: 0.25rem 0.5rem;
-    border-radius: 50%;
-    margin-left: 5px;
-}
-
-/* Estilos para el indicador de carga */
-#loading-indicator {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 9999;
-    background-color: rgba(255, 255, 255, 0.8);
-    padding: 20px;
-    border-radius: 5px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-    display: none;
-}
-
-#loading-indicator .spinner-border {
-    width: 3rem;
-    height: 3rem;
-}
-
-/* Estilos para el contenedor de mensajes */
-#contenedor-mensajes {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 1050;
-}
-
-#contenedor-mensajes .alert {
-    margin-bottom: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-}
-
-/* Estilos para overlays seleccionables */
-.campo-overlay {
-    position: absolute;
-    z-index: 1000;
-    cursor: pointer;
-    border: 2px dashed rgba(178, 31, 45, 0.8); /* Borde más grueso y rojo más oscuro */
-    border-radius: 3px;
-    transition: background-color 0.2s ease;
-}
-
-.campo-overlay:hover {
-    background-color: rgba(0, 123, 255, 0.2);
-    border: 2px dashed rgba(0, 123, 255, 0.8); /* Borde más grueso */
-}
-
-/* Estilo para el campo seleccionado actualmente */
-.campo-seleccionado {
-    border: 3px solid #0056b3 !important; /* Borde más grueso y azul más oscuro */
-    box-shadow: 0 0 8px rgba(0, 86, 179, 0.7) !important; /* Sombra más pronunciada y oscura */
-}
-
-/* Estilos específicos para checkboxes y radio buttons */
+/* Ajustes para checkboxes y radios */
 input[type="checkbox"].tiene-observacion,
 input[type="radio"].tiene-observacion {
-    outline: 3px solid #b21f2d !important; /* Contorno más grueso y rojo más oscuro */
+    outline: 2px solid #dc3545 !important;
+    outline-offset: 2px;
 }
 
 input[type="checkbox"].corregido,
 input[type="radio"].corregido {
-    outline: 3px solid #1e7e34 !important; /* Contorno más grueso y verde más oscuro */
+    outline: 2px solid #198754 !important;
+    outline-offset: 2px;
 }
 
-/* Estilos específicos para selects */
-select.tiene-observacion {
-    border: 3px solid #b21f2d !important; /* Borde más grueso y rojo más oscuro */
+/* Estilos para mensajes flotantes */
+.mensaje-flotante {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 10px 20px;
+    background-color: #28a745; /* Verde éxito */
+    color: white;
+    border-radius: 5px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    z-index: 1060; /* Encima de modales */
+    opacity: 1;
+    transition: opacity 0.5s ease-out;
 }
 
-select.corregido {
-    border: 3px solid #1e7e34 !important; /* Borde más grueso y verde más oscuro */
+.mensaje-flotante.mensaje-error {
+    background-color: #dc3545; /* Rojo error */
+}
+
+.mensaje-flotante.desaparecer {
+    opacity: 0;
 }

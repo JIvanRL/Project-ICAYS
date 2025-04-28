@@ -551,11 +551,20 @@ class Notification(models.Model):
     message = models.CharField(max_length=255, db_column='message')
     is_read = models.BooleanField(default=False, db_column='is_read')
     created_at = models.DateTimeField(auto_now_add=True, db_column='created_at')
+    type = models.CharField(max_length=50, default='general', db_column='type')  # Nuevo campo
     recipient = models.ForeignKey(
-        'CustomUser',  # Asumiendo que este es tu modelo de usuario
+        'CustomUser',
         on_delete=models.CASCADE,
         related_name='notifications',
         db_column='recipient'
+    )
+    related_bitacora = models.ForeignKey(  # Nuevo campo
+        Bitcoras_Cbap,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='notifications',
+        db_column='related_bitacora'
     )
     related_ejemplo = models.ForeignKey(
         ejemplosFormulas,
@@ -572,7 +581,6 @@ class Notification(models.Model):
     
     def __str__(self):
         return f"Notification {self.id_notification} for {self.recipient}"
-
 
 ##############################
 # Tabla de suscripciones push#
@@ -599,3 +607,99 @@ class PushSubscription(models.Model):
     def __str__(self):
         return f"Push Subscription for {self.user.username} ({self.endpoint[:30]}...)"
     
+
+class SolicitudAutorizacion(models.Model):
+    ESTADOS = (
+        ('pendiente', 'Pendiente'),
+        ('aprobada', 'Aprobada'),
+        ('rechazada', 'Rechazada'),
+    )
+
+    id_solicitud = models.AutoField(primary_key=True, db_column='id_solicitud')
+    
+    bitacora = models.ForeignKey(
+        Bitcoras_Cbap,
+        on_delete=models.CASCADE,
+        related_name='solicitudes_autorizacion',
+        db_column='bitacora_id'
+    )
+    
+    campo_id = models.CharField(
+        max_length=100,
+        db_column='campo_id',
+        help_text="ID del campo que requiere autorización"
+    )
+    
+    campo_nombre = models.CharField(
+        max_length=255,
+        db_column='campo_nombre',
+        help_text="Nombre descriptivo del campo"
+    )
+    
+    valor_actual = models.TextField(
+        null=True,
+        blank=True,
+        db_column='valor_actual',
+        help_text="Valor actual del campo"
+    )
+    
+    solicitante = models.ForeignKey(
+        CustomUser,
+        on_delete=models.CASCADE,
+        related_name='solicitudes_realizadas',
+        db_column='solicitante_id'
+    )
+    
+    supervisor = models.ForeignKey(
+        CustomUser,
+        on_delete=models.CASCADE,
+        related_name='solicitudes_por_revisar',
+        db_column='supervisor_id',
+        help_text="Usuario que debe autorizar la solicitud"
+    )
+    
+    estado = models.CharField(
+        max_length=20,
+        choices=ESTADOS,
+        default='pendiente',
+        db_column='estado'
+    )
+    
+    fecha_solicitud = models.DateTimeField(
+        auto_now_add=True,
+        db_column='fecha_solicitud'
+    )
+
+    class Meta:
+        db_table = 'solicitudes_autorizacion'
+        ordering = ['-fecha_solicitud']
+        verbose_name = "Solicitud de Autorización"
+        verbose_name_plural = "Solicitudes de Autorización"
+        # Reemplazamos el constraint condicional por un índice compuesto
+        indexes = [
+            models.Index(fields=['bitacora', 'campo_id', 'solicitante', 'estado'],
+                        name='idx_solicitud_estado')
+        ]
+
+    def __str__(self):
+        return f"Solicitud #{self.id_solicitud} - {self.campo_nombre} ({self.estado})"
+
+    def save(self, *args, **kwargs):
+        """
+        Sobrescribimos el método save para implementar la lógica de unicidad
+        que no podemos hacer con constraints en MariaDB
+        """
+        if self.estado == 'pendiente':
+            # Verificar si ya existe una solicitud pendiente para la misma combinación
+            existing = SolicitudAutorizacion.objects.filter(
+                bitacora=self.bitacora,
+                campo_id=self.campo_id,
+                solicitante=self.solicitante,
+                estado='pendiente'
+            ).exclude(pk=self.pk).exists()
+            
+            if existing:
+                raise ValueError('Ya existe una solicitud pendiente para este campo')
+        
+        super().save(*args, **kwargs)
+

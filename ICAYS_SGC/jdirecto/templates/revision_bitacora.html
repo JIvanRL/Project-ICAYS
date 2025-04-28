@@ -1060,15 +1060,14 @@
             <div class="modal-footer justify-content-center">
                 <button type="button" id="quitarObservaciones" class="btn btn-danger me-1">Quitar observación</button>
                 <button type="button" id="guardarObservaciones" class="btn btn-primary ms-1">Guardar</button>
-                
             </div>
         </div>
     </div>
 </div>
 
-<!-- Modal de Observaciones General -->
+<!-- Modal de Observaciones General (con estilo Bootstrap) -->
 <div class="modal fade" id="observacionesModalGeneral" tabindex="-1" aria-labelledby="observacionesGeneralLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" style="max-width: 500px;"> <!-- Cambiado de modal-lg a personalizado -->
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title" id="observacionesGeneralLabel">
@@ -1082,6 +1081,62 @@
             </div>
             <div class="modal-footer justify-content-center">
                 <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="modalRevision" tabindex="-1" aria-labelledby="revisionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="revisionModalLabel">
+                    <i class="bi bi-check-circle me-2"></i>
+                    Revisión de Campo
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-4">
+                    <h6 class="text-primary mb-3">Campo Seleccionado:</h6>
+                    <div class="p-3 bg-light rounded-3 border border-primary">
+                        <span id="campoRevisionNombre" class="fw-bold fs-5"></span>
+                    </div>
+                </div>
+                
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="card h-100 border-danger">
+                            <div class="card-header bg-danger text-white">
+                                <i class="bi bi-exclamation-circle me-1"></i>
+                                Valor Original
+                            </div>
+                            <div class="card-body">
+                                <span id="valorOriginal" class="d-block text-center fs-5"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card h-100 border-success">
+                            <div class="card-header bg-success text-white">
+                                <i class="bi bi-pencil-square me-1"></i>
+                                Valor Actual
+                            </div>
+                            <div class="card-body">
+                                <span id="valorActual" class="d-block text-center fs-5"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-success btn-lg px-4" id="btnAceptarCambio">
+                    <i class="bi bi-check-lg me-1"></i>
+                    Aceptar Cambio
+                </button>
+                <button type="button" class="btn btn-danger btn-lg px-4" id="btnRechazarCambio">
+                    <i class="bi bi-x-lg me-1"></i>
+                    Rechazar
+                </button>
             </div>
         </div>
     </div>

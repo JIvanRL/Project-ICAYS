@@ -46,8 +46,9 @@ urlpatterns = [
     path('api/push/public-key/', push_views.get_public_key, name='get_public_key'),
     path('api/push/subscribe/', push_views.subscribe, name='push_subscribe'),
     path('api/push/unsubscribe/', push_views.unsubscribe, name='push_unsubscribe'),
-   # Agregar la URL faltante para guardar_campos_corregidos
     path('guardar_campos_corregidos/', views.guardar_campos_corregidos, name='guardar_campos_corregidos'),
+    # Endpoints para autorizaciones
+    path('api/solicitar-autorizacion/', views.solicitar_autorizacion_api, name='solicitar_autorizacion_api'),
     
 ]
 

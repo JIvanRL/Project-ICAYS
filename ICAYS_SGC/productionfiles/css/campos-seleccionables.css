@@ -1,0 +1,156 @@
+/* Estilos para campos seleccionables */
+.campo-seleccionable {
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+/* Overlay para capturar clics en campos deshabilitados */
+.campo-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    z-index: 100;
+    background-color: transparent;
+}
+
+.campo-overlay:hover {
+    background-color: rgba(0, 123, 255, 0.1);
+}
+
+.campo-seleccionado {
+    border: 2px solid #007bff !important;
+    box-shadow: 0 0 8px rgba(0, 123, 255, 0.7) !important;
+}
+
+/* Estilo para campos con observaciones */
+.tiene-observacion {
+    background-color: #e47373 !important;
+    border-color: #f26b6b !important;
+    position: relative;
+}
+
+.tiene-observacion::after {
+    content: "!";
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background-color: #fb6767;
+    color: #000;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 14px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+    z-index: 101; /* Mayor que el overlay */
+}
+
+/* Estilo para el botón de retroalimentación cuando hay observaciones */
+.retroAlim.tiene-observaciones {
+    background-color: #ffc107;
+    color: #000;
+    position: relative;
+}
+
+.retroAlim.tiene-observaciones::after {
+    content: "";
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: #dc3545;
+    border: 2px solid #fff;
+}
+
+/* Mensaje flotante para notificaciones */
+.mensaje-flotante {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #28a745;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    z-index: 10000;
+    opacity: 1;
+    transition: opacity 0.5s ease;
+    max-width: 300px;
+}
+
+.mensaje-flotante.desaparecer {
+    opacity: 0;
+}
+
+
+
+#observacionesText {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-family: Arial, sans-serif;
+    margin-bottom: 15px;
+    min-height: 200px;
+    resize: vertical;
+    
+}
+
+#guardarObservaciones {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s;
+    display: block;
+    margin: 0 auto;
+    text-align: center; /* Cambiado de 'right' a 'center' para centrar los botones */
+}
+
+#guardarObservaciones:hover {
+    background-color: #0069d9;
+    text-align: center; /* Cambiado de 'right' a 'center' para centrar los botones */
+}
+#quitarObservaciones {
+    background-color: #ff0000;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s;
+    display: block;
+    margin: 0 auto;
+    text-align: center; /* Cambiado de 'right' a 'center' para centrar los botones */
+}
+
+#quitarObservaciones:hover {
+    background-color: #d90000;
+    text-align: center; /* Cambiado de 'right' a 'center' para centrar los botones */
+}
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+}

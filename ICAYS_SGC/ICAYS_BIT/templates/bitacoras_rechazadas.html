@@ -256,7 +256,7 @@
                             <div class="col-md-8 mb-3">
                                 <div class="card h-100 shadow-sm"> <!-- Añadí sombra y altura fija -->
                                     <div class="card-body">
-                                        <!-- Título "Reactivos y medios de cultivo LAF-62" -->
+                                        <!-- Título "Reactivos y medios de cultivo LAF-02" -->
                                         <div class="row mb-3">
                                             <div class="col-12 text-center">
                                                 <h5 class="card-title">Reactivos y medios de cultivo LAF-62</h5> <!-- Usé h5 para el título -->
@@ -1042,7 +1042,29 @@
     </div>
 </div>
 
-<!-- Modal para observaciones generales -->
+<!-- Modal (ventana emergente) para observaciones generales -->
+<div id="observacionesModalGeneral" class="modalOB">
+    <div class="modal-contentOB align-items-center">
+        <span class="close">&times;</span>
+        <h2 class="text-center" id="observacionesTitulo">Retroalimentación General</h2>
+        
+        <!-- Sección para mostrar el comentario/observación general -->
+        <div id="comentarioObservacionGeneral" class="mb-3 text-start w-100">
+            <strong>Comentario:</strong> <span id="textoObservacionGeneral">-</span>
+        </div>
+        
+        
+        <!-- Textarea para mostrar el valor actual -->
+        <!-- Textarea para las observaciones generales o resumen -->
+        <textarea id="observacionesTextGeneral" class="form-control mb-3" rows="10" 
+                  placeholder="Escriba una observación general o vea el resumen de todas las observaciones..."></textarea>
+        
+        <!-- Botón para guardar observaciones -->
+        <button id="guardarObservacionesGeneral" class="btn btn-primary">Guardar observación</button>
+    </div>
+</div>
+
+<!-- Modal para observaciones generales (con estilo Bootstrap) -->
 <div class="modal fade" id="observacionesModalGeneral" tabindex="-1" aria-labelledby="observacionesGeneralLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
@@ -1055,14 +1077,18 @@
             </div>
             <div class="modal-body">
                 <!-- Sección para mostrar el comentario/observación general -->
-                <div class="mb-3">                    
-                    <label for="observacionesTextGeneral" class="form-label"><strong>Comentarios:</strong></label>
-                    <textarea id="observacionesTextGeneral" class="form-control" rows="10" 
-                            placeholder="Escriba una observación general o vea el resumen de todas las observaciones..."></textarea>
+                <div id="comentarioObservacionGeneral" class="mb-3">
+                    <label for="observacionesTextGeneral" class="form-label"><strong>Comentarios y observaciones:</strong></label>
+                    <!-- Sección para mostrar el comentario/observación general -->
+        <div id="comentarioObservacionGeneral" class="mb-3 text-start w-100">
+            <strong>Comentario:</strong> <span id="textoObservacionGeneral">-</span>
+        </div>
+                     <!-- Textarea para las observaciones generales o resumen -->
+        <textarea id="observacionesTextGeneral" class="form-control mb-3" rows="10" 
+        placeholder="Escriba una observación general o vea el resumen de todas las observaciones..."></textarea>
                 </div>
             </div>
-            <div class="modal-footer justify-content-center">
-                <button id="guardarObservacionesGeneral" class="btn btn-primary">Guardar observación</button>
+            <div class="modal-footern justify-content-center">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
             </div>
         </div>

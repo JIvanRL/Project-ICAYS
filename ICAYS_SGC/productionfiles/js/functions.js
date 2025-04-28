@@ -41,6 +41,27 @@ function DetallesBitaRevision(bitacoraId) {
         alert('Error al acceder a la bitácora');
     }
 }
+function DetallesBitaRechazadas(bitacoraId) {
+    if (!bitacoraId) {
+        // Intentar obtener el ID desde el campo oculto si no se proporcionó como parámetro
+        const bitacoraIdElement = document.getElementById('bitacora_id');
+        if (bitacoraIdElement) {
+            bitacoraId = bitacoraIdElement.value;
+        }
+        
+        if (!bitacoraId) {
+            alert('No se proporcionó ID de bitácora');
+            return;
+        }
+    }
+
+    try {
+        window.location.href = `/microbiologia/detallesBitaRechazada/${bitacoraId}/`;
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error al acceder a la bitácora');
+    }
+}
 function DetallesBitaAutorizadas(bitacoraId) {
     if (!bitacoraId) {
         // Intentar obtener el ID desde el campo oculto si no se proporcionó como parámetro
@@ -318,6 +339,41 @@ function actualizarContadores() {
             }
         }
     });
+     // Contar bitácoras guardadas para el usuario actual
+     $.ajax({
+        url: `/microbiologia/contar-bitacoras/rechazada/${usuarioId}/`,
+        type: 'GET',
+        dataType: 'json',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        success: function(data) {
+            console.log('Respuesta guardadas para usuario actual:', data);
+            if (data.cantidad !== undefined) {
+                const contadorElement = document.getElementById('contador-rechazadas');
+                if (contadorElement) {
+                    contadorElement.textContent = data.cantidad;
+                } else {
+                    console.error('Elemento contador-guardadas no encontrado');
+                }
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error al contar guardadas:', {
+                status: status,
+                error: error,
+                response: xhr.responseText
+            });
+            // Intentar parsear la respuesta JSON
+            try {
+                const errorData = JSON.parse(xhr.responseText);
+                console.error('Mensaje de error del servidor:', errorData);
+            } catch (e) {
+                console.error('No se pudo parsear la respuesta del servidor');
+            }
+        }
+    });
 }
 // Función para obtener el token CSRF
 function getCookie(name) {
@@ -411,6 +467,12 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
         console.log('Campo de página (pagina_cbap) no encontrado en el DOM');
     }
+
+    // Función para calcular la diferencia absoluta
+    setupDiferenciaAbsoluta();
+    
+    // Configurar los listeners para las fórmulas de ejemplo
+    setupFormulasEjemplo();
 });
 
 // Mantener el intervalo fuera del DOMContentLoaded
@@ -489,7 +551,7 @@ function actualizarResultado() {
     }
 
     if (num2 === 0) {
-        resultElement.textContent = "No se puede dividir por cero.";
+        resultElement.textContent = "0";
         return;
     }
 
@@ -500,6 +562,7 @@ function actualizarResultado() {
 // Detecta cambios en los campos de entrada
 document.getElementById('num1').addEventListener('input', actualizarResultado);
 document.getElementById('num2').addEventListener('input', actualizarResultado);
+document.getElementById('result').addEventListener('input', actualizarResultado);
 
 function ejemplSuperficies() {
     const num3 = parseFloat(document.getElementById('num3').value);
@@ -512,11 +575,11 @@ function ejemplSuperficies() {
     }
 
     if (num4 === 0) {
-        resultElement.textContent = "No se puede dividir por cero.";
+        resultElement.textContent = "0";
         return;
     }
     if(num5 === 0){
-        resultElement.textContent = "No se puede multiplicar por cero.";
+        resultElement.textContent = "0";
         return;
     }
 
@@ -580,28 +643,106 @@ document.getElementById('num6').addEventListener('input', ejemplDiferencia);
 document.getElementById('num7').addEventListener('input', ejemplDiferencia);
 document.getElementById('num8').addEventListener('input', ejemplDiferencia);
 
-document.addEventListener("DOMContentLoaded", function () {
-        const inputNumero1 = document.getElementById("valorObtenido");
-        const inputNumero2 = document.getElementById("valorConvencional");
-        const resultado = document.getElementById("diferenciaAbsoluta");
+// Función para configurar el cálculo de diferencia absoluta
+function setupDiferenciaAbsoluta() {
+    const inputNumero1 = document.getElementById("valorObtenido");
+    const inputNumero2 = document.getElementById("valorConvencional");
+    const resultado = document.getElementById("diferenciaAbsoluta");
+
+    // Si los elementos no existen en esta página, salir de la función
+    if (!inputNumero1 || !inputNumero2 || !resultado) return;
+
+    function calcularResta() {
+        const valor1 = parseFloat(inputNumero1.value) || 0;
+        const valor2 = parseFloat(inputNumero2.value) || 0;
+
+        const resta = valor1 - valor2;
+        const resultadoRedondeado = Math.round(resta * 10) / 10; // Redondea a un decimal
+
+        if (isNaN(resultadoRedondeado)) {
+            resultado.value = "0";
+        } else if (!isFinite(resultadoRedondeado)) {
+            resultado.value = "0";
+        } else {
+            resultado.value = resultadoRedondeado.toFixed(1);
+        }
+    }
+
+    inputNumero1.addEventListener("input", calcularResta);
+    inputNumero2.addEventListener("input", calcularResta);
     
-        function calcularResta() {
-            const valor1 = parseFloat(inputNumero1.value) || 0;
-            const valor2 = parseFloat(inputNumero2.value) || 0;
+    // Calcular el valor inicial
+    calcularResta();
+}
+
+// Función para configurar los ejemplos de fórmulas
+function setupFormulasEjemplo() {
+    // Configurar los listeners para la primera fórmula
+    setupFormulaListeners('num1', 'num2', null, 'result', 'resultdo_ejemplo_1', 'division');
     
-            const resta = valor1 - valor2;
-            const resultadoRedondeado = Math.round(resta * 10) / 10; // Redondea a un decimal
+    // Configurar los listeners para la segunda fórmula
+    setupFormulaListeners('num3', 'num4', 'num5', 'result2', 'resultdo_ejemplo_2', 'superficie');
     
-            if (isNaN(resultadoRedondeado)) {
-                resultado.value = "0";
-            } else if (!isFinite(resultadoRedondeado)) {
-                resultado.value = "0";
-            } else {
-                resultado.value = resultadoRedondeado.toFixed(1);
-            }
+    // Configurar los listeners para la tercera fórmula
+    setupFormulaListeners('num6', 'num7', 'num8', 'result3', 'resultdo_ejemplo_3', 'diferencia');
     
-        }
+    // Configurar el evento de envío del formulario
+    const form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function(event) {
+            // Actualizar todos los inputs ocultos antes de enviar el formulario
+            updateHiddenInput('result', 'resultdo_ejemplo_1');
+            updateHiddenInput('result2', 'resultdo_ejemplo_2');
+            updateHiddenInput('result3', 'resultdo_ejemplo_3');
+        });
+    }
+}
+
+// Función para configurar los listeners de una fórmula
+function setupFormulaListeners(input1Id, input2Id, input3Id, labelId, hiddenInputId, formulaType) {
+    const input1 = document.getElementById(input1Id);
+    const input2 = document.getElementById(input2Id);
+    const input3 = input3Id ? document.getElementById(input3Id) : null;
     
-        inputNumero1.addEventListener("input", calcularResta);
-        inputNumero2.addEventListener("input", calcularResta);
+    if (!input1 || !input2) return;
+    
+    const inputs = [input1, input2];
+    if (input3) inputs.push(input3);
+    
+    // Añadir listeners a los inputs
+    inputs.forEach(input => {
+        input.addEventListener('input', function() {
+            // Actualizar el input oculto cuando cambia el valor del label
+            setTimeout(() => {
+                updateHiddenInput(labelId, hiddenInputId);
+            }, 100); // Pequeño retraso para asegurar que el label se ha actualizado
+        });
     });
+    
+    // Actualizar el input oculto al cargar la página
+    setTimeout(() => {
+        updateHiddenInput(labelId, hiddenInputId);
+    }, 500); // Retraso mayor para asegurar que todos los cálculos iniciales se han completado
+}
+
+// Función para actualizar un input oculto con el valor del label
+function updateHiddenInput(labelId, hiddenInputId) {
+    const label = document.getElementById(labelId);
+    const hiddenInput = document.getElementById(hiddenInputId);
+    
+    if (!label || !hiddenInput) return;
+    
+    // Obtener el texto del label y limpiarlo
+    let value = label.textContent.trim();
+    
+    // Si el valor es "R" (valor inicial), establecer como vacío
+    if (value === 'R') {
+        hiddenInput.value = '';
+        return;
+    }
+    
+    // Guardar el valor en el input oculto
+    hiddenInput.value = value;
+    
+    console.log(`Actualizado ${hiddenInputId} con valor: ${value}`);
+}

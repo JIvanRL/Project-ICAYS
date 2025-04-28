@@ -63,11 +63,42 @@ class NotificationConsumer(AsyncWebsocketConsumer):
     
     # Receive message from notification group
     async def notification_message(self, event):
-        # Imprimir el evento para depuración
-        print(f"[WebSocket] Enviando notificación al cliente {self.user_id}: {event}")
+        """Maneja los mensajes recibidos del grupo de notificaciones"""
+        print(f"[WebSocket] Recibiendo mensaje del grupo: {event}")
+        message_type = event.get('type', '')
         
-        # Send message to WebSocket
-        await self.send(text_data=json.dumps(event))
+        if message_type == 'send_notification':
+            await self.send_notification(event)
+        else:
+            # Para otros tipos de mensajes, enviar directamente
+            await self.send(text_data=json.dumps(event))
+    
+    async def send_notification(self, event):
+        """
+        Maneja específicamente el envío de notificaciones al cliente
+        """
+        try:
+            notification_data = {
+                'type': 'notification',
+                'notification': {
+                    'id': event.get('notification_id'),
+                    'message': event.get('message'),
+                    'created_at': event.get('created_at'),
+                    'url': event.get('url', None),
+                    'extra_data': event.get('extra_data', {})
+                }
+            }
+            
+            print(f"[WebSocket] Enviando notificación: {notification_data}")
+            await self.send(text_data=json.dumps(notification_data))
+            
+        except Exception as e:
+            print(f"[WebSocket] Error al enviar notificación: {str(e)}")
+            # Enviar mensaje de error al cliente
+            await self.send(text_data=json.dumps({
+                'type': 'error',
+                'message': 'Error al procesar la notificación'
+            }))
     
     @database_sync_to_async
     def mark_notification_as_read(self, notification_id):
