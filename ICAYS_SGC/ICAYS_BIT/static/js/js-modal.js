@@ -59,47 +59,6 @@ function limpiarUI() {
     });
 }
 
-// Funciones para manejar los modales con jQuery
-function getModalFirma() {
-    if (!modalFirmaInstance) {
-        modalFirmaInstance = $('#firmar');
-        
-        // Configurar el modal con opciones
-        modalFirmaInstance.modal({
-            backdrop: 'static',
-            keyboard: false,
-            show: false
-        });
-        
-        // Añadir manejador de eventos
-        modalFirmaInstance.on('hidden.bs.modal', function() {
-            $('#error-message').text('').hide();
-            setTimeout(limpiarUI, 100);
-        });
-    }
-    return modalFirmaInstance;
-}
-
-function getModalExito() {
-    if (!modalExitoInstance) {
-        modalExitoInstance = $('#mensajeExito');
-        
-        // Configurar el modal con opciones
-        modalExitoInstance.modal({
-            backdrop: 'static',
-            keyboard: false,
-            show: false
-        });
-        
-        // Añadir manejador de eventos
-        modalExitoInstance.on('hidden.bs.modal', function() {
-            setTimeout(function() {
-                location.reload();
-            }, 100);
-        });
-    }
-    return modalExitoInstance;
-}
 
 function getModalGuardarExito() {
     if (!modalGuardarExitoInstance) {
