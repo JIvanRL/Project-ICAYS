@@ -51,6 +51,7 @@ urlpatterns = [
     path('guardar_campos_corregidos/', views.guardar_campos_corregidos, name='guardar_campos_corregidos'),
     # Endpoints para autorizaciones
     path('api/solicitar-autorizacion/', views.solicitar_autorizacion_api, name='solicitar_autorizacion_api'),
-    
+    path('api/verificar-autorizacion/', views.verificar_solicitud_existente, name='verificar_autorizacion'),
+    path('obtener-autorizaciones/<int:bitacora_id>/', views.obtener_autorizaciones, name='obtener_autorizaciones'),
 ]
 

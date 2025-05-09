@@ -1,0 +1,33 @@
+/* Estilos base para modales */
+.modal-default .modal-header { background-color: #f8f9fa; }
+.modal-warning .modal-header { background-color: #fff3cd; }
+.modal-danger .modal-header { background-color: #f8d7da; }
+.modal-success .modal-header { background-color: #d4edda; }
+
+/* Estilos base para popovers */
+.custom-popover {
+    max-width: 276px;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Estilos base para toasts */
+.toast {
+    position: fixed;
+    z-index: 1050;
+}
+
+.toast-top-right {
+    top: 1rem;
+    right: 1rem;
+}
+
+.toast-top-left {
+    top: 1rem;
+    left: 1rem;
+}
+
+.toast-success { background-color: #d4edda; }
+.toast-warning { background-color: #fff3cd; }
+.toast-danger { background-color: #f8d7da; }
+.toast-info { background-color: #cce5ff; }

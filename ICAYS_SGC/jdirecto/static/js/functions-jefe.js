@@ -291,57 +291,26 @@ function enviarFormularioRechazado() {
     const bitacoraId = bitacoraEstado ? bitacoraEstado.value : null;
     
     if (!bitacoraId) {
-        console.error('No se pudo obtener el ID de la bitacora actual');
+        console.error('No se pudo obtener el ID de la bitácora actual');
         $('#error-message').text('Error: No se pudo obtener el ID de la bitácora').show();
         return false;
     }
-    console.log('ID de la bitacora actual:', bitacoraId);
-    
-    // Validar que se haya seleccionado un usuario destino
-    const usuarioDestino = $('#usuario_destino').val();
-    const accion = 'rechazar';
-    
-    // Validar que se haya seleccionado un usuario destino
-    if (!usuarioDestino) {
-        $('#error-message').text('Debe seleccionar un usuario destino').show();
-        return false;
-    }
-    
-    // Obtener todos los datos del formulario principal
-    const formPrincipal = document.getElementById('form-principal');
-    if (!formPrincipal) {
-        console.error('No se encontró el formulario principal');
-        $('#error-message').text('Error: No se encontró el formulario principal').show();
-        return false;
-    }
-    
-    // Crear FormData con todos los datos del formulario
-    const formData = new FormData(formPrincipal);
-    
-    // Agregar datos adicionales necesarios para el envío
-    formData.append('accion', accion);
-    formData.append('usuario_destino', usuarioDestino);
+
+    console.log('Debug - ID de bitácora:', bitacoraId);
+
+    // Crear FormData con los datos necesarios
+    const formData = new FormData(document.getElementById('form-principal'));
+    formData.append('accion', 'rechazar');
     
     // Obtener observaciones (si existen)
     const observaciones = $('#observaciones').val();
     if (observaciones) {
         formData.append('observaciones', observaciones);
     }
-    
-    // Obtener el estado actual si está disponible
-    const estadoActual = document.getElementById('estado_actual');
-    if (estadoActual && estadoActual.value) {
-        formData.append('estado_actual', estadoActual.value);
-    }
-    
-    // Debug: Mostrar todos los datos que se van a enviar
-    console.log('Enviando formulario con los siguientes datos:');
-    for (let [key, value] of formData.entries()) {
-        console.log(`${key}: ${value}`);
-    }
-    
+
+    // Hacer la petición AJAX a la ruta correcta del jefe directo
     $.ajax({
-        url: `/jdirecto/cambia_estado_bitacora/${bitacoraId}/`,
+        url: `/jdirecto/cambia_estado_bitacora/${bitacoraId}/`,  // URL corregida para usar la ruta del jefe
         type: 'POST',
         data: formData,
         processData: false,
@@ -356,14 +325,14 @@ function enviarFormularioRechazado() {
                 // Cerrar el modal de rechazo
                 $('#Rechazar').modal('hide');
                 
-                // Actualizar los contadores inmediatamente después de cambiar el estado
+                // Actualizar contadores
                 actualizarContadoresJefe();
                 
                 // Mostrar mensaje de éxito
                 $('#mensajeExitoTextoRechazada').text(response.message || 'Bitácora rechazada correctamente');
                 $('#rechazada').modal('show');
                 
-                // Redireccionar después de mostrar el mensaje
+                // Redirección después del mensaje
                 $('#rechazada').on('hidden.bs.modal', function () {
                     window.location.href = response.redirect_url || '/jdirecto/pendientes/';
                 });
@@ -373,24 +342,22 @@ function enviarFormularioRechazado() {
             }
         },
         error: function(xhr, status, error) {
-            console.error('Error al procesar:', {
+            console.error('Error en la petición:', {
                 status: xhr.status,
                 statusText: xhr.statusText,
                 responseText: xhr.responseText
             });
             
-            // Intentar extraer mensaje de error más detallado
+            // Mejorar el manejo de errores para mostrar mensajes más específicos
             let errorMsg = 'Error al procesar la bitácora';
             try {
                 const errorResponse = JSON.parse(xhr.responseText);
-                if (errorResponse.error) {
-                    errorMsg = errorResponse.error;
-                } else if (errorResponse.message) {
-                    errorMsg = errorResponse.message;
-                }
+                errorMsg = errorResponse.error || errorResponse.message || error;
             } catch (e) {
                 console.log('No se pudo parsear la respuesta de error');
-                errorMsg += ': ' + error;
+                if (xhr.status === 403) {
+                    errorMsg = 'No tienes permiso para realizar esta acción';
+                }
             }
             
             $('#error-message').text(errorMsg).show();

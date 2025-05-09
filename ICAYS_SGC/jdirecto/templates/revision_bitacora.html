@@ -11,7 +11,12 @@
             {% csrf_token %}
             <input type="hidden" id="usuario_id_actual" value="{{ request.user.id_user }}"> <!-- ID del usuario actual -->
             <input type="hidden" id="bitacora_id" value="{{ bitacora.id_cbap }}"> <!-- ID de la bitácora actual -->
+            <input type="hidden" id="usuario_origen" name="usuario_origen" 
+                   value="{{ bitacora.usuario_origen.id_user }}" 
+                   data-nombre="{{ bitacora.usuario_origen.nombre }}" 
+                   data-usuario="{{ bitacora.usuario_origen.username }}">
             <div class="d-flex flex-wrap justify-content-between align-items-center">
+
                 
                 <!-- Botón "Regresar" alineado a la izquierda -->
                 <button class="icon-container button-style custom-button mb-2" type="button" data-url="{% url 'jdirecto:lista_bitacoras_pendientes' %}">Regresar</button>

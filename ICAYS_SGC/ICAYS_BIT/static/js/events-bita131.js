@@ -176,6 +176,24 @@ document.addEventListener('DOMContentLoaded', function () {
     // Hacer que los campos de promedio sean no editables al cargar la página
     setPromedioFieldsReadOnly();
 
+    // Añadir esta nueva función
+    function aplicarFormatoVisualDiferencias() {
+        document.querySelectorAll('[name^="diferencia_r_"]').forEach(input => {
+            // Extraer el valor numérico (eliminar % y símbolos)
+            const valor = input.value;
+            const diferencia = parseFloat(valor.replace(/[%✓✗\s]/g, ''));
+            
+            if (!isNaN(diferencia)) {
+                const esAceptable = diferencia < 5;
+                input.value = diferencia.toFixed(2) + "%" + (esAceptable ? " ✓" : " ✗");
+                input.style.color = esAceptable ? "green" : "red";
+            }
+        });
+    }
+
+    // Llamar a la función al cargar la página
+    aplicarFormatoVisualDiferencias();
+
     // Agregar una nueva fila
     addRowBtn.addEventListener('click', function () {
         const rowIndex = tableBody.getElementsByTagName('tr').length; // Índice de la nueva fila
@@ -1245,5 +1263,183 @@ export function recolectarDatosTabla() {
         num_filas: filas.length
     };
 }
+
+// Función para validar diferencias entre duplicados
+export function validarDiferenciasEntreDuplicados() {
+    const filas = document.querySelectorAll('#tabla-body tr');
+    let diferenciasFueraDeRango = [];
+
+    filas.forEach((fila, index) => {
+        const diferenciaInput = fila.querySelector('[name^="diferencia_r_"]');
+        if (diferenciaInput && diferenciaInput.value) {
+            const diferencia = parseFloat(diferenciaInput.value.replace(/[%✓✗\s]/g, ''));
+            
+            if (diferencia > 5) {
+                const claveMuestra = fila.querySelector('[name^="clave_c_m_"]')?.value || `Fila ${index + 1}`;
+                diferenciasFueraDeRango.push({
+                    clave: claveMuestra,
+                    diferencia: diferencia.toFixed(2)
+                });
+            }
+        }
+    });
+
+    if (diferenciasFueraDeRango.length > 0) {
+        // Crear el modal dinámicamente
+        const modalHTML = `
+            <div class="modal fade" id="diferenciasModal" tabindex="-1" aria-labelledby="diferenciasModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header bg-danger text-white">
+                            <h5 class="modal-title" id="diferenciasModalLabel">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                Diferencias fuera de rango
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p>Las siguientes muestras tienen diferencias entre duplicados fuera del rango permitido (>5%):</p>
+                            <ul class="list-group">
+                                ${diferenciasFueraDeRango.map(item => `
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        Muestra: ${item.clave}
+                                        <span class="badge bg-danger rounded-pill">${item.diferencia}%</span>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                            <div class="alert alert-warning mt-3">
+                                <i class="bi bi-info-circle-fill me-2"></i>
+                                No se puede enviar la bitácora hasta que se corrijan estas diferencias.
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Remover modal anterior si existe
+        const modalAnterior = document.getElementById('diferenciasModal');
+        if (modalAnterior) {
+            modalAnterior.remove();
+        }
+
+        // Agregar el nuevo modal al documento
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+        // Mostrar el modal
+        const modal = new bootstrap.Modal(document.getElementById('diferenciasModal'));
+        modal.show();
+
+        return true; // Hay diferencias fuera de rango
+    }
+
+    return false; // No hay diferencias fuera de rango
+}
+
+// En events-bita131.js
+// Función para desbloquear filas con campos autorizados
+export function desbloquearFilasAutorizadas() {
+    const filas = document.querySelectorAll('#tabla-body tr');
+    let filasDesbloqueadas = [];
+
+    // Recorrer todas las filas
+    filas.forEach((fila, index) => {
+        let filaAutorizada = false;
+        
+        // Recorrer todos los campos posibles en esta fila
+        campos.forEach(campo => {
+            // Construir el nombre del campo con el índice de la fila
+            const nombreCampo = `${campo}_${index}`;
+            
+            // Verificar si este campo tiene autorización aprobada
+            if (estadosAutorizacion && estadosAutorizacion[nombreCampo] === 'aprobada') {
+                filaAutorizada = true;
+            }
+        });
+        
+        // Si la fila tiene al menos un campo autorizado, desbloquearla
+        if (filaAutorizada) {
+            // Desbloquear todos los campos de la fila
+            campos.forEach(campo => {
+                const nombreCampo = `${campo}_${index}`;
+                const campoElement = fila.querySelector(`[name="${nombreCampo}"]`);
+                
+                if (campoElement) {
+                    campoElement.disabled = false;
+                    campoElement.readOnly = false;
+                    campoElement.classList.remove('form-control-plaintext');
+                }
+            });
+            
+            // Aplicar estilos visuales
+            fila.classList.remove('fila-bloqueada');
+            fila.classList.add('fila-desbloqueada');
+            
+            // Obtener algún identificador de la fila para mostrar en el mensaje
+            const claveMuestra = fila.querySelector('[name^="clave_c_m_"]')?.value || `Fila ${index + 1}`;
+            filasDesbloqueadas.push(claveMuestra);
+        }
+    });
+
+    // Si se desbloquearon filas, mostrar un modal
+    if (filasDesbloqueadas.length > 0) {
+        // Crear el modal dinámicamente (similar a tu función validarDiferenciasEntreDuplicados)
+        const modalHTML = `
+            <div class="modal fade" id="filasDesbloqueadasModal" tabindex="-1" aria-labelledby="filasDesbloqueadasModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header bg-success text-white">
+                            <h5 class="modal-title" id="filasDesbloqueadasModalLabel">
+                                <i class="bi bi-unlock-fill me-2"></i>
+                                Filas desbloqueadas
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p>Las siguientes filas han sido desbloqueadas debido a autorizaciones aprobadas:</p>
+                            <ul class="list-group">
+                                ${filasDesbloqueadas.map(clave => `
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        ${clave}
+                                        <span class="badge bg-success rounded-pill">Desbloqueada</span>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                            <div class="alert alert-info mt-3">
+                                <i class="bi bi-info-circle-fill me-2"></i>
+                                Ahora puedes editar todos los campos en estas filas.
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Remover modal anterior si existe
+        const modalAnterior = document.getElementById('filasDesbloqueadasModal');
+        if (modalAnterior) {
+            modalAnterior.remove();
+        }
+
+        // Agregar el nuevo modal al documento
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+        // Mostrar el modal
+        const modal = new bootstrap.Modal(document.getElementById('filasDesbloqueadasModal'));
+        modal.show();
+
+        return true; // Se desbloquearon filas
+    }
+
+    return false; // No se desbloquearon filas
+}
+
 // Si necesitas que la función sea accesible globalmente
 window.recolectarDatosTabla = recolectarDatosTabla;
+

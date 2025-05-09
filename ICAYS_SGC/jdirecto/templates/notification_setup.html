@@ -1,27 +1,170 @@
-<!-- 
-Instrucciones para agregar un sonido de notificación:
+{% load static %}
 
-1. Crea una carpeta 'sounds' dentro de tu directorio static:
-   ICAYS_SGC\static\sounds\
+<!-- Contenedor de notificaciones -->
+<div id="notification-container" class="notification-container">
+    <!-- Las notificaciones se agregarán aquí dinámicamente -->
+</div>
 
-2. Descarga un archivo de sonido de notificación (formato MP3) y guárdalo como:
-   ICAYS_SGC\static\sounds\notification.mp3
+<!-- Estilos para las notificaciones -->
+<style>
+    .notification-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+    }
 
-3. Asegúrate de que la ruta en la función playNotificationSound() 
-   coincida con la ubicación real del archivo:
-   
-   function playNotificationSound() {
-       try {
-           const audio = new Audio('/static/sounds/notification.mp3');
-           audio.play();
-       } catch (e) {
-           console.error('Error al reproducir sonido de notificación:', e);
-       }
-   }
+    .notification {
+        background: white;
+        border-left: 4px solid #4CAF50;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        border-radius: 4px;
+        padding: 16px;
+        margin-bottom: 10px;
+        min-width: 300px;
+        max-width: 450px;
+        display: flex;
+        align-items: start;
+        animation: slideIn 0.5s ease-in-out;
+    }
 
-4. Si tu estructura de carpetas es diferente, ajusta la ruta en consecuencia.
+    .notification.success { border-left-color: #4CAF50; }
+    .notification.warning { border-left-color: #FFC107; }
+    .notification.error { border-left-color: #F44336; }
 
-Nota: Puedes encontrar sonidos de notificación gratuitos en sitios como:
-- https://mixkit.co/free-sound-effects/notification/
-- https://notificationsounds.com/
--->
+    .notification-content {
+        flex-grow: 1;
+        margin-right: 10px;
+    }
+
+    .notification-title {
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .notification-message {
+        color: #666;
+        font-size: 0.9em;
+    }
+
+    .notification-close {
+        background: none;
+        border: none;
+        color: #999;
+        cursor: pointer;
+        font-size: 1.2em;
+        padding: 0;
+    }
+
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+</style>
+
+<!-- Script para manejar las notificaciones -->
+<script>
+    class NotificationManager {
+        constructor() {
+            this.container = document.getElementById('notification-container');
+            this.setupWebSocket();
+        }
+
+        setupWebSocket() {
+            const userId = document.getElementById('usuario_id_actual').value;
+            const wsScheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
+            const wsUrl = `${wsScheme}://${window.location.host}/ws/notifications/${userId}/`;
+            
+            this.ws = new WebSocket(wsUrl);
+            
+            this.ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                if (data.type === 'notification') {
+                    this.showNotification(data.notification);
+                }
+            };
+
+            this.ws.onclose = () => {
+                console.log('WebSocket desconectado. Reintentando en 5 segundos...');
+                setTimeout(() => this.setupWebSocket(), 5000);
+            };
+        }
+
+        showNotification(notification) {
+            const notificationEl = document.createElement('div');
+            notificationEl.className = `notification ${notification.type || 'success'}`;
+            notificationEl.innerHTML = `
+                <div class="notification-content">
+                    <div class="notification-title">${notification.title || 'Notificación'}</div>
+                    <div class="notification-message">${notification.message}</div>
+                </div>
+                <button class="notification-close">&times;</button>
+            `;
+
+            // Agregar la notificación al contenedor
+            this.container.appendChild(notificationEl);
+
+            // Reproducir sonido
+            this.playNotificationSound();
+
+            // Configurar el botón de cerrar
+            const closeBtn = notificationEl.querySelector('.notification-close');
+            closeBtn.onclick = () => {
+                notificationEl.remove();
+                if (notification.id) {
+                    this.markAsRead(notification.id);
+                }
+            };
+
+            // Auto-cerrar después de 5 segundos
+            setTimeout(() => {
+                if (notificationEl.parentElement) {
+                    notificationEl.remove();
+                }
+            }, 5000);
+        }
+
+        playNotificationSound() {
+            try {
+                const audio = new Audio('/static/sounds/notification.mp3');
+                audio.play();
+            } catch (e) {
+                console.error('Error al reproducir sonido:', e);
+            }
+        }
+
+        markAsRead(notificationId) {
+            fetch('/api/notifications/mark-read/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    notification_id: notificationId
+                })
+            });
+        }
+    }
+
+    // Inicializar el manejador de notificaciones
+    document.addEventListener('DOMContentLoaded', () => {
+        window.notificationManager = new NotificationManager();
+    });
+
+    // Función auxiliar para obtener cookies
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>

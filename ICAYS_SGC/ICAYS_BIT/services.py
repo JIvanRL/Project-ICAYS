@@ -1,108 +1,90 @@
-# ICAYS_SGC/ICAYS_BIT/services.py
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 import json
 from django.db import transaction
-from .models import Notification
+from django.core.exceptions import ObjectDoesNotExist
+from .models import Notification, PushSubscription
 from pywebpush import webpush, WebPushException
 from django.conf import settings
+import logging
+
+logger = logging.getLogger(__name__)
+
 class NotificationService:
+    NOTIFICATION_TYPES = {
+        'BITACORA': 'bitacora',
+        'REVISION': 'revision',
+        'AUTORIZACION': 'autorizacion',
+        'RECHAZO': 'rechazo',
+        'SISTEMA': 'sistema'
+    }
+
     @staticmethod
-    def create_notification(recipient, message, related_ejemplo=None, url=None):
+    def create_notification(recipient, message, notification_type='sistema', related_bitacora=None, related_ejemplo=None, url=None, priority=0):
         """
-        Crear una notificación y enviarla por todos los canales disponibles
-        
-        Args:
-            recipient: Usuario destinatario
-            message: Mensaje de la notificación
-            related_ejemplo: Objeto ejemplosFormulas relacionado (opcional)
-            url: URL a la que dirigir al hacer clic en la notificación (opcional)
+        Crear y enviar notificación mejorada
         """
-        with transaction.atomic():
-            # 1. Guardar la notificación en la base de datos
-            notification = Notification.objects.create(
-                recipient=recipient,
-                message=message,
-                related_ejemplo=related_ejemplo
-            )
-            
-            # 2. Preparar datos para la notificación
-            notification_data = {
-                'notification_id': notification.id_notification,
-                'message': notification.message,
-                'created_at': notification.created_at.isoformat(),
-                'is_read': notification.is_read
-            }
-            
-            if related_ejemplo:
-                notification_data['ejemplo_id'] = related_ejemplo.id_ejemplos
-                notification_data['clave_muestra_ejemplo'] = related_ejemplo.clave_muestra_ejemplo
-            
-            if url:
-                notification_data['url'] = url
-            
-            # 3. Intentar enviar por WebSocket (para usuarios activos)
-            websocket_sent = NotificationService.send_websocket_notification(notification, notification_data)
-            
-            # 4. Intentar enviar por Push Notification (para usuarios inactivos)
-            push_sent = NotificationService.send_push_notification(
-                recipient, 
-                "Nueva notificación ICAYS", 
-                message, 
-                url, 
-                notification_data
-            )
-            
-            # Imprimir información de depuración
-            print(f"Notificación creada: ID={notification.id_notification}, Mensaje={message}")
-            print(f"WebSocket enviado: {websocket_sent}")
-            print(f"Push enviado: {push_sent}")
-            
-            return {
-                'notification': notification,
-                'websocket_sent': websocket_sent,
-                'push_sent': push_sent
-            }
-    
+        try:
+            with transaction.atomic():
+                # Crear notificación
+                notification = Notification.objects.create(
+                    recipient=recipient,
+                    message=message,
+                    type=notification_type,
+                    related_bitacora=related_bitacora,
+                    related_ejemplo=related_ejemplo,
+                    url=url,
+                    priority=priority
+                )
+
+                # Preparar datos
+                notification_data = notification.get_notification_data()
+                
+                # Enviar por diferentes canales
+                results = {
+                    'websocket': NotificationService.send_websocket_notification(notification, notification_data),
+                    'push': NotificationService.send_push_notification(
+                        recipient=recipient,
+                        title=f"ICAYS - {notification_type.capitalize()}",
+                        body=message,
+                        url=url,
+                        data=notification_data
+                    )
+                }
+
+                logger.info(f"Notificación enviada: {notification.id_notification} - Resultados: {results}")
+                return notification, results
+
+        except Exception as e:
+            logger.error(f"Error al crear notificación: {str(e)}")
+            raise
+
     @staticmethod
-    def send_websocket_notification(notification, notification_data=None):
+    def send_websocket_notification(notification, data):
         """
-        Enviar una notificación por WebSocket
+        Enviar notificación por WebSocket con manejo de errores mejorado
         """
         try:
             channel_layer = get_channel_layer()
+            if not channel_layer:
+                raise ValueError("Channel layer no disponible")
+
+            group_name = f'notifications_{notification.recipient.id_user}'
             
-            if notification_data is None:
-                # Si no se proporcionan datos, construirlos desde la notificación
-                notification_data = {
-                    'type': 'notification_message',
-                    'notification_id': notification.id_notification,
-                    'message': notification.message,
-                    'created_at': notification.created_at.isoformat(),
-                    'is_read': notification.is_read
-                }
-                
-                if notification.related_ejemplo:
-                    notification_data['ejemplo_id'] = notification.related_ejemplo.id_ejemplos
-            else:
-                # Asegurarse de que tenga el tipo correcto
-                notification_data['type'] = 'notification_message'
-            
-            # Imprimir información de depuración
-            print(f"Enviando notificación por WebSocket: {notification_data}")
-            print(f"Grupo de notificación: notifications_{notification.recipient.id}")
-            
-            # Enviar notificación al grupo específico del usuario
             async_to_sync(channel_layer.group_send)(
-                f'notifications_{notification.recipient.id}',
-                notification_data
+                group_name,
+                {
+                    'type': 'notification.message',
+                    'notification': data,
+                    'timestamp': notification.created_at.isoformat()
+                }
             )
-            
             return True
+
         except Exception as e:
-            print(f"Error al enviar notificación por WebSocket: {str(e)}")
+            logger.error(f"Error WebSocket para notificación {notification.id_notification}: {str(e)}")
             return False
-    
+
     @staticmethod
     def send_push_notification(recipient, title, body, url=None, data=None):
         """
@@ -112,8 +94,8 @@ class NotificationService:
             # Importar la función aquí para evitar importaciones circulares
             from .push_views import send_push_notification as push_sender
             
-            print(f"Enviando notificación push: Título={title}, Mensaje={body}")
-            print(f"Destinatario: {recipient.username} (ID: {recipient.id})")
+            logger.info(f"Enviando notificación push: Título={title}, Mensaje={body}")
+            logger.info(f"Destinatario: {recipient.username} (ID: {recipient.id})")
             
             # Enviar la notificación push
             result = push_sender(
@@ -126,12 +108,12 @@ class NotificationService:
             )
             
             success = result.get('success', 0) > 0
-            print(f"Resultado push: {result}")
-            print(f"Push enviado exitosamente: {success}")
+            logger.info(f"Resultado push: {result}")
+            logger.info(f"Push enviado exitosamente: {success}")
             
             return success
         except Exception as e:
-            print(f"Error al enviar notificación push: {str(e)}")
+            logger.error(f"Error al enviar notificación push: {str(e)}")
             return False
     
     @staticmethod
@@ -143,10 +125,10 @@ class NotificationService:
             notification = Notification.objects.get(id_notification=notification_id, recipient=user)
             notification.is_read = True
             notification.save()
-            print(f"Notificación marcada como leída: ID={notification_id}, Usuario={user.username}")
+            logger.info(f"Notificación marcada como leída: ID={notification_id}, Usuario={user.username}")
             return True
         except Notification.DoesNotExist:
-            print(f"Error: Notificación no encontrada: ID={notification_id}, Usuario={user.username}")
+            logger.error(f"Error: Notificación no encontrada: ID={notification_id}, Usuario={user.username}")
             return False
     
     @staticmethod
@@ -155,64 +137,37 @@ class NotificationService:
         Marcar todas las notificaciones de un usuario como leídas
         """
         count = Notification.objects.filter(recipient=user, is_read=False).update(is_read=True)
-        print(f"Todas las notificaciones marcadas como leídas para {user.username}: {count} actualizadas")
+        logger.info(f"Todas las notificaciones marcadas como leídas para {user.username}: {count} actualizadas")
         return count
+
 class PushNotificationService:
     @staticmethod
-    def send_push_notification(user, title, message, url=None, icon=None):
+    def send_push_notification(subscription_info, payload, ttl=None):
         """
-        Enviar una notificación push a un usuario
+        Método mejorado para enviar notificaciones push
         """
-        from .models import PushSubscription
-        
-        # Obtener todas las suscripciones del usuario
-        subscriptions = PushSubscription.objects.filter(user=user)
-        
-        if not subscriptions:
-            return False
-        
-        # Preparar datos de la notificación
-        payload = {
-            'title': title,
-            'body': message,
-            'icon': icon or '/static/img/logo.png',
-            'badge': '/static/img/badge.png',
-            'requireInteraction': True
-        }
-        
-        if url:
-            payload['data'] = {'url': url}
-        
-        # Convertir a JSON
-        payload_json = json.dumps(payload)
-        
-        # Enviar notificación a todas las suscripciones del usuario
-        success_count = 0
-        for subscription in subscriptions:
-            try:
-                webpush(
-                    subscription_info={
-                        'endpoint': subscription.endpoint,
-                        'keys': {
-                            'p256dh': subscription.p256dh,
-                            'auth': subscription.auth
-                        }
-                    },
-                    data=payload_json,
-                    vapid_private_key=settings.VAPID_PRIVATE_KEY,
-                    vapid_claims={
-                        'sub': f'mailto:{settings.VAPID_ADMIN_EMAIL}'
-                    }
-                )
-                success_count += 1
-            except WebPushException as e:
-                print(f"Error al enviar notificación push: {e}")
-                # Si la suscripción ya no es válida, eliminarla
-                if e.response and e.response.status_code == 410:
-                    subscription.delete()
-        
-        return success_count > 0
-    
+        try:
+            response = webpush(
+                subscription_info=subscription_info,
+                data=json.dumps(payload),
+                vapid_private_key=settings.VAPID_PRIVATE_KEY,
+                vapid_claims={
+                    'sub': f'mailto:{settings.VAPID_ADMIN_EMAIL}',
+                    'exp': int(time.time()) + 12 * 60 * 60  # 12 horas
+                },
+                ttl=ttl or 24 * 60 * 60  # 24 horas por defecto
+            )
+            return True, response
+            
+        except WebPushException as e:
+            logger.error(f"Error Push Notification: {str(e)}")
+            if e.response and e.response.status_code == 410:
+                # Eliminar suscripción expirada
+                PushSubscription.objects.filter(
+                    endpoint=subscription_info['endpoint']
+                ).delete()
+            return False, str(e)
+
 from .push_views import send_push_notification
 
 def notify_user(user, message, related_ejemplo=None, url=None):
@@ -262,7 +217,7 @@ def notify_user(user, message, related_ejemplo=None, url=None):
                 notification_data
             )
     except Exception as e:
-        print(f"Error al enviar notificación por WebSocket: {e}")
+        logger.error(f"Error al enviar notificación por WebSocket: {e}")
     
     return {
         'notification': notification,

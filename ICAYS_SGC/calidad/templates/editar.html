@@ -35,8 +35,8 @@
             <input type="text" class="form-control" id="passwON" name="passwON" value="{{ usuario.password }}">
         </div>
         <div class="mb-3">
-            <label for="rol" class="form-label">Rol</label>
-            <select class="form-select" id="rol" name="rol">
+            <label for="rolON" class="form-label">Rol</label>
+            <select class="form-select" id="rolON" name="rolON">
                 {% for rol in roles %}
                     <option value="{{ rol.id_rol }}" {% if rol.id_rol == usuario.rol_user.id_rol %}selected{% endif %}>
                         {{ rol.name_rol }}

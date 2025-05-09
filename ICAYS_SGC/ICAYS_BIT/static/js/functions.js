@@ -1,3 +1,90 @@
+// Llamar a la función cuando se carga la página
+// ...existing code...
+
+// Un solo event listener para DOMContentLoaded
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM cargado, iniciando contadores...');
+    
+    // Iniciar contadores
+    actualizarContadores();
+    
+    
+    // Imprimir la URL actual para depuración
+    console.log('URL actual completa:', window.location.href);
+    console.log('Pathname:', window.location.pathname);
+    
+    // Cargar usuarios
+    fetch("/microbiologia/api/usuarios/")
+        .then(response => response.json())
+        .then(data => {
+            const selectUsuario = document.getElementById('usuario_destino');
+            if (selectUsuario) {
+                data.forEach(usuario => {
+                    const option = document.createElement('option');
+                    option.value = usuario.id;
+                    option.textContent = `${usuario.nombre} ${usuario.apellido} - ${usuario.area} - ${usuario.rol}`;
+                    selectUsuario.appendChild(option);
+                });
+            }
+        })
+        .catch(error => console.error('Error:', error));
+        
+    // Configurar botones con URL en el atributo data-url
+    const botonesConUrl = document.querySelectorAll('[data-url]');
+    botonesConUrl.forEach(boton => {
+        boton.addEventListener('click', function() {
+            const url = this.getAttribute('data-url');
+            if (url) {
+                window.location.href = url;
+            }
+        });
+    });
+    
+    // Verificar si el campo de página existe
+    const campoPagina = document.getElementById('pagina_cbap');
+    
+    if (campoPagina) {
+        console.log('Campo de página encontrado en el DOM');
+        
+        // Verificar si estamos en la página de registro basándonos en la presencia del campo
+        // y en la URL actual
+        const pathname = window.location.pathname;
+        
+        // Verificar si estamos en la página principal de FP131 (que parece ser la página de registro)
+        if (pathname === '/microbiologia/FP131/' || 
+            pathname === '/microbiologia/FP131' ||
+            pathname.includes('/registrar_bitacora') ||
+            pathname.includes('/registerBita')) {
+            
+            console.log('Página de registro de bitácora detectada, asignando número de página...');
+            
+            // Verificar si el campo ya tiene un valor
+            if (!campoPagina.value || campoPagina.value === '' || campoPagina.value === '0' || campoPagina.value === '-') {
+                console.log('Campo de página vacío o con valor por defecto, asignando número...');
+                asignarNumeroPagina();
+            } else {
+                console.log('Campo de página ya tiene un valor:', campoPagina.value);
+            }
+        } else {
+            console.log('No estamos en la página de registro. URL actual:', pathname);
+            
+            // Si no estamos en la página de registro, asegurarnos de que el campo sea de solo lectura
+            campoPagina.readOnly = true;
+        }
+    } else {
+        console.log('Campo de página (pagina_cbap) no encontrado en el DOM');
+    }
+
+    // Función para calcular la diferencia absoluta
+    setupDiferenciaAbsoluta();
+    
+    // Configurar los listeners para las fórmulas de ejemplo
+    setupFormulasEjemplo();
+
+});
+
+// Mantener el intervalo fuera del DOMContentLoaded
+setInterval(actualizarContadores, 30000);
 function DetallesBita(bitacoraId) {
     if (!bitacoraId) {
         // Intentar obtener el ID desde el campo oculto si no se proporcionó como parámetro
@@ -84,119 +171,6 @@ function DetallesBitaAutorizadas(bitacoraId) {
     }
 }
 
-// Función para abrir el modal de firma
-function abrirModalFirma() {
-    // Cerrar el modal de confirmación
-    $('#enviar').modal('hide');
-    // Abrir el modal de firma
-    $('#firmar').modal('show');
-}
-
-// Función para enviar el formulario con la firma
-function enviarFormulario() {
-    // Obtener el ID de la bitácora desde el campo oculto
-    const bitacoraId = document.getElementById('bitacora_id').value;
-    
-    if (!bitacoraId) {
-        alert('No se pudo obtener el ID de la bitácora');
-        return;
-    }
-    
-    // Obtener el formulario y los datos
-    const form = document.getElementById('form-principal');
-    const formData = new FormData(form);
-    
-    // Añadir la acción al formulario
-    formData.append('accion', 'enviar');
-    
-    // Obtener la contraseña
-    const password = document.getElementById('password').value;
-    if (!password) {
-        document.getElementById('error-message').textContent = 'Por favor ingrese su contraseña';
-        document.getElementById('error-message').style.display = 'block';
-        return;
-    }
-    formData.append('password', password);
-    
-    // Enviar la solicitud AJAX
-    $.ajax({
-        url: `/microbiologia/modificar_bitacora/${bitacoraId}/`,
-        type: 'POST',
-        data: formData,
-        processData: false,
-        contentType: false,
-        headers: {
-            'X-CSRFToken': getCookie('csrftoken')
-        },
-        success: function(response) {
-            // Cerrar el modal de firma
-            $('#firmar').modal('hide');
-            
-            // Mostrar mensaje de éxito
-            document.getElementById('mensajeExitoTexto').textContent = response.message;
-            $('#mensajeExito').modal('show');
-            
-            // Redirigir después de cerrar el modal
-            $('#mensajeExito').on('hidden.bs.modal', function () {
-                window.location.href = response.redirect_url;
-            });
-        },
-        error: function(xhr) {
-            // Mostrar mensaje de error
-            const response = xhr.responseJSON;
-            document.getElementById('error-message').textContent = response.message || response.error || 'Error al enviar la bitácora';
-            document.getElementById('error-message').style.display = 'block';
-        }
-    });
-}
-
-// Función para guardar el formulario sin enviar
-function guardarFormulario() {
-    // Obtener el ID de la bitácora desde el campo oculto
-    const bitacoraId = document.getElementById('bitacora_id').value;
-    
-    if (!bitacoraId) {
-        alert('No se pudo obtener el ID de la bitácora');
-        return;
-    }
-    
-    // Obtener el formulario y los datos
-    const form = document.getElementById('form-principal');
-    const formData = new FormData(form);
-    
-    // Añadir la acción al formulario
-    formData.append('accion', 'guardar');
-    
-    // Enviar la solicitud AJAX
-    $.ajax({
-        url: `/microbiologia/modificar_bitacora/${bitacoraId}/`,
-        type: 'POST',
-        data: formData,
-        processData: false,
-        contentType: false,
-        headers: {
-            'X-CSRFToken': getCookie('csrftoken')
-        },
-        success: function(response) {
-            // Mostrar mensaje de éxito
-            document.getElementById('mensajeExitoTextoGuardar').textContent = response.message;
-            $('#guardarexito').modal('show');
-            
-            // Redirigir después de cerrar el modal
-            $('#guardarexito').on('hidden.bs.modal', function () {
-                window.location.href = response.redirect_url;
-            });
-        },
-        error: function(xhr) {
-            // Mostrar mensaje de error
-            const response = xhr.responseJSON;
-            document.getElementById('mensajeErrorTexto').textContent = response.message || response.error || 'Error al guardar la bitácora';
-            document.getElementById('error-guardar').textContent = JSON.stringify(response);
-            document.getElementById('error-guardar').style.display = 'block';
-            $('#modalError').modal('show');
-        }
-    });
-}
 // Variables para almacenar las cantidades
 let cantidadEnviadas = 0;
 let cantidadRevisadas = 0;  
@@ -391,92 +365,7 @@ function getCookie(name) {
     return cookieValue;
 }
 
-// Llamar a la función cuando se carga la página
-// ...existing code...
 
-// Un solo event listener para DOMContentLoaded
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM cargado, iniciando contadores...');
-    
-    // Iniciar contadores
-    actualizarContadores();
-    
-    
-    // Imprimir la URL actual para depuración
-    console.log('URL actual completa:', window.location.href);
-    console.log('Pathname:', window.location.pathname);
-    
-    // Cargar usuarios
-    fetch("/microbiologia/api/usuarios/")
-        .then(response => response.json())
-        .then(data => {
-            const selectUsuario = document.getElementById('usuario_destino');
-            if (selectUsuario) {
-                data.forEach(usuario => {
-                    const option = document.createElement('option');
-                    option.value = usuario.id;
-                    option.textContent = `${usuario.nombre} ${usuario.apellido} - ${usuario.area} - ${usuario.rol}`;
-                    selectUsuario.appendChild(option);
-                });
-            }
-        })
-        .catch(error => console.error('Error:', error));
-        
-    // Configurar botones con URL en el atributo data-url
-    const botonesConUrl = document.querySelectorAll('[data-url]');
-    botonesConUrl.forEach(boton => {
-        boton.addEventListener('click', function() {
-            const url = this.getAttribute('data-url');
-            if (url) {
-                window.location.href = url;
-            }
-        });
-    });
-    
-    // Verificar si el campo de página existe
-    const campoPagina = document.getElementById('pagina_cbap');
-    
-    if (campoPagina) {
-        console.log('Campo de página encontrado en el DOM');
-        
-        // Verificar si estamos en la página de registro basándonos en la presencia del campo
-        // y en la URL actual
-        const pathname = window.location.pathname;
-        
-        // Verificar si estamos en la página principal de FP131 (que parece ser la página de registro)
-        if (pathname === '/microbiologia/FP131/' || 
-            pathname === '/microbiologia/FP131' ||
-            pathname.includes('/registrar_bitacora') ||
-            pathname.includes('/registerBita')) {
-            
-            console.log('Página de registro de bitácora detectada, asignando número de página...');
-            
-            // Verificar si el campo ya tiene un valor
-            if (!campoPagina.value || campoPagina.value === '' || campoPagina.value === '0' || campoPagina.value === '-') {
-                console.log('Campo de página vacío o con valor por defecto, asignando número...');
-                asignarNumeroPagina();
-            } else {
-                console.log('Campo de página ya tiene un valor:', campoPagina.value);
-            }
-        } else {
-            console.log('No estamos en la página de registro. URL actual:', pathname);
-            
-            // Si no estamos en la página de registro, asegurarnos de que el campo sea de solo lectura
-            campoPagina.readOnly = true;
-        }
-    } else {
-        console.log('Campo de página (pagina_cbap) no encontrado en el DOM');
-    }
-
-    // Función para calcular la diferencia absoluta
-    setupDiferenciaAbsoluta();
-    
-    // Configurar los listeners para las fórmulas de ejemplo
-    setupFormulasEjemplo();
-});
-
-// Mantener el intervalo fuera del DOMContentLoaded
-setInterval(actualizarContadores, 30000);
 // Función para obtener el siguiente número de página desde el backend
 function obtenerSiguienteNumeroPagina() {
     return new Promise((resolve, reject) => {// Hacer la solicitud AJAX

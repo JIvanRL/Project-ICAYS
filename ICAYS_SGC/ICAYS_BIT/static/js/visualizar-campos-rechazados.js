@@ -32,6 +32,7 @@ status * Script para visualizar campos rechazados, permitir correcciones y guard
     // Instancias de Modales Bootstrap (se inicializan cuando se necesitan)
     let observacionesModalInstance = null;
     let observacionesModalGeneralInstance = null;
+   
 
     // =============================================
     // 2. VARIABLES DE ESTADO
@@ -40,6 +41,8 @@ status * Script para visualizar campos rechazados, permitir correcciones y guard
     let campoSeleccionadoId = null;
     let observacionesPorCampo = {}; // { campoId: { observacion, valor_original, valor_actual, campo_nombre, campo_tipo, historial_ediciones, contador_ediciones, estado }, ... }
     let mapaCamposFormulario = {}; // Almacena referencias a los campos del formulario { campoId: elemento }
+     // Variable global para almacenar estados de autorización
+     let estadosAutorizacion = {};
 
     // =============================================
     // 3. FUNCIONES AUXILIARES
@@ -78,14 +81,15 @@ status * Script para visualizar campos rechazados, permitir correcciones y guard
      * Asume que getCookie está disponible globalmente.
      * @param {string} url - URL del endpoint.
      * @param {string} method - Método HTTP (GET, POST, etc.).
-     * @param {object} [data] - Datos a enviar (para POST).
+     * @param {object} [config] - Configuración adicional (datos, params, etc.).
      * @returns {Promise<object>} - Promesa que resuelve con la respuesta JSON.
      */
-    function ajaxRequest(url, method = 'GET', data = null) {
+    function ajaxRequest(url, method = 'GET', config = {}) {
         return new Promise((resolve, reject) => {
-            // Asegurarse de que la URL comience con /
-            if (!url.startsWith('/')) {
-                url = '/' + url;
+            // Manejar query params si existen
+            if (config.params) {
+                const queryParams = new URLSearchParams(config.params).toString();
+                url = `${url}?${queryParams}`;
             }
 
             const headers = {
@@ -95,12 +99,12 @@ status * Script para visualizar campos rechazados, permitir correcciones y guard
 
             // Si es FormData, no establecer Content-Type
             // Si no es FormData, establecer application/json
-            if (!(data instanceof FormData)) {
+            if (config.data && !(config.data instanceof FormData)) {
                 headers['Content-Type'] = 'application/json';
             }
 
-            const config = {
-                url: url,
+            const ajaxConfig = {
+                url: url.startsWith('/') ? url : '/' + url,
                 type: method,
                 headers: headers,
                 success: (response) => {
@@ -128,27 +132,27 @@ status * Script para visualizar campos rechazados, permitir correcciones y guard
             };
 
             // Manejar los datos según el tipo
-            if (data) {
-                if (data instanceof FormData) {
-                    config.processData = false;
-                    config.contentType = false;
-                    config.data = data;
+            if (config.data) {
+                if (config.data instanceof FormData) {
+                    ajaxConfig.processData = false;
+                    ajaxConfig.contentType = false;
+                    ajaxConfig.data = config.data;
                 } else {
-                    config.data = JSON.stringify(data);
+                    ajaxConfig.data = JSON.stringify(config.data);
                 }
             }
 
             // Log de depuración
             console.log('Configuración de la petición:', {
-                url: config.url,
-                method: config.type,
-                headers: config.headers,
-                data: data instanceof FormData ? 
-                    Object.fromEntries(data.entries()) : 
-                    data
+                url: ajaxConfig.url,
+                method: ajaxConfig.type,
+                headers: ajaxConfig.headers,
+                data: config.data instanceof FormData ? 
+                    Object.fromEntries(config.data.entries()) : 
+                    config.data
             });
 
-            $.ajax(config);
+            $.ajax(ajaxConfig);
         });
     }
 
@@ -299,6 +303,53 @@ status * Script para visualizar campos rechazados, permitir correcciones y guard
         }
     }
 
+    async function cargarEstadosAutorizacion() {
+        try {
+            if (!bitacoraId) {
+                console.error('No se pudo obtener el ID de la bitácora para cargar estados de autorización.');
+                return;
+            }
+            
+            console.log('Cargando estados de autorización para bitácora ID:', bitacoraId);
+            
+            const formData = new FormData();
+            formData.append('bitacora_id', bitacoraId);
+            formData.append('action', 'obtener_todos');
+            
+            const response = await ajaxRequest(
+                '/microbiologia/api/verificar-autorizacion/',
+                'POST',
+                { data: formData }
+            );
+            
+            if (response.success && response.solicitudes) {
+                console.log('Estados de autorización recibidos:', response.solicitudes);
+                
+                // Procesar cada solicitud y aplicar el estado visual
+                response.solicitudes.forEach(solicitud => {
+                    const campoId = solicitud.campo_id;
+                    const estado = solicitud.estado;
+                    const campo = mapaCamposFormulario[campoId];
+                    
+                    if (campo && estado) {
+                        // Guardar en el objeto global de estados
+                        estadosAutorizacion[campoId] = estado;
+                        
+                        // Aplicar estilo visual según el estado
+                        actualizarEstadoAutorizacion(campo, campoId, estado);
+                    }
+                });
+                // Después de procesar todas las solicitudes, desbloquear filas autorizadas
+                import('./events-bita131.js').then(module => {
+                    module.desbloquearFilasAutorizadas();
+                });
+            } else {
+                console.log('No se encontraron estados de autorización o hubo un error:', response.message);
+            }
+        } catch (error) {
+            console.error('Error al cargar estados de autorización:', error);
+        }
+    }
     /**
      * Procesa los datos cargados del servidor, actualiza el estado y crea overlays.
      * @param {Array} observaciones - Array de objetos de observación desde el backend.
@@ -308,6 +359,7 @@ status * Script para visualizar campos rechazados, permitir correcciones y guard
 
         observaciones.forEach(obs => {
             const campoId = obs.campo_id;
+
             // Almacenar datos en el estado local
             observacionesPorCampo[campoId] = {
                 observacion: obs.observacion || '',
@@ -317,19 +369,46 @@ status * Script para visualizar campos rechazados, permitir correcciones y guard
                 campo_tipo: obs.campo_tipo || 'desconocido',
                 historial_ediciones: obs.historial_ediciones || [],
                 contador_ediciones: obs.contador_ediciones || 0,
-                estado: obs.estado || 'pendiente' // Asegurar que siempre haya un estado
+                estado: obs.estado || 'pendiente'
             };
 
-            // Si no es la observación general, buscar el campo y crear overlay
-            if (campoId !== 'observacion_general') {
+            // Si no es la observación general y no está aprobado, procesar el campo
+            if (campoId !== 'observacion_general' && obs.estado !== 'aprobado') {
                 const campo = mapaCamposFormulario[campoId];
                 if (campo) {
+                    // Actualizar estilo visual basado únicamente en el estado
+                    switch (obs.estado) {
+                        case 'editado':
+                            campo.style.backgroundColor = '#e8f5e9'; // Verde claro
+                            campo.classList.remove('tiene-observacion');
+                            campo.classList.add('corregido');
+                            campo.style.pointerEvents = 'auto'; // Permitir interacción
+                            break;
+                        case 'pendiente':
+                            campo.style.backgroundColor = '#ffebee'; // Rojo claro
+                            campo.classList.add('tiene-observacion');
+                            campo.classList.remove('corregido');
+                            campo.style.pointerEvents = 'auto'; // Permitir interacción
+                            break;
+                        case 'rechazado':
+                            campo.style.backgroundColor = '#ffebee'; // Rojo claro
+                            campo.classList.add('tiene-observacion');
+                            campo.classList.remove('corregido');
+                            campo.style.pointerEvents = 'auto'; // Permitir interacción
+                            break;
+                        default:
+                            // No mostrar overlay ni estilos especiales para otros estados
+                            campo.style.backgroundColor = 'transparent';
+                            campo.classList.remove('tiene-observacion', 'corregido');
+                            campo.style.pointerEvents = 'none'; // Deshabilitar interacción
+                            return; // No crear overlay
+                    }
+
                     crearOverlayParaCampo(campo, campoId);
-                    // Actualizar visualmente el campo con el valor cargado
                     actualizarCampoVisualmente(
                         campo, 
                         observacionesPorCampo[campoId].valor_actual,
-                        observacionesPorCampo[campoId].estado === 'editado'
+                        obs.estado === 'editado'
                     );
                 }
             }
@@ -338,10 +417,6 @@ status * Script para visualizar campos rechazados, permitir correcciones y guard
         console.log('Estado de observacionesPorCampo actualizado:', observacionesPorCampo);
     }
 
-    /**
-     * Guarda los datos de un campo específico (corrección/observación) en el servidor.
-     * @param {string} campoIdAGuardar - El ID del campo a guardar.
-     */
     async function guardarCampoEnServidor(campoIdAGuardar) {
         // Validaciones iniciales con logs detallados
         console.log('Iniciando guardado de campo:', {
@@ -385,7 +460,7 @@ status * Script para visualizar campos rechazados, permitir correcciones y guard
             const response = await ajaxRequest(
                 '/microbiologia/guardar_campos_corregidos/',
                 'POST',
-                formData
+                { data: formData }
             );
 
             console.log('Respuesta del servidor:', response);
@@ -414,40 +489,43 @@ status * Script para visualizar campos rechazados, permitir correcciones y guard
                 throw new Error('No hay campo seleccionado');
             }
 
-            // Verificar que tengamos un ID de usuario válido
-            if (!usuarioId || usuarioId === '0') {
-                console.error('ID de usuario actual:', usuarioId); // Para debug
-                throw new Error('ID de usuario no disponible');
-            }
-
-            const datosCampo = observacionesPorCampo[campoSeleccionadoId] || {};
+            // Primero verificar si ya existe una solicitud
+            const verificacion = await verificarSolicitudExistente(campoSeleccionadoId);
             
+            if (verificacion.exists) {
+                if (verificacion.estado === 'aprobada') {
+                    mostrarModalAutorizacionAprobada(verificacion.data);
+                    actualizarEstadoAutorizacion(campoSeleccionado, campoSeleccionadoId, 'aprobada');
+                    return { success: true, message: 'Este campo ya fue aprobado previamente.' };
+                } else if (verificacion.estado === 'pendiente') {
+                    mostrarModalPendiente(verificacion.data);
+                    actualizarEstadoAutorizacion(campoSeleccionado, campoSeleccionadoId, 'pendiente');
+
+                    return { success: false, message: 'Solicitud pendiente' };
+                } 
+            } 
+
+            // Si no existe solicitud, crear una nueva
             const formData = new FormData();
             formData.append('bitacora_id', bitacoraId);
             formData.append('campo_id', campoSeleccionadoId);
-            formData.append('campo_nombre', datosCampo.campo_nombre || obtenerNombreDescriptivoCampo(campoSeleccionado));
-            formData.append('valor_actual', obtenerValorCampo(campoSeleccionado));
-            formData.append('solicitante_id', usuarioId.toString());  // Usar el ID actualizado
-            formData.append('supervisor_id', supervisorId.toString());
+            formData.append('solicitante_id', usuarioId);
+            formData.append('supervisor_id', supervisorId);
             formData.append('estado', 'pendiente');
-
-            // Log para debug
-            console.log('Datos de la solicitud:', {
-                bitacora_id: bitacoraId,
-                campo_id: campoSeleccionadoId,
-                solicitante_id: usuarioId,
-                supervisor_id: supervisorId,
-                valor_actual: obtenerValorCampo(campoSeleccionado)
-            });
+            formData.append('valor_actual', obtenerValorCampo(campoSeleccionado));
+            formData.append('campo_nombre', obtenerNombreDescriptivoCampo(campoSeleccionado));
+            
+            // Se elimina el parámetro 'solicitud_anterior' que estaba causando el error
 
             const response = await ajaxRequest(
                 '/microbiologia/api/solicitar-autorizacion/',
                 'POST',
-                formData
+                { data: formData }
             );
 
             if (response.success) {
                 mostrarMensaje('Solicitud enviada correctamente', false);
+                actualizarEstadoAutorizacion(campoSeleccionado, campoSeleccionadoId, 'pendiente');
                 return response;
             } else {
                 throw new Error(response.message || 'Error al procesar la solicitud');
@@ -455,28 +533,836 @@ status * Script para visualizar campos rechazados, permitir correcciones y guard
 
         } catch (error) {
             console.error('Error al enviar solicitud:', error);
-            mostrarMensaje('Error al enviar la solicitud: ' + error.message, true);
+            mostrarMensaje('Error: ' + error.message, true);
             throw error;
         }
     }
 
-    async function cargarSupervisores(selectElement) {
+    async function verificarSolicitudExistente(campoId) {
         try {
-            const response = await ajaxRequest('/microbiologia/api/usuarios/', 'GET');
-            const supervisores = response.filter(user => user.rol === 'Jefe de Laboratorio');
-            
-            selectElement.innerHTML = '<option value="">Seleccione un supervisor...</option>';
-            supervisores.forEach(supervisor => {
-                const option = document.createElement('option');
-                option.value = supervisor.id;  // Usar el id del supervisor
-                option.textContent = `${supervisor.nombre} ${supervisor.apellido} - ${supervisor.area}`;
-                selectElement.appendChild(option);
-            });
+            const formData = new FormData();
+            formData.append('campo_id', campoId);
+            formData.append('bitacora_id', bitacoraId);
+            formData.append('action', 'verificar');
+
+            const response = await ajaxRequest(
+                '/microbiologia/api/verificar-autorizacion/',
+                'POST',
+                { data: formData }
+            );
+
+            // Convert response dates if they exist
+            if (response.data) {
+                if (response.data.fecha_solicitud) {
+                    response.data.fecha_solicitud = new Date(response.data.fecha_solicitud);
+                }
+            }
+
+            return {
+                exists: response.exists,
+                estado: response.estado,
+                data: response.data
+            };
         } catch (error) {
-            console.error('Error al cargar supervisores:', error);
-            mostrarMensaje('Error al cargar lista de supervisores', true);
+            console.error('Error al verificar solicitud:', error);
+            return { exists: false };
         }
     }
+
+    async function MostrarModalAutorizacion(campoId) {
+        try {
+            if (!campoId) {
+                throw new Error('No se proporcionó ID del campo');
+            }
+
+            const verificacion = await verificarSolicitudExistente(campoId);
+            console.log('Respuesta de verificación:', verificacion);
+
+            if (verificacion.exists) {
+                if (verificacion.estado === 'aprobada') {
+                    mostrarModalAutorizacionAprobada(verificacion.data);
+                } else if (verificacion.estado === 'pendiente') {
+                    mostrarModalPendiente(verificacion.data);
+                }else if (verificacion.estado === 'rechazada') {
+                    mostrarModalRechazado(verificacion.data);
+                }
+                 else {
+                    mostrarModalPermiso();
+                }
+            } else {
+                mostrarModalPermiso();
+            }
+        } catch (error) {
+            console.error('Error al verificar autorización:', error);
+            mostrarMensaje('Error al verificar estado de autorización: ' + error.message, true);
+        }
+    }
+    function mostrarModalPendiente(datos) {
+        const modalHTML = `
+            <div class="modal fade" id="modalAutorizacionPendiente" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0">
+                        <div class="modal-header bg-warning text-white border-0">
+                            <h5 class="modal-title">
+                                <i class="fas fa-clock me-2"></i>
+                                Estado Pendiente
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body text-center py-4">
+                            <i class="fas fa-hourglass-half fa-4x text-warning mb-3"></i>
+                            <h4 class="fw-bold">Este campo está en estado pendiente de autorización</h4>
+                        </div>
+                        <div class="modal-footer border-0 justify-content-center">
+                            <button type="button" class="btn btn-warning text-white px-4" data-bs-dismiss="modal">
+                                <i class="fas fa-check me-2"></i>Entendido
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <style>
+                .bg-warning {
+                    background-color: #ff9800 !important;
+                }
+                .btn-warning {
+                    background-color: #ff9800;
+                    border-color: #ff9800;
+                }
+                .modal-content {
+                    box-shadow: 0 5px 15px rgba(255, 152, 0, 0.3);
+                }
+            </style>
+        `;
+
+        // Remover modal anterior si existe
+        const modalAnterior = document.getElementById('modalAutorizacionPendiente');
+        if (modalAnterior) modalAnterior.remove();
+
+        // Agregar nuevo modal al DOM
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        
+        // Mostrar el modal
+        const modalElement = document.getElementById('modalAutorizacionPendiente');
+        const modal = new bootstrap.Modal(modalElement);
+        modal.show();
+    }   
+    function mostrarModalRechazado(datos) {
+        
+        const modalHTML = `
+            <div class="modal fade" id="modalAutorizacionRechazada" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0">
+                        <!-- Cabecera -->
+                        <div class="modal-header bg-danger text-white border-0">
+                            <h5 class="modal-title">
+                                <i class="fas fa-times-circle me-2"></i>
+                                Solicitud Rechazada
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        
+                        <!-- Cuerpo -->
+                        <div class="modal-body text-center py-4">
+                            <i class="fas fa-ban fa-4x text-danger mb-3"></i>
+                            <h4 class="fw-bold">Este campo fue rechazado</h4>
+                            <p class="text-muted mt-2">No puedes modificarlo sin nueva autorización</p>
+                        </div>
+                        
+                        <!-- Pie de modal unificado -->
+                        <div class="modal-footer border-0 d-flex flex-column flex-sm-row justify-content-center align-items-center gap-3">
+                            <button type="button" class="btn btn-danger text-white px-4" data-bs-dismiss="modal">
+                                <i class="fas fa-check me-2"></i>Entendido
+                            </button>
+                            <button type="button" class="btn btn-primary text-white px-4" id="btnSolicitarAutorizacion" data-bs-dismiss="modal">
+                                <i class="fas fa-paper-plane me-2"></i>Nueva solicitud
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        <style>
+            .bg-danger {
+                background-color: #dc3545 !important;
+            }
+            .btn-danger {
+                background-color: #dc3545;
+                border-color: #dc3545;
+            }
+            .modal-content {
+                box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3);
+            }
+        </style>
+        `;
+
+        // Remover modal anterior si existe
+        const modalAnterior = document.getElementById('modalAutorizacionRechazada');
+        if (modalAnterior) modalAnterior.remove();
+
+        // Agregar nuevo modal al DOM
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        
+        // Mostrar el modal
+        const modalElement = document.getElementById('modalAutorizacionRechazada');
+        const modal = new bootstrap.Modal(modalElement);
+        modal.show();
+        
+        // Agregar evento al botón de nueva solicitud
+        const btnSolicitarAutorizacion = document.getElementById('btnSolicitarAutorizacion');
+        if (btnSolicitarAutorizacion) {
+            btnSolicitarAutorizacion.addEventListener('click', async () => {
+                mostrarModalPermiso();
+                
+
+            });
+        }
+    }   
+
+    function mostrarModalAutorizacionAprobada(datos) {
+        const modalHTML = `
+            <div class="modal fade" id="modalAutorizacionAprobada" tabindex="-1">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content border-0">
+                        <!-- Header con gradiente verde -->
+                        <div class="modal-header text-white" style="background: linear-gradient(135deg, #28a745, #218838);">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-check-circle fa-2x me-3"></i>
+                                <div>
+                                    <h5 class="modal-title mb-0 fw-bold">AUTORIZACIÓN APROBADA</h5>
+                                    <small class="opacity-80">Cambio validado correctamente</small>
+                                </div>
+                            </div>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+
+                        <!-- Cuerpo del modal (sin cambios) -->
+                        <div class="modal-body p-4">
+                            <div class="row">
+                                <div class="col-md-4 text-center border-end d-flex align-items-center justify-content-center">
+                                    <div class="p-4">
+                                        <div class="bg-success bg-opacity-10 rounded-circle p-4 d-inline-block">
+                                            <i class="fas fa-shield-alt fa-4x text-success"></i>
+                                        </div>
+                                        <h4 class="text-success mt-3 fw-bold">Validado</h4>
+                                    </div>
+                                </div>
+                                <div class="col-md-8">
+                                    <div class="row g-3">
+                                        <div class="col-6">
+                                            <div class="p-3 bg-light rounded">
+                                                <small class="text-muted d-block">CAMPO</small>
+                                                <span class="fw-bold">${datos.campo_nombre || 'N/A'}</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="p-3 bg-light rounded">
+                                                <small class="text-muted d-block">VALOR</small>
+                                                <span class="fw-bold">${datos.valor_actual || 'N/A'}</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="p-3 bg-light rounded">
+                                                <small class="text-muted d-block">AUTORIZADO POR</small>
+                                                <span class="fw-bold">${datos.supervisor_nombre || 'N/A'}</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="p-3 bg-light rounded">
+                                                <small class="text-muted d-block">FECHA APROBACIÓN</small>
+                                                <span class="fw-bold">${datos.fecha_aprobacion ? new Date(datos.fecha_aprobacion).toLocaleString() : 'N/A'}</span>
+                                            </div>
+                                        </div>
+                                        ${datos.comentario ? `
+                                        <div class="col-12">
+                                            <div class="p-3 bg-light rounded">
+                                                <small class="text-muted d-block">COMENTARIO</small>
+                                                <span class="fst-italic">${datos.comentario}</span>
+                                            </div>
+                                        </div>` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Footer modificado -->
+                        <div class="modal-footer border-0 d-flex justify-content-center">
+                            <button type="button" class="btn btn-success px-3 py-1" style="min-width: 120px;" id="btnConfirmar" data-bs-dismiss="modal">
+                                <i class="fas fa-thumbs-up me-1"></i> Confirmar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        <style>
+            /* Efecto hover para los items de datos */
+            .bg-light:hover {
+                background-color: #f8f9fa!important;
+                transform: translateY(-2px);
+                transition: all 0.3s ease;
+            }
+            
+            /* Sombra suave para el modal */
+            .modal-content {
+                box-shadow: 0 10px 25px rgba(40, 167, 69, 0.2);
+                border-radius: 10px!important;
+            }
+            
+            /* Estilo para el botón de cierre */
+            .btn-close {
+                opacity: 0.8;
+                transition: all 0.3s;
+            }
+            .btn-close:hover {
+                opacity: 1;
+                transform: rotate(90deg);
+            }
+        </style>
+        `;
+
+        // Remover modal anterior si existe
+        const modalAnterior = document.getElementById('modalAutorizacionAprobada');
+        if (modalAnterior) modalAnterior.remove();
+
+        // Agregar nuevo modal al DOM
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        
+        // Mostrar el modal
+        const modalElement = document.getElementById('modalAutorizacionAprobada');
+        const modal = new bootstrap.Modal(modalElement);
+        modal.show();
+
+       // Agregar evento al botón de nueva solicitud
+       const btnConfirmar = document.getElementById('btnConfirmar');
+       if (btnConfirmar) {
+                btnConfirmar.addEventListener('click', async () => {
+                // Aquí puedes agregar la lógica para proceder con la modificación
+                // Por ejemplo, mostrar el modal de confirmación de datos sensibles
+                mostrarModalConfirmacionDatosSensibles(datos);
+           });
+       }
+    }
+
+    function mostrarModalConfirmacionDatosSensibles(datos) {
+        const modalHTML = `
+            <div class="modal fade" id="modalConfirmacionDatosSensibles" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0">
+                        <!-- Header con color de advertencia -->
+                        <div class="modal-header bg-warning text-dark">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-exclamation-triangle fa-2x me-3"></i>
+                                <div>
+                                    <h5 class="modal-title mb-0 fw-bold">ADVERTENCIA: DATOS SENSIBLES</h5>
+                                    <small class="opacity-80">Confirmación requerida</small>
+                                </div>
+                            </div>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+    
+                        <!-- Cuerpo del modal -->
+                        <div class="modal-body p-4">
+                            <div class="alert alert-warning">
+                                <p><strong>¡Atención!</strong> Está a punto de modificar datos sensibles que pueden afectar los resultados del análisis.</p>
+                                <p>Esta acción quedará registrada en el sistema con su nombre de usuario y fecha.</p>
+                            </div>
+                            
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="confirmacionResponsabilidad">
+                                <label class="form-check-label" for="confirmacionResponsabilidad">
+                                    Entiendo la responsabilidad de modificar estos datos y confirmo que es necesario para el correcto análisis de la muestra.
+                                </label>
+                            </div>
+                        </div>
+    
+                        <!-- Footer -->
+                        <div class="modal-footer border-0 d-flex justify-content-between">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                <i class="fas fa-times me-1"></i> Cancelar
+                            </button>
+                            <button type="button" class="btn btn-warning" id="btnProcederModificacion" disabled>
+                                <i class="fas fa-check me-1"></i> Proceder con la modificación
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    
+        // Remover modal anterior si existe
+        const modalAnterior = document.getElementById('modalConfirmacionDatosSensibles');
+        if (modalAnterior) modalAnterior.remove();
+    
+        // Agregar nuevo modal al DOM
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        
+        // Mostrar el modal
+        const modalElement = document.getElementById('modalConfirmacionDatosSensibles');
+        const modal = new bootstrap.Modal(modalElement);
+        modal.show();
+        
+        // Obtener referencias a los elementos
+        const confirmacionCheckbox = document.getElementById('confirmacionResponsabilidad');
+        const btnProceder = document.getElementById('btnProcederModificacion');
+        
+        // Función para validar el formulario
+        function validarFormulario() {
+            const checkboxMarcado = confirmacionCheckbox.checked;
+            btnProceder.disabled = !checkboxMarcado;
+        }
+        
+        // Agregar eventos para validación en tiempo real
+        confirmacionCheckbox.addEventListener('change', validarFormulario);
+        
+        // Agregar evento al botón de proceder
+        if (btnProceder) {
+            btnProceder.addEventListener('click', function() {
+                // Cerrar el modal
+                modal.hide();
+                
+                // Cerrar también el modal original si sigue abierto
+                const modalOriginal = document.getElementById('modalAutorizacionAprobada');
+                if (modalOriginal) {
+                    const bsModalOriginal = bootstrap.Modal.getInstance(modalOriginal);
+                    if (bsModalOriginal) bsModalOriginal.hide();
+                }
+                
+                // Mostrar mensaje de éxito
+                mostrarMensaje('Modificación autorizada correctamente', false);
+                
+                // Determinar el índice de la fila a partir del campo_id
+                let filaIndex = 0; // Por defecto, mostrar la primera fila
+                
+                // Si tenemos datos del campo y su ID contiene un número de fila
+                if (datos && datos.campo_id) {
+                    // Intentar extraer el número de la fila del ID del campo
+                    const match = datos.campo_id.match(/(\d+)$/);
+                    if (match && match[1]) {
+                        // Restar 1 porque los índices en JavaScript comienzan en 0
+                        // pero los IDs en tu HTML comienzan en 1
+                        filaIndex = parseInt(match[1]) - 1;
+                        
+                        // Validar que el índice sea válido (0, 1 o 2)
+                        if (filaIndex < 0 || filaIndex > 2) {
+                            filaIndex = 0; // Si está fuera de rango, usar la primera fila
+                        }
+                    }
+                }
+                
+                console.log('Mostrando modal para la fila con índice:', filaIndex);
+                
+                // Mostrar el modal de filas con el índice correcto
+                mostrarModalFilaSeleccionada(filaIndex);
+            });
+        }
+    }
+    
+
+    /**
+ * Muestra un modal con los datos de una fila específica de la tabla.
+ * @param {number} filaIndex - Índice de la fila a mostrar (0-based).
+ */
+/**
+ * Muestra un modal con los datos de una fila específica de la tabla.
+ * @param {number} filaIndex - Índice de la fila a mostrar (0-based).
+ */
+function mostrarModalFilaSeleccionada(filaIndex) {
+    // Verificar que el índice sea válido
+    if (filaIndex === undefined || filaIndex < 0) {
+        console.error('Índice de fila inválido:', filaIndex);
+        mostrarMensaje('Error: No se pudo identificar la fila seleccionada.', true);
+        return;
+    }
+    
+    console.log('Mostrando modal para la fila:', filaIndex);
+    
+    // Crear el HTML del modal (igual que antes)
+    const modalHTML = `
+        <!-- Modal para mostrar todos los campos de la tabla -->
+        <div class="modal fade" id="modalCamposTabla" tabindex="-1" aria-labelledby="modalCamposTablaLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="modalCamposTablaLabel">
+                <i class="fas fa-table me-2"></i>Tabla de Resultados - Fila ${filaIndex + 1}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="table-responsive">
+                <table class="table table-bordered table-striped mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th rowspan="2">Clave Muestra</th>
+                            <th rowspan="2">Matriz</th>
+                            <th rowspan="2">Cantidad de muestra</th>
+                            <th colspan="4">Diluciones empleadas</th>
+                            <th colspan="2">Dilución o Directa</th>
+                            <th rowspan="2">Promedio</th>
+                            <th colspan="2">Dilución</th>
+                            <th rowspan="2">Promedio</th>
+                            <th colspan="2">Dilución</th>
+                            <th rowspan="2">Promedio</th>
+                            <th colspan="2">Resultado</th>
+                            <th rowspan="2">Diferencia entre duplicados <5%</th>
+                        </tr>
+                        <tr>
+                            <!-- Subencabezados para diluciones empleadas -->
+                            <th>1</th>
+                            <th>0.1</th>
+                            <th>0.01</th>
+                            <th>0.001</th>
+                            <!-- Subencabezados para Dilución o Directa -->
+                            <th>Placa 1</th>
+                            <th>Placa 2</th>
+                            <!-- Subencabezados para Dilución (columnas 5 y 6) -->
+                            <th>Placa 1</th>
+                            <th>Placa 2</th>
+                            <!-- Subencabezados para Dilución (columnas 8 y 9) -->
+                            <th>Placa 1</th>
+                            <th>Placa 2</th>
+                            <!-- Subencabezados para Resultado -->
+                            <th>Resultado</th>
+                            <th>UFC/placa</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Fila de Blanco -->
+                        <tr>
+                            <td><input type="text" value="Blanco" style="width: 110px;" readonly></td>
+                            <td style="background:#c3ccd6;"><input type="text" value="---" style="width: 110px;" readonly></td>
+                            <td><input type="text" id="cantidad_blanco_modal" name="cantidad_blanco"></td>
+                            <td style="background:#c3ccd6;"><input type="text" value="---" readonly></td>
+                            <td style="background:#c3ccd6;"><input type="text" value="---" readonly></td>
+                            <td style="background:#c3ccd6;"><input type="text" value="---" readonly></td>
+                            <td style="background:#c3ccd6;"><input type="text" value="---" readonly></td>
+                            <td><input type="text" id="placa_blanco_modal" name="placa_blanco"></td>
+                            <td style="background:#c3ccd6;"><input type="text" value="---" readonly></td>
+                            <td style="background:#c3ccd6;"><input type="text" value="---" readonly></td>
+                            <td style="background:#c3ccd6;"><input type="text" value="---" readonly></td>
+                            <td style="background:#c3ccd6;"><input type="text" value="---" readonly></td>
+                            <td style="background:#c3ccd6;"><input type="text" value="---" readonly></td>
+                            <td style="background:#c3ccd6;"><input type="text" value="---" readonly></td>
+                            <td style="background:#c3ccd6;"><input type="text" value="---" readonly></td>
+                            <td style="background:#c3ccd6;"><input type="text" value="---" readonly></td>
+                            <td><input type="text" id="resultado_blanco_modal" name="resultado_blanco"></td>
+                            <td style="background:#c3ccd6;"><input type="text" value="UFC/placa" style="width: 150px;" readonly></td>
+                            <td style="background:#c3ccd6;"><input type="text" value="---" readonly></td>
+                        </tr>
+                        
+                        <!-- Fila de datos -->
+                        <tr>
+                            <!-- Datos de ClaveMuestra -->
+                            <td><input type="text" name="clave_c_m_${filaIndex}" id="clave_c_m_modal"></td>
+                            <td>
+                                <select class="form-select form-select-sm medicion-select" name="medicion_c_m_${filaIndex}" id="medicion_c_m_modal">
+                                    <option value="">Seleccione...</option>
+                                    <option value="Aguas">Aguas</option>
+                                    <option value="Alimentos">Alimentos</option>
+                                    <option value="Blancos">Blancos</option>
+                                    <option value="Inertes">Inertes</option>
+                                    <option value="Vivas">Vivas</option>
+                                </select>
+                            </td>
+                            <td><input type="text" name="cantidad_c_m_${filaIndex}" id="cantidad_c_m_modal"></td>
+                            
+                            <!-- Diluciones empleadas -->
+                            <td>
+                                <input type="checkbox" name="dE_1_${filaIndex}" id="dE_1_modal" value="1">
+                            </td>
+                            <td>
+                                <input type="checkbox" name="dE_2_${filaIndex}" id="dE_2_modal" value="0.1">
+                            </td>
+                            <td>
+                                <input type="checkbox" name="dE_3_${filaIndex}" id="dE_3_modal" value="0.01">
+                            </td>
+                            <td>
+                                <input type="checkbox" name="dE_4_${filaIndex}" id="dE_4_modal" value="0.001">
+                            </td>
+                            
+                            <!-- Dilución directa -->
+                            <td><input type="text" name="placa_dD_${filaIndex}" class="placa1" id="placa_dD_modal"></td>
+                            <td><input type="text" name="placa_dD2_${filaIndex}" class="placa2" id="placa_dD2_modal"></td>
+                            <td><input type="text" name="promedio_dD_${filaIndex}" class="promedio" id="promedio_dD_modal"></td>
+                            
+                            <!-- Dilución -->
+                            <td><input type="text" name="placa_d_${filaIndex}" class="placa3" id="placa_d_modal"></td>
+                            <td><input type="text" name="placa_d2_${filaIndex}" class="placa4" id="placa_d2_modal"></td>
+                            <td><input type="text" name="promedio_d_${filaIndex}" class="promedio2" id="promedio_d_modal"></td>
+                            <td><input type="text" name="placa_d_2_${filaIndex}" class="placa5" id="placa_d_2_modal"></td>
+                            <td><input type="text" name="placa_d2_2_${filaIndex}" class="placa6" id="placa_d2_2_modal"></td>
+                            <td><input type="text" name="promedio_d_2_${filaIndex}" class="promedio3" id="promedio_d_2_modal"></td>
+                            
+                            <!-- Resultado -->
+                            <td><input type="text" name="resultado_r_${filaIndex}" id="resultado_r_modal"></td>
+                            <td><input type="text" name="ufC_placa_r_${filaIndex}" id="ufC_placa_r_modal"></td>
+                            <td><input type="text" name="diferencia_r_${filaIndex}" id="diferencia_r_modal"></td>
+                        </tr>
+                    </tbody>
+                </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="btnGuardarCambiosModal">
+                    <i class="fas fa-save me-1"></i>Guardar Cambios
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+            </div>
+        </div>
+        </div>
+    `;
+
+    // Remover modal anterior si existe
+    const modalAnterior = document.getElementById('modalCamposTabla');
+    if (modalAnterior) modalAnterior.remove();
+
+    // Agregar nuevo modal al DOM
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+    // Mostrar el modal
+    const modalElement = document.getElementById('modalCamposTabla');
+    const modal = new bootstrap.Modal(modalElement);
+    modal.show();
+    
+    // Cargar los datos de la fila seleccionada en el modal
+    cargarDatosFilaEnModal(filaIndex);
+    
+    // Configurar evento para guardar cambios
+    document.getElementById('btnGuardarCambiosModal').addEventListener('click', function() {
+        guardarCambiosDesdeModal(filaIndex);
+        modal.hide();
+    });
+}
+
+/**
+ * Carga los datos de una fila específica en el modal.
+ * @param {number} filaIndex - Índice de la fila a cargar.
+ */
+function cargarDatosFilaEnModal(filaIndex) {
+    // Obtener la fila real (contador basado en 1)
+    const contador = filaIndex + 1;
+    
+    // Lista de campos a cargar
+    const campos = [
+        { original: `clave_c_m_${contador}`, modal: 'clave_c_m_modal' },
+        { original: `medicion_c_m_${contador}`, modal: 'medicion_c_m_modal' },
+        { original: `cantidad_c_m_${contador}`, modal: 'cantidad_c_m_modal' },
+        { original: `placa_dD_${contador}`, modal: 'placa_dD_modal' },
+        { original: `placa_dD2_${contador}`, modal: 'placa_dD2_modal' },
+        { original: `promedio_dD_${contador}`, modal: 'promedio_dD_modal' },
+        { original: `placa_d_${contador}`, modal: 'placa_d_modal' },
+        { original: `placa_d2_${contador}`, modal: 'placa_d2_modal' },
+        { original: `promedio_d_${contador}`, modal: 'promedio_d_modal' },
+        { original: `placa_d_2_${contador}`, modal: 'placa_d_2_modal' },
+        { original: `placa_d2_2_${contador}`, modal: 'placa_d2_2_modal' },
+        { original: `promedio_d_2_${contador}`, modal: 'promedio_d_2_modal' },
+        { original: `resultado_r_${contador}`, modal: 'resultado_r_modal' },
+        { original: `ufC_placa_r_${contador}`, modal: 'ufC_placa_r_modal' },
+        { original: `diferencia_r_${contador}`, modal: 'diferencia_r_modal' }
+    ];
+    
+    // Cargar valores de los campos
+    campos.forEach(campo => {
+        const elementoOriginal = document.getElementById(campo.original);
+        const elementoModal = document.getElementById(campo.modal);
+        
+        if (elementoOriginal && elementoModal) {
+            // Si es un select, seleccionar la opción correcta
+            if (elementoOriginal.tagName === 'SELECT') {
+                elementoModal.value = elementoOriginal.value;
+            } else {
+                // Para inputs normales, copiar el valor
+                elementoModal.value = elementoOriginal.value;
+            }
+            
+            console.log(`Cargando ${campo.original} -> ${campo.modal}: ${elementoOriginal.value}`);
+        } else {
+            console.warn(`No se encontró el elemento ${campo.original} o ${campo.modal}`);
+        }
+    });
+    
+    // Cargar estado de los checkboxes de diluciones
+    for (let i = 1; i <= 4; i++) {
+        const checkboxOriginal = document.getElementById(`dE_${i}_${contador}`);
+        const checkboxModal = document.getElementById(`dE_${i}_modal`);
+        
+        if (checkboxOriginal && checkboxModal) {
+            checkboxModal.checked = checkboxOriginal.checked;
+            console.log(`Checkbox dE_${i}_${contador}: ${checkboxOriginal.checked}`);
+        }
+    }
+    
+    // Cargar datos del blanco
+    const cantidadBlancoOriginal = document.getElementById('cantidad_blanco');
+    const placaBlancoOriginal = document.getElementById('placa_blanco');
+    const resultadoBlancoOriginal = document.getElementById('resultado_blanco');
+    
+    const cantidadBlancoModal = document.getElementById('cantidad_blanco_modal');
+    const placaBlancoModal = document.getElementById('placa_blanco_modal');
+    const resultadoBlancoModal = document.getElementById('resultado_blanco_modal');
+    
+    if (cantidadBlancoOriginal && cantidadBlancoModal) {
+        cantidadBlancoModal.value = cantidadBlancoOriginal.value;
+    }
+    
+    if (placaBlancoOriginal && placaBlancoModal) {
+        placaBlancoModal.value = placaBlancoOriginal.value;
+    }
+    
+    if (resultadoBlancoOriginal && resultadoBlancoModal) {
+        resultadoBlancoModal.value = resultadoBlancoOriginal.value;
+    }
+}
+
+/**
+ * Guarda los cambios realizados en el modal de vuelta a la tabla original.
+ * @param {number} filaIndex - Índice de la fila a actualizar.
+ */
+function guardarCambiosDesdeModal(filaIndex) {
+    // Obtener la fila real (contador basado en 1)
+    const contador = filaIndex + 1;
+    
+    // Lista de campos a guardar
+    const campos = [
+        { original: `clave_c_m_${contador}`, modal: 'clave_c_m_modal' },
+        { original: `medicion_c_m_${contador}`, modal: 'medicion_c_m_modal' },
+        { original: `cantidad_c_m_${contador}`, modal: 'cantidad_c_m_modal' },
+        { original: `placa_dD_${contador}`, modal: 'placa_dD_modal' },
+        { original: `placa_dD2_${contador}`, modal: 'placa_dD2_modal' },
+        { original: `promedio_dD_${contador}`, modal: 'promedio_dD_modal' },
+        { original: `placa_d_${contador}`, modal: 'placa_d_modal' },
+        { original: `placa_d2_${contador}`, modal: 'placa_d2_modal' },
+        { original: `promedio_d_${contador}`, modal: 'promedio_d_modal' },
+        { original: `placa_d_2_${contador}`, modal: 'placa_d_2_modal' },
+        { original: `placa_d2_2_${contador}`, modal: 'placa_d2_2_modal' },
+        { original: `promedio_d_2_${contador}`, modal: 'promedio_d_2_modal' },
+        { original: `resultado_r_${contador}`, modal: 'resultado_r_modal' },
+        { original: `ufC_placa_r_${contador}`, modal: 'ufC_placa_r_modal' },
+        { original: `diferencia_r_${contador}`, modal: 'diferencia_r_modal' }
+    ];
+    
+    // Guardar valores de los campos
+    campos.forEach(campo => {
+        const elementoOriginal = document.getElementById(campo.original);
+        const elementoModal = document.getElementById(campo.modal);
+        
+        if (elementoOriginal && elementoModal) {
+            // Guardar valor anterior para comparar
+            const valorAnterior = elementoOriginal.value;
+            
+            // Si es un select, seleccionar la opción correcta
+            if (elementoOriginal.tagName === 'SELECT') {
+                elementoOriginal.value = elementoModal.value;
+            } else {
+                // Para inputs normales, copiar el valor
+                elementoOriginal.value = elementoModal.value;
+            }
+            
+            console.log(`Guardando ${campo.modal} -> ${campo.original}: ${elementoModal.value}`);
+            
+            // Disparar evento de cambio para activar cualquier listener
+            const event = new Event('change', { bubbles: true });
+            elementoOriginal.dispatchEvent(event);
+            
+            // Verificar si el valor cambió y actualizar el estado visual
+            if (valorAnterior !== elementoOriginal.value) {
+                // Actualizar el estado visual del campo
+                if (observacionesPorCampo[campo.original]) {
+                    observacionesPorCampo[campo.original].valor_actual = elementoOriginal.value;
+                    observacionesPorCampo[campo.original].estado = 'editado';
+                    
+                    // Actualizar visualmente el campo
+                    actualizarCampoVisualmente(elementoOriginal, elementoOriginal.value, true);
+                    
+                    // Recrear el overlay para reflejar el nuevo estado
+                    crearOverlayParaCampo(elementoOriginal, campo.original);
+                }
+            }
+        }
+    });
+    
+    // Guardar estado de los checkboxes de diluciones
+    for (let i = 1; i <= 4; i++) {
+        const checkboxOriginal = document.getElementById(`dE_${i}_${contador}`);
+        const checkboxModal = document.getElementById(`dE_${i}_modal`);
+        
+        if (checkboxOriginal && checkboxModal) {
+            const estadoAnterior = checkboxOriginal.checked;
+            checkboxOriginal.checked = checkboxModal.checked;
+            
+            // Disparar evento de cambio
+            const event = new Event('change', { bubbles: true });
+            checkboxOriginal.dispatchEvent(event);
+            
+            // Actualizar visualmente si cambió
+            if (estadoAnterior !== checkboxOriginal.checked) {
+                const campoId = checkboxOriginal.id;
+                if (observacionesPorCampo[campoId]) {
+                    observacionesPorCampo[campoId].valor_actual = checkboxOriginal.checked ? 'Seleccionado' : 'No seleccionado';
+                    observacionesPorCampo[campoId].estado = 'editado';
+                    
+                    // Actualizar visualmente
+                    actualizarCampoVisualmente(checkboxOriginal, observacionesPorCampo[campoId].valor_actual, true);
+                    crearOverlayParaCampo(checkboxOriginal, campoId);
+                }
+            }
+        }
+    }
+    
+    // Guardar datos del blanco
+    const cantidadBlancoOriginal = document.getElementById('cantidad_blanco');
+    const placaBlancoOriginal = document.getElementById('placa_blanco');
+    const resultadoBlancoOriginal = document.getElementById('resultado_blanco');
+    
+    const cantidadBlancoModal = document.getElementById('cantidad_blanco_modal');
+    const placaBlancoModal = document.getElementById('placa_blanco_modal');
+    const resultadoBlancoModal = document.getElementById('resultado_blanco_modal');
+    
+    // Función auxiliar para actualizar campos del blanco
+    function actualizarCampoBlanco(original, modal, campoId) {
+        if (original && modal) {
+            const valorAnterior = original.value;
+            original.value = modal.value;
+            original.dispatchEvent(new Event('change', { bubbles: true }));
+            
+            if (valorAnterior !== original.value) {
+                if (observacionesPorCampo[campoId]) {
+                    observacionesPorCampo[campoId].valor_actual = original.value;
+                    observacionesPorCampo[campoId].estado = 'editado';
+                    
+                    // Actualizar visualmente
+                    actualizarCampoVisualmente(original, original.value, true);
+                    crearOverlayParaCampo(original, campoId);
+                }
+            }
+        }
+    }
+    
+    actualizarCampoBlanco(cantidadBlancoOriginal, cantidadBlancoModal, 'cantidad_blanco');
+    actualizarCampoBlanco(placaBlancoOriginal, placaBlancoModal, 'placa_blanco');
+    actualizarCampoBlanco(resultadoBlancoOriginal, resultadoBlancoModal, 'resultado_blanco');
+    
+    // Guardar cambios en el servidor para cada campo modificado
+    campos.forEach(campo => {
+        const campoId = campo.original;
+        if (observacionesPorCampo[campoId] && observacionesPorCampo[campoId].estado === 'editado') {
+            guardarCampoEnServidor(campoId).catch(error => {
+                console.error(`Error al guardar campo ${campoId}:`, error);
+            });
+        }
+    });
+    
+    // Actualizar contador de observaciones
+    if (typeof actualizarContadorObservaciones === 'function') {
+        actualizarContadorObservaciones();
+    }
+    
+    // Mostrar mensaje de éxito
+    mostrarMensaje('Cambios guardados correctamente', false);
+}
 
     function mostrarModalPermiso() {
         console.log('Mostrando modal de permiso:', {
@@ -571,22 +1457,22 @@ status * Script para visualizar campos rechazados, permitir correcciones y guard
                 btnSolicitar.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Enviando...';
                 
                 const response = await enviarSolicitudAutorizacion(supervisorId);
-                modalPermiso.hide();
                 
                 if (response.success) {
+                    modalPermiso.hide();
+                    if (response.message === 'Campo ya autorizado') {
+                        return; // El modal de autorización aprobada ya se mostró
+                    }
                     mostrarNotificacionSolicitud('success', 'Solicitud enviada', 'Su solicitud ha sido enviada al supervisor.');
                     
-                    // Marcar el campo visualmente como "en espera de aprobación"
                     if (campoSeleccionado) {
                         campoSeleccionado.classList.add('esperando-aprobacion');
                         crearOverlayEsperaAprobacion(campoSeleccionado);
                     }
-                } else {
-                    mostrarNotificacionSolicitud('error', 'Error', response.message || 'Error al enviar la solicitud');
                 }
             } catch (error) {
-                console.error('Error al enviar solicitud:', error);
-                mostrarNotificacionSolicitud('error', 'Error', error.message || 'Error al procesar la solicitud');
+                console.error('Error:', error);
+                mostrarNotificacionSolicitud('error', 'Error', error.message);
             } finally {
                 btnSolicitar.disabled = false;
                 btnSolicitar.innerHTML = '<i class="fas fa-paper-plane me-2"></i>Enviar Solicitud';
@@ -627,18 +1513,104 @@ status * Script para visualizar campos rechazados, permitir correcciones y guard
         }, 5000);
     }
 
-    function crearOverlayEsperaAprobacion(campo) {
+    async function crearOverlayEsperaAprobacion(campo) {
+        // Identificador único para este campo
+        const campoId = campo.id || campo.name || `campo-${Math.random().toString(36).substring(2, 9)}`;
+        const overlayStorageKey = `overlay-estado-${campoId}-${bitacoraId}`;
+        
+        // Asegurar posición relativa del padre
+        campo.parentElement.style.position = 'relative';
+        
+        // Crear el overlay
         const overlay = document.createElement('div');
         overlay.className = 'overlay-espera-aprobacion';
+        overlay.style.position = 'absolute';
+        overlay.style.top = '0';
+        overlay.style.left = '0';
+        overlay.style.width = '100%';
+        overlay.style.height = '100%';
+        overlay.style.backgroundColor = 'rgba(255, 243, 205, 0.8)';
+        overlay.style.display = 'flex';
+        overlay.style.justifyContent = 'center';
+        overlay.style.alignItems = 'center';
+        overlay.style.zIndex = '10';
+        overlay.style.borderRadius = '4px';
+        
+        try {
+            // Verificar estado en el servidor (pasar el campoId)
+            const respuesta = await verificarSolicitudExistente(campoId);
+            
+            if (respuesta && respuesta.estado) {
+                console.log('Estado obtenido del servidor:', respuesta.estado);
+                
+                // Guardar estado en localStorage
+                localStorage.setItem(overlayStorageKey, JSON.stringify({
+                    estado: respuesta.estado,
+                    timestamp: new Date().getTime()
+                }));
+                
+                // Agregar overlay al DOM antes de configurarlo
+                campo.parentElement.appendChild(overlay);
+                
+                if (respuesta.estado === 'pendiente') {
+                    mostrarOverlayPendiente(overlay, campo);
+                } else if (respuesta.estado === 'aprobada') {
+                    mostrarOverlayAprobado(overlay, campo);
+                    // Opcional: remover después de un tiempo
+                    setTimeout(() => overlay.remove(), 3000);
+                } else if (respuesta.estado === 'rechazada') {
+                    mostrarOverlayRechazado(overlay, campo);
+                }
+            } else {
+                // Verificar estado guardado localmente
+                const estadoGuardado = localStorage.getItem(overlayStorageKey);
+                
+                if (estadoGuardado) {
+                    const estadoParsed = JSON.parse(estadoGuardado);
+                    campo.parentElement.appendChild(overlay);
+                    
+                    if (estadoParsed.estado === 'pendiente') {
+                        mostrarOverlayPendiente(overlay, campo);
+                    } else if (estadoParsed.estado === 'aprobada') {
+                        mostrarOverlayAprobado(overlay, campo);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error al crear overlay de espera:', error);
+            // Mostrar overlay genérico de error si lo deseas
+        }
+    }
+    
+    // Funciones auxiliares para mostrar diferentes estados
+    function mostrarOverlayPendiente(overlay, campo) {
         overlay.innerHTML = `
-            <div class="overlay-content">
-                <i class="fas fa-clock text-warning"></i>
-                <span>Esperando aprobación...</span>
+            <div class="text-center p-2">
+                <i class="fas fa-clock fa-2x text-warning mb-2"></i>
+                
             </div>
         `;
-        
-        campo.parentElement.style.position = 'relative';
-        campo.parentElement.appendChild(overlay);
+        overlay.style.backgroundColor = 'rgba(255, 243, 205, 0.9)'; // Amarillo claro
+    }
+
+    function mostrarOverlayAprobado(overlay, campo) {
+        overlay.innerHTML = `
+            <div class="text-center p-2">
+                <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                
+            </div>
+        `;
+        overlay.style.backgroundColor = 'rgba(212, 237, 218, 0.9)'; // Verde claro
+    }
+
+    function mostrarOverlayRechazado(overlay, campo) {
+        overlay.innerHTML = `
+            <div class="text-center p-2">
+                <i class="fas fa-times-circle fa-2x text-danger mb-2"></i>
+                <p class="mb-0 fw-bold">Rechazado</p>
+            </div>
+        `;
+        overlay.style.backgroundColor = 'rgba(248, 215, 218, 0.9)'; // Rojo claro
     }
 
     // Agregar estilos CSS necesarios
@@ -659,7 +1631,7 @@ status * Script para visualizar campos rechazados, permitir correcciones y guard
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 5;
+            zIndex: 5;
         }
 
         .overlay-content {
@@ -785,7 +1757,7 @@ status * Script para visualizar campos rechazados, permitir correcciones y guard
                 campoSeleccionadoId = campoId;
                 
                 if (!tienePermisoEdicion(campoId)) {
-                    mostrarModalPermiso();
+                    MostrarModalAutorizacion(campoId);
                 } else {
                     abrirModalObservaciones(datosCampo.estado);
                 }
@@ -796,52 +1768,70 @@ status * Script para visualizar campos rechazados, permitir correcciones y guard
         const overlay = document.createElement('div');
         overlay.className = 'campo-overlay';
         overlay.dataset.targetField = campoId;
-        overlay.dataset.estado = datosCampo?.estado || 'pendiente';
+        overlay.dataset.estado = datosCampo?.estado || 'pendiente' || 'aprobada';
 
-        // Estilos del overlay
-        overlay.style.position = 'absolute';
-        overlay.style.top = '0';
-        overlay.style.left = '0';
-        overlay.style.width = '100%';
-        overlay.style.height = '100%';
-        overlay.style.cursor = 'pointer';
-        overlay.style.zIndex = '10';
-        overlay.style.backgroundColor = 'transparent';
+        // Configuración de estilos base
+        configurarEstilosOverlay(overlay);
         
-        // Añadir borde y fondo si está pendiente
-        if (datosCampo?.estado === 'pendiente') {
-            overlay.style.border = '2px solid #ff5252';
-            overlay.style.boxSizing = 'border-box';
+        // Configurar eventos del campo y overlay
+        configurarEventosCampo(campo, overlay, campoId, datosCampo);
+
+        campo.parentNode.appendChild(overlay);
+    }
+
+    function configurarEstilosOverlay(overlay) {
+        Object.assign(overlay.style, {
+            position: 'absolute',
+            top: '0',
+            left: '0',
+            width: '100%',
+            height: '100%',
+            cursor: 'pointer',
+            zIndex: '10',
+            backgroundColor: 'transparent',
+            boxSizing: 'border-box'
+        });
+    }
+
+    function configurarEventosCampo(campo, overlay, campoId, datosCampo) {
+        const manejadorClick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            console.log('Interacción con campo:', {
+                campoId,
+                estado: datosCampo?.estado,
+                observacion: datosCampo?.observacion
+            });
+            
+            campoSeleccionado = campo;
+            campoSeleccionadoId = campoId;
+            
+            if (!tienePermisoEdicion(campoId)) {
+                MostrarModalAutorizacion(campoId);
+            } else {
+                abrirModalObservaciones(datosCampo?.estado || 'pendiente');
+            }
+        };
+
+        // Configurar eventos tanto para el campo como para el overlay
+        overlay.onclick = manejadorClick;
+        campo.onclick = manejadorClick;
+
+        // Configurar estilos del campo si tiene observaciones
+        if (datosCampo && (datosCampo.estado === 'pendiente' || datosCampo.observacion)) {
+            Object.assign(campo.style, {
+                backgroundColor: '#ffebee',
+                pointerEvents: 'auto',
+                cursor: 'pointer'
+            });
+            campo.classList.add('tiene-observacion');
         }
 
         // Asegurar que el contenedor tenga posición relativa
         if (window.getComputedStyle(campo.parentNode).position === 'static') {
             campo.parentNode.style.position = 'relative';
         }
-
-        // Modificar el evento click del overlay
-        overlay.onclick = function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            console.log('Click en overlay:', {
-                campoId,
-                estado: datosCampo?.estado,
-                observacion: datosCampo?.observacion
-            });
-            
-            // Establecer el campo seleccionado antes de verificar permisos
-            campoSeleccionado = campo;
-            campoSeleccionadoId = campoId;
-            
-            if (!tienePermisoEdicion(campoId)) {
-                mostrarModalPermiso();
-            } else {
-                abrirModalObservaciones(datosCampo?.estado || 'pendiente');
-            }
-        };
-
-        campo.parentNode.appendChild(overlay);
     }
 
     /**
@@ -938,40 +1928,100 @@ status * Script para visualizar campos rechazados, permitir correcciones y guard
             existingOverlay.remove();
         }
 
-        if (datosCampo) {
-            switch (datosCampo.estado) {
-                case 'pendiente':
-                    campo.classList.add('tiene-observacion'); // Rojo
-                    // Asegurar que el campo sea interactivo
-                    campo.style.pointerEvents = 'auto';
-                    break;
-                case 'editado':
-                    campo.classList.add('corregido'); // Verde
-                    // Asegurar que el campo sea interactivo
-                    campo.style.pointerEvents = 'auto';
-                    break;
-                case 'aprobado':
-                    // Remover todas las clases de estado y deshabilitar interacción
-                    campo.style.pointerEvents = 'none';
-                    campo.style.backgroundColor = 'transparent';
-                    campo.style.cursor = 'default';
-                    break;
-                case 'rechazado':
-                    campo.classList.add('tiene-observacion'); // Rojo
-                    // Asegurar que el campo sea interactivo
-                    campo.style.pointerEvents = 'auto';
-                    break;
-                default:
-                    if ((datosCampo.observacion || '').trim() !== '') {
-                        campo.classList.add('tiene-observacion');
-                        campo.style.pointerEvents = 'auto';
-                    }
-            }
+        // Actualizar estilo visual
+        if (estaCorregido) {
+            campo.style.backgroundColor = '#e8f5e9'; // Verde claro
+            campo.classList.remove('tiene-observacion');
+            campo.classList.add('corregido');
+        } else {
+            campo.style.backgroundColor = '#ffebee'; // Rojo claro
+            campo.classList.add('tiene-observacion');
+            campo.classList.remove('corregido');
         }
 
         console.log(`Campo ${campo.id || campo.name} actualizado visualmente. Estado: ${datosCampo?.estado}`);
     }
 
+    function actualizarEstadoAutorizacion(campo, campoId, estadoAutorizacion) {
+        if (!campo || !campoId) return;
+        
+        console.log(`Actualizando estado de autorización para ${campoId}:`, estadoAutorizacion);
+        
+        // Limpiar overlays de autorización previos
+        const existingAuthOverlay = campo.parentNode?.querySelector('.auth-overlay');
+        if (existingAuthOverlay) existingAuthOverlay.remove();
+        
+        // Solo mostrar overlay si el estado no es nulo/undefined
+        if (estadoAutorizacion) {
+            // Crear overlay específico para autorización
+            const authOverlay = document.createElement('div');
+            authOverlay.className = `auth-overlay auth-${estadoAutorizacion}`;
+            authOverlay.dataset.campoId = campoId;
+            authOverlay.dataset.estado = estadoAutorizacion;
+            
+            // Configurar según el estado
+            switch(estadoAutorizacion) {
+                case 'pendiente':
+                    authOverlay.innerHTML = `
+                        <div class="auth-overlay-content">
+                            <i class="fas fa-clock"></i>
+                            <span>Pendiente de autorización</span>
+                        </div>`;
+                    authOverlay.style.backgroundColor = 'rgba(255, 193, 7, 0.3)';
+                    campo.style.backgroundColor = '#fff3cd'; // Color naranja claro para pendiente
+                    break;
+                    
+                case 'aprobada':
+                    authOverlay.innerHTML = `
+                        <div class="auth-overlay-content">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Autorizado</span>
+                        </div>`;
+                    authOverlay.style.backgroundColor = 'rgba(40, 167, 69, 0.2)';
+                    campo.style.backgroundColor = '#d4edda'; // Color verde claro para aprobado
+                    break;
+                    
+                case 'rechazada':
+                    authOverlay.innerHTML = `
+                        <div class="auth-overlay-content">
+                            <i class="fas fa-times-circle"></i>
+                            <span>Rechazado</span>
+                        </div>`;
+                    authOverlay.style.backgroundColor = 'rgba(220, 53, 69, 0.2)';
+                    campo.style.backgroundColor = '#f8d7da'; // Color rojo claro para rechazado
+                    break;
+            }
+            
+            // Estilos comunes
+            authOverlay.style.position = 'absolute';
+            authOverlay.style.top = '0';
+            authOverlay.style.left = '0';
+            authOverlay.style.width = '100%';
+            authOverlay.style.height = '100%';
+            authOverlay.style.display = 'flex';
+            authOverlay.style.alignItems = 'center';
+            authOverlay.style.justifyContent = 'center';
+            authOverlay.style.zIndex = '10';
+            authOverlay.style.pointerEvents = 'none'; // Permitir interacción con el campo
+            
+            // Asegurar que el contenedor tenga posición relativa
+            if (campo.parentNode) {
+                campo.parentNode.style.position = 'relative';
+                campo.parentNode.appendChild(authOverlay);
+            }
+            
+            // Guardar el estado en localStorage para persistencia entre recargas
+            const storageKey = `auth-estado-${campoId}-${bitacoraId}`;
+            localStorage.setItem(storageKey, JSON.stringify({
+                estado: estadoAutorizacion,
+                timestamp: new Date().getTime()
+            }));
+        }
+        
+        // Actualizar el objeto de estado global
+        if (!estadosAutorizacion) estadosAutorizacion = {};
+        estadosAutorizacion[campoId] = estadoAutorizacion;
+    }
     // =============================================
     // 6. FUNCIONES DE MANEJO DE MODALES
     // =============================================
@@ -1078,38 +2128,49 @@ status * Script para visualizar campos rechazados, permitir correcciones y guard
      * @param {boolean} esResumen - Indica si se debe mostrar el resumen.
      */
     function abrirModalGeneral(esResumen = false) {
-        if (!observacionesModalGeneralElement) {
-            console.error('Elemento del modal general no encontrado.');
-            mostrarMensaje('Error: No se pudo abrir el modal general.', true);
+        console.log('Abriendo modal general:', { esResumen });
+        
+        const modalElement = document.getElementById('observacionesModalGeneral');
+        if (!modalElement) {
+            console.error('Modal general no encontrado en el DOM');
             return;
         }
+
         if (!observacionesModalGeneralInstance) {
-            observacionesModalGeneralInstance = new bootstrap.Modal(observacionesModalGeneralElement);
+            observacionesModalGeneralInstance = new bootstrap.Modal(modalElement);
         }
 
-        const tituloModal = document.getElementById('observacionesTituloGeneral');
-        const comentarioDiv = document.getElementById('comentarioObservacionGeneral'); // Asumiendo que existe para general
+        // Obtener elementos del modal
+        const tituloElement = modalElement.querySelector('#observacionesTituloGeneral');
+        const textareaElement = modalElement.querySelector('#observacionesTextGeneral');
+        const btnGuardar = modalElement.querySelector('#guardarObservacionesGeneral');
+
+        // Obtener datos generales
+        const datosGenerales = observacionesPorCampo['observacion_general'] || {
+            observacion: '',
+            estado: 'pendiente'
+        };
+
+        console.log('Datos generales:', datosGenerales);
 
         if (esResumen) {
-            if (tituloModal) tituloModal.textContent = 'Resumen de Observaciones';
-            if (comentarioDiv) comentarioDiv.style.display = 'none';
-            if (observacionesTextGeneralElement) {
-                observacionesTextGeneralElement.value = generarTextoResumen();
-                observacionesTextGeneralElement.readOnly = true;
+            // Modo resumen
+            if (tituloElement) tituloElement.textContent = 'Resumen de Observaciones';
+            if (textareaElement) {
+                const resumen = generarTextoResumen();
+                textareaElement.value = resumen;
+                textareaElement.readOnly = true;
             }
-            if (guardarObservacionesGeneralBtn) guardarObservacionesGeneralBtn.style.display = 'none';
-            console.log('Abriendo modal en modo Resumen.');
-
-        } else { // Modo Observación General
-            if (tituloModal) tituloModal.textContent = 'Agregar Observación General';
-            if (comentarioDiv) comentarioDiv.style.display = 'none'; // No aplica comentario previo para general
-            if (observacionesTextGeneralElement) {
-                observacionesTextGeneralElement.value = observacionesPorCampo['observacion_general']?.observacion || '';
-                observacionesTextGeneralElement.readOnly = false;
-                observacionesTextGeneralElement.placeholder = 'Escriba aquí una observación general sobre la bitácora...';
+            if (btnGuardar) btnGuardar.style.display = 'none';
+        } else {
+            // Modo observación general
+            if (tituloElement) tituloElement.textContent = 'Observación General';
+            if (textareaElement) {
+                textareaElement.value = datosGenerales.observacion || '';
+                textareaElement.readOnly = false;
+                textareaElement.placeholder = 'Escriba aquí la observación general...';
             }
-            if (guardarObservacionesGeneralBtn) guardarObservacionesGeneralBtn.style.display = 'inline-block';
-            console.log('Abriendo modal para Observación General.');
+            if (btnGuardar) btnGuardar.style.display = 'block';
         }
 
         observacionesModalGeneralInstance.show();
@@ -1129,41 +2190,56 @@ status * Script para visualizar campos rechazados, permitir correcciones y guard
      * @returns {string} - El texto del resumen.
      */
     function generarTextoResumen() {
-        let resumen = "RESUMEN DE OBSERVACIONES:\n\n";
+        let resumen = "RESUMEN DE OBSERVACIONES PENDIENTES:\n\n";
         let contador = 1;
         let hayObservaciones = false;
 
-        // Observación General
+        // Observación General (solo si no está aprobada)
         const obsGeneral = observacionesPorCampo['observacion_general'];
-        if (obsGeneral && (obsGeneral.observacion || '').trim()) {
-            resumen += `OBSERVACIÓN GENERAL:\n${obsGeneral.observacion.trim()}\n\n`;
+        if (obsGeneral && 
+            obsGeneral.observacion?.trim() && 
+            obsGeneral.estado !== 'aprobado' && 
+            obsGeneral.estado !== 'aprobada') {
+            resumen += "=== OBSERVACIÓN GENERAL ===\n";
+            resumen += `${obsGeneral.observacion.trim()}\n`;
+            resumen += `Estado: ${obsGeneral.estado || 'pendiente'}\n\n`;
             hayObservaciones = true;
         }
 
-        // Observaciones por Campo
+        // Observaciones por Campo (excluyendo los aprobados)
+        resumen += "=== OBSERVACIONES POR CAMPO ===\n";
         for (const [id, datos] of Object.entries(observacionesPorCampo)) {
-            if (id !== 'observacion_general' && (datos.observacion || '').trim()) {
+            if (id !== 'observacion_general' && 
+                datos.observacion?.trim() && 
+                datos.estado !== 'aprobado' && 
+                datos.estado !== 'aprobada') {
+                
                 hayObservaciones = true;
-                const nombreCampo = datos.campo_nombre || id;
-                const valorOriginal = datos.valor_original || '---';
-                const valorActual = datos.valor_actual || valorOriginal; // Mostrar valor actual o el original si no hay actual
-                const observacion = datos.observacion.trim();
-                const estaCorregido = verificarCampoCorregido(id);
-                const estado = estaCorregido ? '(Corregido)' : '(Pendiente)';
-
-                resumen += `${contador}. Campo: "${nombreCampo}" ${estado}\n`;
-                resumen += `   Valor Original: ${valorOriginal}\n`;
-                if (estaCorregido) { // Solo mostrar valor actual si cambió
-                    resumen += `   Valor Corregido: ${valorActual}\n`;
+                
+                // Determinar el estado del campo
+                let estadoTexto;
+                if (datos.estado === 'rechazado') {
+                    estadoTexto = '(Rechazado)';
+                } else if (verificarCampoCorregido(id)) {
+                    estadoTexto = '(Corregido)';
+                } else {
+                    estadoTexto = '(Pendiente)';
                 }
-                resumen += `   Observación: ${observacion}\n\n`;
+
+                resumen += `${contador}. Campo: "${datos.campo_nombre || id}" ${estadoTexto}\n`;
+                resumen += `   Valor Original: ${datos.valor_original || '---'}\n`;
+                if (datos.valor_actual && datos.valor_actual !== datos.valor_original) {
+                    resumen += `   Valor Actual: ${datos.valor_actual}\n`;
+                }
+                resumen += `   Observación: ${datos.observacion.trim()}\n\n`;
                 contador++;
             }
         }
 
         if (!hayObservaciones) {
-            resumen += "No hay observaciones registradas.\n";
+            resumen = "No hay observaciones pendientes.\n";
         }
+
         return resumen;
     }
 
@@ -1309,6 +2385,7 @@ status * Script para visualizar campos rechazados, permitir correcciones y guard
         identificarCamposDelFormulario();
         configurarEventListeners();
         cargarDatosGuardados(); // Carga datos y crea overlays necesarios
+        cargarEstadosAutorizacion();
 
         // Deshabilitar filas al cargar la página
         const filas = document.querySelectorAll('#tabla-body tr');
@@ -1325,6 +2402,57 @@ status * Script para visualizar campos rechazados, permitir correcciones y guard
         console.log('Script inicializado correctamente.');
     }
 
+    // Función para mostrar el modal de filas desbloqueadas
+    function mostrarModalFilasDesbloqueadas(filasDesbloqueadas) {
+        const modalHTML = `
+            <div class="modal fade" id="filasDesbloqueadasModal" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0">
+                        <div class="modal-header bg-success text-white border-0">
+                            <h5 class="modal-title">
+                                <i class="fas fa-unlock-alt me-2"></i>
+                                Filas Desbloqueadas
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body text-center py-4">
+                            <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
+                            <h4 class="fw-bold">Se han desbloqueado ${filasDesbloqueadas.length} filas</h4>
+                            <div class="alert alert-light mt-3">
+                                <p class="mb-2">Filas desbloqueadas:</p>
+                                <ul class="list-group">
+                                    ${filasDesbloqueadas.map(fila => `
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            ${fila}
+                                            <span class="badge bg-success rounded-pill">Desbloqueada</span>
+                                        </li>
+                                    `).join('')}
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="modal-footer border-0 justify-content-center">
+                            <button type="button" class="btn btn-success px-4" data-bs-dismiss="modal">
+                                <i class="fas fa-check me-2"></i>Entendido
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Remover modal anterior si existe
+        const modalAnterior = document.getElementById('filasDesbloqueadasModal');
+        if (modalAnterior) modalAnterior.remove();
+
+        // Agregar nuevo modal al DOM
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        
+        // Mostrar el modal
+        const modalElement = document.getElementById('filasDesbloqueadasModal');
+        const modal = new bootstrap.Modal(modalElement);
+        modal.show();
+    }
+
     // Ejecutar inicialización cuando el DOM esté listo
     document.addEventListener('DOMContentLoaded', inicializar);
 
@@ -1337,5 +2465,35 @@ status * Script para visualizar campos rechazados, permitir correcciones y guard
             observaciones: observacionesPorCampo
         };
     };
+
+    /**
+     * Carga la lista de supervisores en un elemento select.
+     * @param {HTMLSelectElement} selectElement - El elemento select donde se cargarán los supervisores.
+     */
+    async function cargarSupervisores(selectElement) {
+        try {
+            // Obtener supervisores mediante una llamada AJAX
+            const response = await ajaxRequest('/microbiologia/api/usuarios/', 'GET');
+            
+            // Limpiar el select
+            selectElement.innerHTML = '<option value="">Seleccione un supervisor...</option>';
+            
+            // Filtrar solo los supervisores (Jefes de Laboratorio)
+            const supervisores = response.filter(usuario => usuario.rol === 'Jefe de Laboratorio');
+            
+            // Agregar cada supervisor al select
+            supervisores.forEach(supervisor => {
+                const option = document.createElement('option');
+                option.value = supervisor.id;
+                option.textContent = `${supervisor.nombre} ${supervisor.apellido} - ${supervisor.area}`;
+                selectElement.appendChild(option);
+            });
+
+        } catch (error) {
+            console.error('Error al cargar supervisores:', error);
+            mostrarMensaje('Error al cargar lista de supervisores', true);
+            selectElement.innerHTML = '<option value="">Error al cargar supervisores</option>';
+        }
+    }
 
 })(); // Fin de la IIFE

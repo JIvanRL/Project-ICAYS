@@ -3,13 +3,26 @@ import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from django.contrib.auth import get_user_model
+from asgiref.sync import sync_to_async
+from django.core.exceptions import ObjectDoesNotExist
 from .models import Notification
 
 User = get_user_model()
 
 class NotificationConsumer(AsyncWebsocketConsumer):
     async def connect(self):
+        # Verificar autenticación
+        if not self.scope.get('user') or self.scope['user'].is_anonymous:
+            await self.close()
+            return
+            
         self.user_id = self.scope['url_route']['kwargs']['user_id']
+        
+        # Verificar que el usuario solo pueda conectarse a su propio canal
+        if str(self.scope['user'].id_user) != str(self.user_id):
+            await self.close()
+            return
+            
         self.notification_group_name = f'notifications_{self.user_id}'
         
         print(f"[WebSocket] Conectando usuario {self.user_id} al grupo {self.notification_group_name}")
@@ -85,7 +98,8 @@ class NotificationConsumer(AsyncWebsocketConsumer):
                     'message': event.get('message'),
                     'created_at': event.get('created_at'),
                     'url': event.get('url', None),
-                    'extra_data': event.get('extra_data', {})
+                    'extra_data': event.get('extra_data', {}),
+                    'notification_type': event.get('notification_type', 'info')  # Añadir tipo de notificación
                 }
             }
             
@@ -97,15 +111,19 @@ class NotificationConsumer(AsyncWebsocketConsumer):
             # Enviar mensaje de error al cliente
             await self.send(text_data=json.dumps({
                 'type': 'error',
-                'message': 'Error al procesar la notificación'
+                'message': 'Error al procesar la notificación',
+                'error_code': 'NOTIFICATION_SEND_ERROR'
             }))
     
     @database_sync_to_async
     def mark_notification_as_read(self, notification_id):
         try:
-            notification = Notification.objects.get(id_notification=notification_id)
+            notification = Notification.objects.select_for_update().get(
+                id_notification=notification_id,
+                user_id=self.user_id  # Asegurar que la notificación pertenece al usuario
+            )
             notification.is_read = True
             notification.save()
             return True
-        except Notification.DoesNotExist:
+        except ObjectDoesNotExist:
             return False

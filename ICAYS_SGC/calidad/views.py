@@ -40,10 +40,10 @@ def AdminUsers(request):
           Q(last_name__icontains=query) |   # Busca en last_name
           Q(email__icontains=query) |      # Busca en correo
           Q(username__icontains=query)       # Busca en usuario
-          )
+          ).filter(is_staff=False)  # Excluir administradores
     else:
-    # Si no hay término de búsqueda, muestra todos los usuarios
-      usuarios = CustomUser.objects.all()
+    # Si no hay término de búsqueda, muestra todos los usuarios excepto administradores
+      usuarios = CustomUser.objects.filter(is_staff=False)
 
     usuarios = usuarios.select_related('rol_user').only('first_name', 
                                                                 'last_name', 'email', 'username', 'password', 'rol_user__name_rol')

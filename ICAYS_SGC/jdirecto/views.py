@@ -488,25 +488,22 @@ def cambiar_estado(request, bitacora_id):
             logger.debug(f"Bitácora autorizada será enviada al analista creador: {bitacora_actual.nombre_user_destino}")
         
         elif accion == 'rechazar':
-            # Si estamos rechazando, necesitamos un usuario destino
-            usuario_destino_id = request.POST.get('usuario_destino')
-            
-            # Validar que se haya seleccionado un usuario destino
-            if not usuario_destino_id:
-                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                    return JsonResponse({'success': False, 'error': 'Debe seleccionar un usuario destino'}, status=400)
-                messages.error(request, "Debe seleccionar un usuario destino")
-                return redirect('jdirecto:ver_bitacora', bitacora_id=bitacora_id)
-            
+            # Al rechazar, regresamos la bitácora al usuario que la originó
             try:
-                # Obtener el usuario destino
-                usuario_destino = CustomUser.objects.get(id_user=usuario_destino_id)
-                # Actualizar el nombre del usuario destino
-                bitacora_actual.nombre_user_destino = f"{usuario_destino.first_name} {usuario_destino.last_name}"
-            except CustomUser.DoesNotExist:
+                # Obtener el usuario origen directamente de la bitácora principal
+                usuario_origen = bitacora_principal.firma_user
+                if not usuario_origen:
+                    raise ValueError("No se pudo determinar el usuario origen de la bitácora")
+                    
+                # Establecer el nombre del usuario origen como destinatario
+                bitacora_actual.nombre_user_destino = f"{usuario_origen.first_name} {usuario_origen.last_name}"
+                logger.debug(f"Bitácora rechazada será devuelta al usuario origen: {bitacora_actual.nombre_user_destino}")
+                
+            except Exception as e:
+                logger.error(f"Error al obtener usuario origen: {str(e)}")
                 if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                    return JsonResponse({'success': False, 'error': 'El usuario destino seleccionado no existe'}, status=400)
-                messages.error(request, "El usuario destino seleccionado no existe")
+                    return JsonResponse({'success': False, 'error': str(e)}, status=400)
+                messages.error(request, str(e))
                 return redirect('jdirecto:ver_bitacora', bitacora_id=bitacora_id)
         
         # Lógica específica según la acción
@@ -753,7 +750,7 @@ def api_usuarios(request):
         elif request.user.rol_user.name_rol == 'Jefe de Laboratorio' and request.user.id_user:
             # Para Jefes de Laboratorio, mostrar solo Analistas y otros jefes
             usuarios = CustomUser.objects.filter(
-                rol_user__name_rol__in=['Analista de Laboratorio', 'Jefe de Laboratorio']
+                rol_user__name_rol__in=['Jefe de Laboratorio']
             )
         else:
             # Para otros roles, mostrar solo Analistas

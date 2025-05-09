@@ -1,7 +1,14 @@
+/**
+ * Este archivo contiene todas las funciones relacionadas con modales y envío de formularios:
+ * - enviarFormulario()
+ * - enviarFormularioGuardadaARevision()
+ * - enviarFormularioEditadoARevision()
+ * - otros métodos relacionados con modales
+ */
+
 // Load the full build.
 // Variable global para la instancia del modal de error
 let modalErrorInstance = null;
-
 // Función para manejar el modal de error
 function getModalError() {
     if (!modalErrorInstance) {
@@ -336,6 +343,7 @@ function enviarFormularioGuardadaARevision() {
     const bitacoraId = bitacoraEstado ? bitacoraEstado.value : null;
     if (!bitacoraId) {
         console.error('No se pudo obtener el ID de la bitacora actual');
+        mostrarError('No se pudo obtener el ID de la bitácora');
         return;
     }
     console.log('ID de la bitacora actual:', bitacoraId);
@@ -365,16 +373,27 @@ function enviarFormularioGuardadaARevision() {
     // Crear FormData con todos los datos del formulario
     const formData = new FormData(formPrincipal);
     
+    // Obtener datos de la tabla
+    const datosTabla = recolectarDatosTabla();
+    
     // Agregar datos adicionales necesarios para el envío
     formData.append('accion', 'enviar');
     formData.append('usuario_destino', usuarioDestino);
     formData.append('password', password);
     formData.append('csrfmiddlewaretoken', getCookie('csrftoken'));
+    
+    // Agregar datos de la tabla
+    Object.keys(datosTabla).forEach(key => {
+        formData.append(key, JSON.stringify(datosTabla[key]));
+    });
+    formData.append('num_filas', datosTabla.num_filas);
 
     // Debug: Mostrar todos los datos que se van a enviar
     console.log('Enviando formulario con los siguientes datos:');
     for (let [key, value] of formData.entries()) {
-        console.log(`${key}: ${value}`);
+        if (key !== 'password') { // No mostrar la contraseña en la consola
+            console.log(`${key}: ${value}`);
+        }
     }
 
     $.ajax({
@@ -671,13 +690,35 @@ function guardarFormularioEditado() {
     return false;
 }
 
-// Función para abrir el modal de firma
+
+// Función para abrir el modal de firma con validación previa
 function abrirModalFirma() {
-    $('#enviar').modal('hide');
-    $('#password').val(''); // Limpiar contraseña anterior
-    $('#error-message').hide(); // Ocultar mensajes de error previos
-    $('#firmar').modal('show');
+    // Verificar si la bitácora está vacía
+    if (esBitacoraVacia()) {
+        mostrarError('Esta bitácora está vacía. No se puede enviar una bitácora sin datos.');
+        return false;
+    }
+    
+    // Importar y verificar diferencias antes de mostrar el modal
+    import('./events-bita131.js').then(module => {
+        const diferenciasFueraDeRango = module.validarDiferenciasEntreDuplicados();
+        if (diferenciasFueraDeRango) {
+            // Si hay diferencias fuera de rango, no mostrar el modal de firma
+            console.log('Se encontraron diferencias fuera de rango. No se puede continuar.');
+            return;
+        }
+        
+        // Si no hay diferencias fuera de rango, continuar con la apertura del modal
+        $('#enviar').modal('hide');
+        $('#password').val(''); // Limpiar contraseña anterior
+        $('#error-message').hide(); // Ocultar mensajes de error previos
+        $('#firmar').modal('show');
+    }).catch(error => {
+        console.error('Error al validar diferencias:', error);
+        mostrarError('Error al validar las diferencias entre duplicados. Por favor, intente nuevamente.');
+    });
 }
+
 // Función para verificar si la bitácora está completamente vacía
 function esBitacoraVacia() {
     // Verificar campos principales del formulario
@@ -729,34 +770,3 @@ window.guardarFormularioEditado = guardarFormularioEditado;
 window.guardarFormularioEditadoParaMas = guardarFormularioEditadoParaMas;
 window.esBitacoraVacia = esBitacoraVacia;
 window.enviarFormularioEditadoARevision = enviarFormularioEditadoARevision;
-
-// Inicialización con jQuery
-$(document).ready(function() {
-    // Limpiar UI al cargar
-    limpiarUI();
-    
-    // Botón de depuración opcional
-    const debugButton = $('<button></button>') // Crear un botón
-        .text('Forzar limpieza UI')
-        .css({
-            'position': 'fixed',
-            'bottom': '10px',
-            'right': '10px',
-            'z-index': '9999',
-            'display': 'none' // Cambia a 'block' para mostrar
-        })
-        .click(limpiarUI);
-    
-    $('body').append(debugButton);
-    
-    // Manejadores de botones (opcional)
-    $('#btn-guardar').click(guardarFormulario);
-    $('#btn-enviar').click(enviarFormulario);
-    
-    // Consejo de depuración
-    console.log('Script inicializado correctamente');
-});
-
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM listo - Formularios preparados para su uso');
-});

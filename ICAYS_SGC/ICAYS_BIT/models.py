@@ -547,11 +547,21 @@ class Lecturas(models.Model):
 # Añadir esto a tu archivo models.py
 
 class Notification(models.Model):
+    NOTIFICATION_TYPES = (
+        ('general', 'General'),
+        ('revision', 'Revisión'),
+        ('autorizacion', 'Autorización'),
+        ('rechazo', 'Rechazo'),
+        ('edicion', 'Edición'),
+    )
+    
     id_notification = models.AutoField(primary_key=True, db_column='id_notification')
     message = models.CharField(max_length=255, db_column='message')
     is_read = models.BooleanField(default=False, db_column='is_read')
     created_at = models.DateTimeField(auto_now_add=True, db_column='created_at')
-    type = models.CharField(max_length=50, default='general', db_column='type')  # Nuevo campo
+    type = models.CharField(max_length=50, choices=NOTIFICATION_TYPES, default='general', db_column='type')
+    url = models.CharField(max_length=255, null=True, blank=True, db_column='url')
+    priority = models.IntegerField(default=0, db_column='priority')
     recipient = models.ForeignKey(
         'CustomUser',
         on_delete=models.CASCADE,
@@ -581,6 +591,20 @@ class Notification(models.Model):
     
     def __str__(self):
         return f"Notification {self.id_notification} for {self.recipient}"
+    
+    def mark_as_read(self):
+        self.is_read = True
+        self.save()
+    
+    def get_notification_data(self):
+        return {
+            'id': self.id_notification,
+            'message': self.message,
+            'type': self.type,
+            'created_at': self.created_at.isoformat(),
+            'url': self.url,
+            'is_read': self.is_read
+        }
 
 ##############################
 # Tabla de suscripciones push#
@@ -606,6 +630,21 @@ class PushSubscription(models.Model):
     
     def __str__(self):
         return f"Push Subscription for {self.user.username} ({self.endpoint[:30]}...)"
+    
+    def get_subscription_info(self):
+        return {
+            'endpoint': self.endpoint,
+            'keys': {
+                'p256dh': self.p256dh,
+                'auth': self.auth
+            }
+        }
+    
+    def update_subscription(self, endpoint, p256dh, auth):
+        self.endpoint = endpoint
+        self.p256dh = p256dh
+        self.auth = auth
+        self.save()
     
 
 class SolicitudAutorizacion(models.Model):

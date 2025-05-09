@@ -671,9 +671,9 @@
                                 <thead>
                                     <tr>
                                         <th style="width: 20%;">Observaciones</th>
-                                        <th>Ejemplo de calculo de resultado</th>
-                                        <th>Ejemplo de canculo de resultado de superficies vivas e inertes</th>
-                                        <th>Ejemplo de calculo diferencia entre duplicados</th>
+                                        <th>Ejemplo de cálculo de resultado</th>
+                                        <th>Ejemplo de cálculo de resultado de superficies vivas e inertes</th>
+                                        <th>Ejemplo de cálculo diferencia entre duplicados</th>
                                         <th style="width: 8%;">Elaboró</th>
                                         <th style="width: 8%;">Revisó</th>
                                         <th style="width: 8%;">Autorizó</th>
@@ -681,9 +681,11 @@
                                 </thead>
                                 <tbody>
                                     <tr>
-                                        <td >
-                                            <div class="d-flex flex-column align-items-center">
-                                                <textarea name="observaciones_cbap" class="form-control" rows="3" style="width: 100%; resize: none;" placeholder="Escriba sus observaciones aquí..." >{{ bitacora.observaciones_cbap|default:'---' }}</textarea>
+                                        <td>
+                                            <div class="d-flex flex-column w-100">
+                                                <textarea name="observaciones_cbap" class="form-control" rows="3" 
+                                                    style="width: 100%; resize: none;" 
+                                                    placeholder="Escriba sus observaciones aquí...">{{ bitacora.observaciones_cbap|default:'---' }}</textarea>
                                             </div>
                                         </td>
                                         
@@ -820,41 +822,40 @@
     </div>
 </td>
 {% endif %}
-                                        <td>
+                                        <td class="align-middle">
                                             <div class="d-flex flex-column align-items-center">
                                                 {% if bitacora.firma_user.signature_user %}
                                                 <span>{{ bitacora.firma_user.signature_user }}</span>
                                                 {% endif %}
-                                                <hr class="w-100 mt-3">
-                                                <span>Firma</span>
+                                                <hr class="w-100 mt-3 mb-1">
+                                                <small>Firma</small>
                                             </div>
                                         </td>
-                                        <td>
+                                        <td class="align-middle">
                                             <div class="d-flex flex-column align-items-center">
-                                                {% if registro  %}
+                                                {% if registro %}
                                                     {% if registro.firma_revisor and registro.firma_revisor.signature_user %}
                                                     <span>{{ registro.firma_revisor.signature_user }}</span>
                                                     {% endif %}                                                   
                                                 {% else %}                                                    
-                                                    <span class="text-muted small">Pendiente de revisión</span>
+                                                    <small class="text-muted">Pendiente de revisión</small>
                                                 {% endif %}
-                                                <hr class="w-100 mt-3">
-                                                <span>Firma</span>
+                                                <hr class="w-100 mt-3 mb-1">
+                                                <small>Firma</small>
                                             </div>
                                         </td>
-                                        <td>
-                                            <!-- Firma de quien autorizó la bitácora -->
-                                        <div class="d-flex flex-column align-items-center">
-                                            {% if registro  %}
-                                                {% if registro.firma_autorizador and registro.firma_autorizador.signature_user %}
-                                                <span>{{ registro.firma_autorizador.signature_user }}</span>
-                                                {% endif %}                                                
-                                            {% else %}                                                
-                                                <span class="text-muted small">Pendiente de autorización</span>
-                                            {% endif %}
-                                            <hr class="w-100 mt-3">
-                                                <span>Firma</span>  
-                                        </div>
+                                        <td class="align-middle">
+                                            <div class="d-flex flex-column align-items-center">
+                                                {% if registro %}
+                                                    {% if registro.firma_autorizador and registro.firma_autorizador.signature_user %}
+                                                    <span>{{ registro.firma_autorizador.signature_user }}</span>
+                                                    {% endif %}                                                
+                                                {% else %}                                                
+                                                    <small class="text-muted">Pendiente de autorización</small>
+                                                {% endif %}
+                                                <hr class="w-100 mt-3 mb-1">
+                                                <small>Firma</small>
+                                            </div>
                                         </td>
                                         
                                     </tr>
@@ -874,7 +875,7 @@
                     <button type="button" class="btn-close position-absolute end-0 me-3" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body text-muted text-center">
-                        Porfavor antes de enviar asegurese que todo este correcto.
+                        Por favor, antes de enviar asegúrese que todo esté correcto.
                     </div>
                     <div class="modal-footer justify-content-center">
                     <button type="button" class="btn btn-danger me-2" data-bs-dismiss="modal">Cancelar</button>
@@ -965,7 +966,7 @@
                 <div class="modal-header bg-danger text-white">
                     <h5 class="modal-title" id="mensajeExitoLabel">
                         <i class="bi bi-check-circle me-2"></i>
-                        Error al guardar bitacora
+                        Error al guardar bitácora
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>

@@ -10,7 +10,9 @@ from django.db import transaction
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
-from .models import ClaveMuestraCbap, ControlCalidad, Dilucion, DilucionesEmpleadas, Direct_o_Dilucion, Resultado, VerificacionBalanza, bita_cbap, Bitcoras_Cbap, CustomUser, ObservacionCampo
+from django.db.models import Q  # Agregar esta importación para Q objects
+import traceback  # Agregar esta importación para traceback
+from .models import ClaveMuestraCbap, ControlCalidad, Dilucion, DilucionesEmpleadas, Direct_o_Dilucion, Resultado, VerificacionBalanza, bita_cbap, Bitcoras_Cbap, CustomUser, ObservacionCampo, SolicitudAutorizacion, Notification
 from .forms import (
     DilucionesEmpleadasForm, DirectODilucionForm, DilucionForm,
     ControlCalidadForm, VerificacionBalanzaForm, DatosCampoCbapForm,
@@ -842,11 +844,13 @@ def obtener_campos_observaciones(request, bitacora_id):
                 'id': obs.id_valor_editado,
                 'campo_id': obs.campo_id,
                 'campo_nombre': obs.campo_nombre,
-                'valor_original': obs.valor_original,
+                'valor_original': obs.valor_original if obs.valor_original != '---' else '',
+                'valor_actual': obs.valor_actual if obs.valor_actual else obs.valor_original,  # Si no hay valor actual, usar el original
                 'campo_tipo': obs.campo_tipo,
                 'observacion': obs.observacion,
                 'fecha_edicion': obs.fecha_edicion.strftime('%Y-%m-%d %H:%M:%S') if obs.fecha_edicion else '',
-                'editado_por': f"{obs.editado_por.first_name} {obs.editado_por.last_name}" if obs.editado_por else ''
+                'editado_por': f"{obs.editado_por.first_name} {obs.editado_por.last_name}" if obs.editado_por else '',
+                'estado': obs.estado or 'pendiente'  # Añadimos el estado, default 'pendiente'
             })
         
         return JsonResponse({
@@ -2933,12 +2937,14 @@ def guardar_campos_corregidos(request):
                 logger.debug(f"Bitácora encontrada con id_bita_cbap={bitacora_id}")
             except Bitcoras_Cbap.DoesNotExist:
                 try:
+                    # Implementar búsqueda alternativa
                     bitacora = Bitcoras_Cbap.objects.get(nombre_bita_cbap__id_cbap=bitacora_id)
                     logger.debug(f"Bitácora encontrada con nombre_bita_cbap__id_cbap={bitacora_id}")
                 except Bitcoras_Cbap.DoesNotExist:
-                    # Última opción: buscar por id_cbap
-                    bitacora = Bitcoras_Cbap.objects.get(id_cbap=bitacora_id)
-                    logger.debug(f"Bitácora encontrada con id_cbap={bitacora_id}")
+                    return JsonResponse({
+                        'success': False,
+                        'message': 'Bitácora no encontrada'
+                    }, status=404)
             
             # Verificar si ya existe una observación para este campo
             try:
@@ -2947,47 +2953,16 @@ def guardar_campos_corregidos(request):
                     campo_id=campo_id
                 )
                 
-                # Si el valor ha cambiado, actualizar SOLO el valor actual
                 if valor_actual != observacion_existente.valor_actual:
-                    # Actualizar el valor actual, manteniendo el original intacto
+                    # Actualizar el valor actual
                     observacion_existente.valor_actual = valor_actual
-                    
-                    # Actualizar el estado a 'editado'
-                    observacion_existente.estado = 'editado'
-                    
-                    # Actualizar el usuario que realizó la edición
-                    observacion_existente.editado_por = request.user
-                    
-                    # Actualizar historial y contador si se proporcionan
-                    if historial_ediciones:
-                        observacion_existente.historial_ediciones = historial_ediciones
-                    
-                    if contador_ediciones > 0:
-                        observacion_existente.contador_ediciones = contador_ediciones
-                    
-                    # Guardar los cambios - esto activará el método save() personalizado
                     observacion_existente.save()
-                    
-                    logger.info(f"Campo {campo_id} corregido en bitácora {bitacora_id} por {request.user}")
-                    return JsonResponse({
-                        'success': True,
-                        'message': 'Campo corregido correctamente',
-                        'id': observacion_existente.id_valor_editado,
-                        'historial': observacion_existente.historial_ediciones,
-                        'contador': observacion_existente.contador_ediciones
-                    })
                 else:
-                    # El valor no ha cambiado
-                    return JsonResponse({
-                        'success': True,
-                        'message': 'No se detectaron cambios en el valor del campo',
-                        'id': observacion_existente.id_valor_editado,
-                        'historial': observacion_existente.historial_ediciones,
-                        'contador': observacion_existente.contador_ediciones
-                    })
+                    logger.debug("El valor no ha cambiado, no se requiere actualización")
+                
             except ObservacionCampo.DoesNotExist:
                 # Crear una nueva observación
-                nueva_observacion = ObservacionCampo(
+                ObservacionCampo.objects.create(
                     bitacora=bitacora,
                     campo_id=campo_id,
                     campo_nombre=campo_nombre,
@@ -2995,24 +2970,14 @@ def guardar_campos_corregidos(request):
                     valor_actual=valor_actual,
                     campo_tipo=campo_tipo,
                     observacion=observacion,
-                    editado_por=request.user,
-                    estado='editado',
-                    historial_ediciones=historial_ediciones,
-                    contador_ediciones=contador_ediciones
+                    editado_por=request.user
                 )
-                
-                # Guardar la nueva observación - esto activará el método save() personalizado
-                nueva_observacion.save()
-                
-                logger.info(f"Nueva observación creada para campo {campo_id} en bitácora {bitacora_id} por {request.user}")
-                return JsonResponse({
-                    'success': True,
-                    'message': 'Observación creada correctamente',
-                    'id': nueva_observacion.id_valor_editado,
-                    'historial': nueva_observacion.historial_ediciones,
-                    'contador': nueva_observacion.contador_ediciones
-                })
-                
+
+            return JsonResponse({
+                'success': True,
+                'message': 'Campo corregido correctamente'
+            })
+        
         except Bitcoras_Cbap.DoesNotExist:
             logger.error(f"Bitácora no encontrada con ID: {bitacora_id}")
             return JsonResponse({
@@ -3027,4 +2992,200 @@ def guardar_campos_corregidos(request):
         return JsonResponse({
             'success': False,
             'message': f'Error al guardar el campo corregido: {str(e)}'
+        }, status=500)
+
+@login_required
+@require_POST
+def solicitar_autorizacion_api(request, bitacora_id=None):
+    try:
+        bitacora_id = bitacora_id or request.POST.get('bitacora_id')
+        if not bitacora_id:
+            return JsonResponse({
+                'success': False,
+                'message': 'ID de bitácora no proporcionado',
+            }, status=400)
+
+        bitacora = Bitcoras_Cbap.objects.select_related('nombre_bita_cbap').get(
+            nombre_bita_cbap__id_cbap=bitacora_id
+        )
+
+        campo_id = request.POST.get('campo_id')
+        campo_nombre = request.POST.get('campo_nombre')
+        valor_actual = request.POST.get('valor_actual')
+        solicitante_id = request.POST.get('solicitante_id')
+
+        if not all([campo_id, solicitante_id]):
+            return JsonResponse({
+                'success': False,
+                'message': 'Faltan campos requeridos',
+            }, status=400)
+
+        solicitante = CustomUser.objects.get(id_user=solicitante_id)
+        supervisor = CustomUser.objects.filter(
+            rol_user__name_rol='Jefe de Laboratorio',
+            area_user=solicitante.area_user
+        ).first()
+
+        if not supervisor:
+            return JsonResponse({
+                'success': False,
+                'message': 'No se encontró supervisor'
+            }, status=400)
+
+        # Verificar si existe solicitud previa rechazada
+        solicitud_existente = SolicitudAutorizacion.objects.filter(
+            bitacora=bitacora,
+            campo_id=campo_id,
+            solicitante=solicitante
+        ).order_by('-fecha_solicitud').first()
+
+        # Crear nueva solicitud (independientemente de si existía una rechazada)
+        solicitud = SolicitudAutorizacion.objects.create(
+            bitacora=bitacora,
+            campo_id=campo_id,
+            campo_nombre=campo_nombre,
+            valor_actual=valor_actual,
+            solicitante=solicitante,
+            supervisor=supervisor,
+            estado='pendiente'
+        )
+
+        # Crear notificación
+        Notification.objects.create(
+            recipient=supervisor,
+            message=f'Nueva solicitud de {solicitante.first_name} para {campo_nombre}',
+            type='autorizacion',  # Usando el tipo correcto según el modelo Notification
+            related_bitacora=bitacora,
+            url=f'/microbiologia/solicitudes-autorizacion/{solicitud.id_solicitud}/'  # Añadiendo URL para la notificación
+        )
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Solicitud creada',
+            'solicitud_id': solicitud.id_solicitud,
+            'estado': solicitud.estado
+        })
+
+    except Exception as e:
+        logger.error(f"Error: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'message': f'Error: {str(e)}'
+        }, status=500)
+
+def obtener_autorizaciones(request, bitacora_id):
+    """
+    Vista para obtener datos de autorización de una bitácora específica.
+    """
+    try:
+        if not bitacora_id:
+            return JsonResponse({
+                'success': False,
+                'message': 'ID de bitácora no proporcionado'
+            }, status=400)
+
+        # Obtener la bitácora
+        bitacora = Bitcoras_Cbap.objects.get(id_bita_cbap=bitacora_id)
+        
+        # Obtener datos de autorización
+        autorizacion = SolicitudAutorizacion.objects.filter(bitacora=bitacora).first()
+        
+        if not autorizacion:
+            return JsonResponse({
+                'success': True,
+                'solicitud': None,
+                'message': 'No se encontró autorización para esta bitácora'
+            })
+
+        # Devolver datos en el formato que espera la función JavaScript
+        return JsonResponse({
+            'success': True,
+            'solicitud': {
+                'solicitante': f"{autorizacion.solicitante.first_name} {autorizacion.solicitante.last_name}",
+                'supervisor': f"{autorizacion.supervisor.first_name} {autorizacion.supervisor.last_name}",
+                'estado': autorizacion.estado,
+                'fecha_solicitud': autorizacion.fecha_creacion.isoformat(),
+            },
+            'message': 'Datos de autorización obtenidos correctamente'
+        })
+
+    except Bitcoras_Cbap.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'message': 'Bitácora no encontrada'
+        }, status=404)
+    except Exception as e:
+        logger.error(f"Error al obtener datos de autorización: {str(e)}")
+        import traceback
+        logger.error(traceback.format_exc())
+        return JsonResponse({
+            'success': False,
+            'message': f'Error al obtener datos de autorización: {str(e)}'
+        }, status=500)
+
+@login_required
+@role_required('Analista de Laboratorio')
+def preparacionSolucionesMediosCultivo(request):
+  return render(request, 'FP-179.html')
+
+@login_required
+@role_required('Analista de Laboratorio')
+def ControlMedioAmbiente(request):
+  return render(request, 'FP-173.html')
+
+@login_required
+@require_POST
+def verificar_solicitud_existente(request):
+    try:
+        campo_id = request.POST.get('campo_id')
+        bitacora_id = request.POST.get('bitacora_id')
+        
+        logger.debug(f"Verificando solicitud para campo {campo_id} en bitácora {bitacora_id}")
+
+        # Obtener la bitácora
+        bitacora = Bitcoras_Cbap.objects.get(nombre_bita_cbap__id_cbap=bitacora_id)
+        
+        # Buscar solicitud existente (CORRECCIÓN: usar fecha_solicitud)
+        solicitud = SolicitudAutorizacion.objects.select_related(
+            'supervisor', 'solicitante'
+        ).filter(
+            bitacora=bitacora,
+            campo_id=campo_id
+        ).order_by('-fecha_solicitud').first()  # ✅ Ordenar por fecha_solicitud
+
+        if not solicitud:
+            return JsonResponse({
+                'exists': False,
+                'estado': None,
+                'data': None
+            })
+
+        # Si existe una solicitud, devolver sus datos (CORRECCIÓN: usar fecha_solicitud)
+        data = {
+            'exists': True,
+            'estado': solicitud.estado,
+            'data': {
+                'supervisor_nombre': f"{solicitud.supervisor.first_name} {solicitud.supervisor.last_name}",
+                'fecha_solicitud': solicitud.fecha_solicitud.isoformat(),  # ✅ Campo correcto
+                #'fecha_aprobacion': solicitud.fecha_aprobacion.isoformat() if solicitud.fecha_aprobacion else None,
+                'valor_actual': solicitud.valor_actual,
+                'campo_nombre': solicitud.campo_nombre,
+                'campo_id': solicitud.campo_id,
+                'solicitante_nombre': f"{solicitud.solicitante.first_name} {solicitud.solicitante.last_name}"
+            }
+        }
+
+        return JsonResponse(data)
+
+    except Bitcoras_Cbap.DoesNotExist:
+        return JsonResponse({
+            'exists': False,
+            'message': 'Bitácora no encontrada'
+        }, status=404)
+    except Exception as e:
+        logger.error(f"Error al verificar solicitud: {str(e)}")
+        logger.error(traceback.format_exc())
+        return JsonResponse({
+            'exists': False,
+            'message': f'Error: {str(e)}'
         }, status=500)

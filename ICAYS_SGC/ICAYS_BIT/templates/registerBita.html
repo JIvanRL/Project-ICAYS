@@ -6,6 +6,7 @@
         {% csrf_token %}
         <input type="hidden" id="usuario_id_actual" value="{{ request.user.id_user }}">
         <input type="hidden" id="estado_bitacora" name="estado_bitacora" value="guardada">
+        <input type="hidden" id="bitacora_id" value="{{ bitacora.id_cbap }}"> <!-- ID de la bitácora actual -->
         <div class="d-flex flex-wrap justify-content-between align-items-center">
             <!-- Botón "Regresar" alineado a la izquierda -->
             <button class="icon-container button-style custom-button mb-2" type="button" data-url="{% url 'microalimentos:BitacorasAnaliticas' %}">Regresar</button>
@@ -72,32 +73,59 @@
             <div class="container-fluid">
                 <div class="card card-body">
                     <div class="row justify-content-center"> <!-- Centrar las tarjetas horizontalmente -->
-                        <!-- Primera tarjeta -->
+                       <!-- Primera tarjeta -->
                         <div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4 col-xxl-4 mb-3">
                             <div class="card h-100 shadow-sm"> <!-- Añadí sombra y altura fija -->
                                 <div class="card-body">
                                     <div class="row g-2"> <!-- Reducir el espacio entre filas -->
-                                        <!-- Fecha, Hora, Procedimiento y Equipo de incubación -->
-                                        <div class="col-12 col-md-6">
-                                            <div class="form-floating">
-                                                <input type="date" class="form-control form-control-sm" id="fecha_siembra" name="fecha_siembra" placeholder="Fecha" required>
-                                                <label for="fecha_siembra">Fecha de siembra</label>
+                                        <div class="col-12 d-flex justify-content-between align-items-center mb-3"> 
+                                            <div>
+                                                <button type="button" id="date_campo" class="btn btn-sm btn-primary me-3" title="Agregar fecha">
+                                                    <i class="bi bi-plus-circle"></i> Fecha
+                                                </button>                                                
                                             </div>
-                                        </div>
-                                        <div class="col-12 col-md-6 center">
-                                            <div class="form-floating">
-                                                <input type="time" class="form-control form-control-sm" id="hora_siembra" name="hora_siembra" placeholder="Hora" required>
-                                                <label for="hora_siembra">Hora de siembra</label>
+                                            <div>
+                                                <button type="button" id="horaS_campo" class="btn btn-sm btn-primary me-3" title="Agregar hora">
+                                                    <i class="bi bi-plus-circle"></i> Hora Si.
+                                                </button>
+                                            </div>
+                                            <div>
+                                                <button type="button" id="horaI-campo" class="btn btn-sm btn-primary" title="Agregar hora">
+                                                    <i class="bi bi-plus-circle"></i> Hora Inc.
+                                                </button>
                                             </div>
                                         </div>
                                         
-                                       
-                                        <div class="col-12 col-md-6">
-                                            <div class="form-floating">
+                                        <!-- Contenedor para fechas de siembra -->
+                                        <div id="contenedor-fechas" class="col-12">
+                                            <!-- Fecha de siembra (siempre visible) -->
+                                            <div class="form-floating mb-3">
+                                                <input type="date" class="form-control form-control-sm" id="fecha_siembra" name="fecha_siembra" placeholder="Fecha" required>
+                                                <label for="fecha_siembra">Fecha de siembra</label>
+                                            </div>
+                                            <!-- Aquí se agregarán dinámicamente más fechas -->
+                                        </div>
+                                        
+                                        <!-- Contenedor para horas de siembra -->
+                                        <div id="contenedor-horas-siembra" class="col-12">
+                                            <!-- Hora de siembra (siempre visible) -->
+                                            <div class="form-floating mb-3">
+                                                <input type="time" class="form-control form-control-sm" id="hora_siembra" name="hora_siembra" placeholder="Hora" required>
+                                                <label for="hora_siembra">Hora de siembra</label>
+                                            </div>
+                                            <!-- Aquí se agregarán dinámicamente más horas de siembra -->
+                                        </div>
+                                        
+                                        <!-- Contenedor para horas de incubación -->
+                                        <div id="contenedor-horas-incubacion" class="col-12">
+                                            <!-- Hora de incubación (siempre visible) -->
+                                            <div class="form-floating mb-3">
                                                 <input type="time" class="form-control form-control-sm" id="hora_incubacion" name="hora_incubacion" placeholder="Hora" required>
                                                 <label for="hora_incubacion">Hora de incubación</label>
                                             </div>
+                                            <!-- Aquí se agregarán dinámicamente más horas de incubación -->
                                         </div>
+                                        
                                         <div class="col-12 col-md-6">
                                             <div class="form-floating">
                                                 <input type="text" class="form-control form-control-sm" id="procedimiento" name="procedimiento" placeholder="LAI-04M2" value="LAI-04M2" readonly >
@@ -176,37 +204,56 @@
                         </div>
                         <!-- Tercera tarjeta -->
                         <div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4 col-xxl-4 mb-3">
-                            <div class="card h-100 shadow-sm"> <!-- Añadí sombra y altura fija -->
+                            <div class="card h-100 shadow-sm">
                                 <div class="card-body">
-                                    <div class="row g-2"> <!-- Reducir el espacio entre filas -->
-                                        <h2 class="card-title">Fecha y hora de lecturas</h2>
-                                        <!-- Fecha, Hora, Procedimiento y Equipo de incubación -->
-                                        <div class="col-12 col-md-6">
-                                            <div class="form-floating">
+                                    <div class="row g-2">
+                                        <div class="col-12 d-flex justify-content-between align-items-center mb-3">
+                                            <h2 class="card-title mb-0">Fecha y hora de lecturas</h2>
+                                            <div>
+                                                <button type="button" id="date_campo_lectura" class="btn btn-sm btn-primary me-3" title="Agregar fecha">
+                                                    <i class="bi bi-plus-circle"></i> Fecha
+                                                </button>                                                
+                                            </div>
+                                            <div>
+                                                <button type="button" id="hora_campo_lectura" class="btn btn-sm btn-primary" title="Agregar hora">
+                                                    <i class="bi bi-plus-circle"></i> Hora
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <!-- Contenedor para fechas de lectura -->
+                                        <div id="contenedor-fechas-lectura" class="col-12 col-md-6">
+                                            <!-- Fecha 1 (siempre visible) -->
+                                            <div class="form-floating mb-3">
                                                 <input type="date" class="form-control form-control-sm" id="fecha_lectura_1" name="fecha_lectura_1" placeholder="Fecha" required>
                                                 <label for="fecha_lectura_1">Fecha de lectura 1</label>
                                             </div>
-                                        </div>
-                                        <div class="col-12 col-md-6">
-                                            <div class="form-floating">
-                                                <input type="date" class="form-control form-control-sm" id="floatingInput" name="fecha_lectura_2" placeholder="Fecha" >
-                                                <label for="hora_lectura_2">Fecha de lectura 2</label>
+                                            
+                                            <!-- Fecha 2 (siempre visible) -->
+                                            <div class="form-floating mb-3">
+                                                <input type="date" class="form-control form-control-sm" id="fecha_lectura_2" name="fecha_lectura_2" placeholder="Fecha">
+                                                <label for="fecha_lectura_2">Fecha de lectura 2</label>
                                             </div>
+                                            
+                                            <!-- Aquí se agregarán dinámicamente más fechas -->
                                         </div>
-                                        <div class="col-12 col-md-6 center">
-                                            <div class="form-floating">
+
+                                        <!-- Contenedor para horas de lectura -->
+                                        <div id="contenedor-horas-lectura" class="col-12 col-md-6">
+                                            <!-- Hora 1 (siempre visible) -->
+                                            <div class="form-floating mb-3">
                                                 <input type="time" class="form-control form-control-sm" id="hora_lectura_1" name="hora_lectura_1" placeholder="Hora" required>
                                                 <label for="hora_lectura_1">Hora de lectura 1</label>
                                             </div>
-                                        </div>
-                                        
-                                        <div class="col-12 col-md-6 center">
-                                            <div class="form-floating">
+                                            
+                                            <!-- Hora 2 (siempre visible) -->
+                                            <div class="form-floating mb-3">
                                                 <input type="time" class="form-control form-control-sm" id="hora_lectura_2" name="hora_lectura_2" placeholder="Hora">
-                                                <label for="hora_lectura_1">Hora de lectura 2</label>
+                                                <label for="hora_lectura_2">Hora de lectura 2</label>
                                             </div>
+                                            
+                                            <!-- Aquí se agregarán dinámicamente más horas -->
                                         </div>
-                                        
                                     </div>
                                 </div>
                             </div>
@@ -984,8 +1031,7 @@
 {% endblock %}
 {% block extra_js %}
     <script type="module" src="{% static 'js/events-bita131.js' %}"></script>
+    <script src="{% static 'js/crear_fechaYhoras.js' %}"></script>
     <script src="{% static 'js/functions.js' %}"></script>
     <script src="{% static 'js/tomos.js' %}"></script>
-   
-    
 {% endblock %}

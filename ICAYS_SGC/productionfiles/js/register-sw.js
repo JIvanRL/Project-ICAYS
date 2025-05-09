@@ -3,33 +3,42 @@
 // En register-sw.js
 // En tu archivo register-sw.js
 document.addEventListener('DOMContentLoaded', function() {
- // Este código debe estar en tu archivo principal de JavaScript
-if ('serviceWorker' in navigator && 'PushManager' in window) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/service-worker.js', { scope: '/' })
-      .then(registration => {
-        console.log('Service Worker registrado con éxito:', registration);
-        
-        // Verificar si ya tenemos permiso para notificaciones
-        if (Notification.permission === 'granted') {
-          console.log('Ya tenemos permiso para notificaciones');
-          subscribeToPushNotifications(registration);
-        } else if (Notification.permission !== 'denied') {
-          // Solicitar permiso
-          Notification.requestPermission().then(permission => {
-            if (permission === 'granted') {
-              console.log('Permiso para notificaciones concedido');
-              subscribeToPushNotifications(registration);
-            }
-          });
-        }
-      })
-      .catch(error => {
-        console.error('Error al registrar el Service Worker:', error);
-      });
+  if ('serviceWorker' in navigator && 'PushManager' in window) {
+    // Evitar registro duplicado verificando si ya existe
+    navigator.serviceWorker.getRegistration().then(registration => {
+      if (!registration) {
+        registerServiceWorker();
+      } else {
+        console.log('Service Worker ya está registrado:', registration);
+        checkNotificationPermission(registration);
+      }
+    });
+  } else {
+    console.warn('Las notificaciones push no están soportadas');
+    showNotSupportedMessage();
+  }
+});
+
+function registerServiceWorker() {
+  navigator.serviceWorker.register('/static/js/service-worker.js', { 
+    scope: '/' 
+  })
+  .then(registration => {
+    console.log('Service Worker registrado con éxito:', registration);
+    checkNotificationPermission(registration);
+  })
+  .catch(error => {
+    console.error('Error al registrar el Service Worker:', error);
   });
 }
-});
+
+function checkNotificationPermission(registration) {
+  if (Notification.permission === 'granted') {
+    subscribeToPushNotifications(registration);
+  } else if (Notification.permission !== 'denied') {
+    showRequestPermissionButton();
+  }
+}
 
 // Función para mostrar botón de solicitud de permiso
 function showRequestPermissionButton() {
@@ -197,6 +206,7 @@ function subscribeToPushNotifications(registration) {
       console.error('Error al suscribirse a notificaciones push:', error);
     });
 }
+
 // Función para enviar la suscripción al servidor
 function sendSubscriptionToServer(subscription) {
   const csrfToken = getCookie('csrftoken');

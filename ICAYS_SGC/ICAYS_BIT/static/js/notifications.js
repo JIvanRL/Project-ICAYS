@@ -38,16 +38,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Función para conectar al WebSocket
 function connectWebSocket(userId) {
-    // Determinar el protocolo WebSocket correcto (ws:// o wss://)
-    const protocol = window.location.protocol === 'http:' ? 'wss://' : 'ws://';
+    const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
     const host = window.location.host;
     const wsUrl = `${protocol}${host}/notifications/${userId}/`;
     
     console.log('Intentando conectar a WebSocket en:', wsUrl);
     
     // Crear conexión WebSocket
-   
-    console.log('Intentando conectar a WebSocket en:', wsUrl);
+    const socket = new WebSocket(wsUrl);
+    
+    let reconnectAttempts = 0;
+    const maxReconnectAttempts = 5;
+    
     // Conexión abierta
     socket.addEventListener('open', (event) => {
         console.log('Conectado al servidor de notificaciones WebSocket');
@@ -94,13 +96,35 @@ function connectWebSocket(userId) {
         setTimeout(() => connectWebSocket(userId), 5000);
     });
     
-    // Error de conexión
+    // Error de conexión mejorado
     socket.addEventListener('error', (event) => {
         console.error('Error de WebSocket:', event);
+        if (reconnectAttempts < maxReconnectAttempts) {
+            const timeout = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000);
+            console.log(`Reintentando conexión en ${timeout / 1000} segundos...`);
+            setTimeout(() => {
+                reconnectAttempts++;
+                connectWebSocket(userId);
+            }, timeout);
+        } else {
+            console.error('Máximo número de intentos de reconexión alcanzado');
+        }
     });
-    
+
     // Guardar la referencia del socket para uso posterior
     window.notificationSocket = socket;
+}
+
+// Agregar nueva función para manejar la reconexión
+function handleReconnection(userId) {
+    if (window.notificationSocket) {
+        try {
+            window.notificationSocket.close();
+        } catch (e) {
+            console.error('Error al cerrar socket existente:', e);
+        }
+    }
+    window.notificationSocket = connectWebSocket(userId);
 }
 
 // Función para reproducir sonido
@@ -124,42 +148,53 @@ function playSound() {
     }
 }
 
-// Función para mostrar notificación del navegador
+// Mejorar la función showBrowserNotification
 function showBrowserNotification(message, data = {}) {
-    // Si el sistema antiguo está activo, usar su función
-    if (typeof showNotification === 'function' && typeof notificationsEnabled !== 'undefined' && notificationsEnabled) {
-        console.log('Usando sistema de notificaciones existente');
-        showNotification('ICAYS Notificación', message);
-        return;
-    }
-    
-    // Si no, usar nuestra propia implementación
     if (!('Notification' in window)) {
+        console.log('Este navegador no soporta notificaciones de escritorio');
         return;
     }
-    
+
+    const notificationOptions = {
+        body: message,
+        icon: '/static/img/logo.png',
+        badge: '/static/img/badge.png',
+        tag: 'icays-notification',
+        requireInteraction: true,
+        ...data.options
+    };
+
     if (Notification.permission === 'granted' && document.hidden) {
-        const notification = new Notification('ICAYS Notificación', {
-            body: message,
-            icon: '/static/img/logo.png'
-        });
-        
-        notification.onclick = () => {
-            window.focus();
-            notification.close();
-            
-            // Si hay una URL específica, navegar a ella
-            if (data.url) {
-                window.location.href = data.url;
-            }
-        };
-    } else if (Notification.permission !== 'denied' && Notification.permission !== 'granted') {
-        Notification.requestPermission().then(permission => {
-            if (permission === 'granted') {
-                showBrowserNotification(message, data);
-            }
-        });
+        try {
+            const notification = new Notification('ICAYS Notificación', notificationOptions);
+            handleNotificationClick(notification, data);
+        } catch (error) {
+            console.error('Error al crear notificación:', error);
+        }
+    } else if (Notification.permission !== 'denied') {
+        Notification.requestPermission()
+            .then(permission => {
+                if (permission === 'granted') {
+                    showBrowserNotification(message, data);
+                }
+            });
     }
+}
+
+// Nueva función para manejar el clic en notificaciones
+function handleNotificationClick(notification, data) {
+    notification.onclick = () => {
+        window.focus();
+        notification.close();
+        
+        if (data.url) {
+            window.location.href = data.url;
+        }
+        
+        if (data.notification_id) {
+            markNotificationAsRead(data.notification_id);
+        }
+    };
 }
 
 // Función para cargar notificaciones existentes

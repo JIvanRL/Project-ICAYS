@@ -702,9 +702,9 @@
                                 <thead>
                                     <tr>
                                         <th style="width: 20%;">Observaciones</th>
-                                        <th>Ejemplo de calculo de resultado</th>
-                                        <th>Ejemplo de canculo de resultado de superficies vivas e inertes</th>
-                                        <th>Ejemplo de calculo diferencia entre duplicados</th>
+                                        <th>Ejemplo de cálculo de resultado</th>
+                                        <th>Ejemplo de cálculo de resultado de superficies vivas e inertes</th>
+                                        <th>Ejemplo de cálculo diferencia entre duplicados</th>
                                         <th style="width: 8%;">Elaboró</th>
                                         <th style="width: 8%;">Revisó</th>
                                         <th style="width: 8%;">Autorizó</th>
@@ -1042,53 +1042,28 @@
     </div>
 </div>
 
-<!-- Modal (ventana emergente) para observaciones generales -->
-<div id="observacionesModalGeneral" class="modalOB">
-    <div class="modal-contentOB align-items-center">
-        <span class="close">&times;</span>
-        <h2 class="text-center" id="observacionesTitulo">Retroalimentación General</h2>
-        
-        <!-- Sección para mostrar el comentario/observación general -->
-        <div id="comentarioObservacionGeneral" class="mb-3 text-start w-100">
-            <strong>Comentario:</strong> <span id="textoObservacionGeneral">-</span>
-        </div>
-        
-        
-        <!-- Textarea para mostrar el valor actual -->
-        <!-- Textarea para las observaciones generales o resumen -->
-        <textarea id="observacionesTextGeneral" class="form-control mb-3" rows="10" 
-                  placeholder="Escriba una observación general o vea el resumen de todas las observaciones..."></textarea>
-        
-        <!-- Botón para guardar observaciones -->
-        <button id="guardarObservacionesGeneral" class="btn btn-primary">Guardar observación</button>
-    </div>
-</div>
-
 <!-- Modal para observaciones generales (con estilo Bootstrap) -->
 <div class="modal fade" id="observacionesModalGeneral" tabindex="-1" aria-labelledby="observacionesGeneralLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-dialog modal-dialog-centered modal-md"> <!-- Cambiado de modal-lg a modal-md -->
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="observacionesGeneralLabel">
+                <h5 class="modal-title" id="observacionesTituloGeneral">
                     <i class="bi bi-list-check me-2"></i>
                     Retroalimentación General
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <!-- Sección para mostrar el comentario/observación general -->
+                <!-- Contenedor para el comentario -->
                 <div id="comentarioObservacionGeneral" class="mb-3">
                     <label for="observacionesTextGeneral" class="form-label"><strong>Comentarios y observaciones:</strong></label>
-                    <!-- Sección para mostrar el comentario/observación general -->
-        <div id="comentarioObservacionGeneral" class="mb-3 text-start w-100">
-            <strong>Comentario:</strong> <span id="textoObservacionGeneral">-</span>
-        </div>
-                     <!-- Textarea para las observaciones generales o resumen -->
-        <textarea id="observacionesTextGeneral" class="form-control mb-3" rows="10" 
-        placeholder="Escriba una observación general o vea el resumen de todas las observaciones..."></textarea>
+                    <textarea id="observacionesTextGeneral" class="form-control mb-3" rows="10" 
+                            style="width: 100%; min-width: 300px;"
+                            placeholder="Escriba una observación general o vea el resumen de todas las observaciones..."></textarea>
                 </div>
             </div>
-            <div class="modal-footern justify-content-center">
+            <div class="modal-footer">
+                <button id="guardarObservacionesGeneral" class="btn btn-primary">Guardar observación</button>
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
             </div>
         </div>
@@ -1260,5 +1235,6 @@
     
     <script src="{% static 'js/tomos.js' %}"></script>
     <!-- Incluir el script de visualización de campos seleccionados -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="{% static 'js/visualizar-campos-rechazados.js' %}"></script>
 {% endblock %}

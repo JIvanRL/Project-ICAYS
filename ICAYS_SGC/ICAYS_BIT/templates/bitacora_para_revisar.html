@@ -472,7 +472,7 @@
                             <input type="text" class="form-control" id="mes_1cc_{{ forloop.counter }}"
                                 name="mes_1cc_{{ forloop.counter }}" 
                                 value="{% if control.mes_1cc|default:'---' %}{{ control.mes_1cc }}{% endif %}" required>
-                            <label for="mes_1cc_{{ forloop.counter }}">Mes</label>
+                            <label for="mes_1cc{{ forloop.counter }}">Mes</label>
                         </div>
                         <div class="form-floating">
                             <input type="text" class="form-control" id="anio_1cc_{{ forloop.counter }}"
@@ -667,202 +667,191 @@
                  </div>
                     <div class="d-flex justify-content-center mt-4">
                         <div class="w-100">
-                            <table class="table-container text-center border">
-                                <thead>
-                                    <tr>
-                                        <th style="width: 20%;">Observaciones</th>
-                                        <th>Ejemplo de calculo de resultado</th>
-                                        <th>Ejemplo de canculo de resultado de superficies vivas e inertes</th>
-                                        <th>Ejemplo de calculo diferencia entre duplicados</th>
-                                        <th style="width: 8%;">Elaboró</th>
-                                        <th style="width: 8%;">Revisó</th>
-                                        <th style="width: 8%;">Autorizó</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td >
-                                            <div class="d-flex flex-column align-items-center">
-                                                <textarea name="observaciones_cbap" class="form-control" rows="3" style="width: 100%; resize: none;" placeholder="Escriba sus observaciones aquí..." >{{ bitacora.observaciones_cbap|default:'---' }}</textarea>
-                                            </div>
-                                        </td>
-                                        
-                                        <!-- Sección para mostrar los ejemplos de fórmulas -->
-{% if ejemplos_formulas.0 %}
-<!-- Primera fórmula - Promedio de lectura ÷ Dilución empleada = Resultado -->
-<td class="align-middle">
-    <div class="d-flex flex-column gap-1">
-        <p class="fs-9 mb-0">Promedio de lectura ÷ Dilución empleada = Resultado</p>
-        <div class="d-flex gap-1">
-            <input type="text" id="num1" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;" value="{{ ejemplos_formulas.0.dato1_ejemplo|default:'---' }}">
-            <span class="fs-9">÷</span>
-            <input type="text" id="num2" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;" value="{{ ejemplos_formulas.0.dato2_ejemplo|default:'---' }}">
-            <span class="fs-9">=</span>
-            <label class="fs-9" id="result" style="font-size: 12px;">{{ ejemplos_formulas.0.resultdo_ejemplo|default:'---' }}</label>
-        </div>
-        <div class="d-flex gap-1 p-1">
-            <p class="fs-9 mb-0">Clave muestra:</p>
-            <input type="text" class="form-control form-control-sm" style="width: 80px; height: 25px; font-size: 0.75rem;" value="{{ ejemplos_formulas.0.clave_muestra_ejemplo|default:'---' }}">
-        </div>
-    </div>
-</td>
-{% else %}
-<!-- Primera fórmula predeterminada -->
-<td class="align-middle">
-    <div class="d-flex flex-column gap-1">
-        <p class="fs-9 mb-0">Promedio de lectura ÷ Dilución empleada = Resultado</p>
-        <div class="d-flex gap-1">
-            <input type="text" id="num1" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;" value="---">
-            <span class="fs-9">÷</span>
-            <input type="text" id="num2" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;" value="---">
-            <span class="fs-9">=</span>
-            <label class="fs-9" id="result" style="font-size: 12px;">---</label>
-        </div>
-        <div class="d-flex gap-1 p-1">
-            <p class="fs-9 mb-0">Clave muestra:</p>
-            <input type="text" class="form-control form-control-sm" style="width: 80px; height: 25px; font-size: 0.75rem;" value="---">
-        </div>
-    </div>
-</td>
-{% endif %}
-
-{% if ejemplos_formulas.1 %}
-<!-- Segunda fórmula - Cálculo de resultado de superficies vivas e inertes -->
-<td class="align-middle">
-    <div class="d-flex flex-column gap-1">
-        <p class="fs-9 mb-0">Ejemplo de cálculo de resultado de superficies vivas e inertes:</p>
-        <p class="fs-9 mb-0">(promedio de la lectura ÷ Dilución empleadas) x Volumen de medio de transporte = resultado</p>
-        <div class="d-flex gap-1">
-            (<input type="text" id="num3" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;" value="{{ ejemplos_formulas.1.dato1_ejemplo|default:'---' }}">
-            <span class="fs-9">÷</span>
-            <input type="text" id="num4" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;" value="{{ ejemplos_formulas.1.dato2_ejemplo|default:'---' }}">)
-            <span class="fs-9">×</span>
-            <input type="text" id="num5" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;" value="{{ ejemplos_formulas.1.dato3_ejemplo|default:'---' }}">
-            <span class="fs-9">=</span>
-            <label class="fs-9" id="result2" style="font-size: 12px;">{{ ejemplos_formulas.1.resultdo_ejemplo|default:'---' }}</label>
-        </div>
-        <div class="d-flex gap-1 p-1">
-            <p class="fs-9 mb-0">Clave muestra:</p>
-            <input type="text" class="form-control form-control-sm" style="width: 80px; height: 25px; font-size: 0.75rem;" value="{{ ejemplos_formulas.1.clave_muestra_ejemplo|default:'---' }}">
-        </div>
-    </div>
-</td>
-{% else %}
-<!-- Segunda fórmula predeterminada -->
-<td class="align-middle">
-    <div class="d-flex flex-column gap-1">
-        <p class="fs-9 mb-0">Ejemplo de cálculo de resultado de superficies vivas e inertes:</p>
-        <p class="fs-9 mb-0">(promedio de la lectura ÷ Dilución empleadas) x Volumen de medio de transporte = resultado</p>
-        <div class="d-flex gap-1">
-            (<input type="text" id="num3" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;" value="---">
-            <span class="fs-9">÷</span>
-            <input type="text" id="num4" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;" value="---">) x
-            <input type="text" id="num5" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;" value="---">
-            <span class="fs-9">=</span>
-            <label class="fs-9" id="result2" style="font-size: 12px;">---</label>
-        </div>
-        <div class="d-flex gap-1 p-1">
-            <p class="fs-9 mb-0">Clave muestra:</p>
-            <input type="text" class="form-control form-control-sm" style="width: 80px; height: 25px; font-size: 0.75rem;" value="---">
-        </div>
-    </div>
-</td>
-{% endif %}
-
-{% if ejemplos_formulas.2 %}
-<!-- Tercera fórmula - Cálculo diferencia entre duplicados -->
-<td class="align-middle">
-    <div class="d-flex flex-column gap-1">
-        <p class="fs-9 mb-0">Ejemplo de cálculo diferencia entre duplicados</p>
-        <div class="formula-container">
-            <p class="formula-text flex-column mb-0">
-                <span class="formula-part">(placa1 - placa2) ÷ Promedio × 100 = ≤5%</span>
-            </p>
-        </div>
-        <div class="d-flex gap-1">
-            <input type="text" id="num6" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;" value="{{ ejemplos_formulas.2.dato1_ejemplo|default:'---' }}">
-            <span class="fs-9">-</span>
-            <input type="text" id="num7" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;" value="{{ ejemplos_formulas.2.dato2_ejemplo|default:'---' }}">
-            <span class="fs-9">÷</span>
-            <input type="text" id="num8" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;" value="{{ ejemplos_formulas.2.dato3_ejemplo|default:'---' }}">
-            <span class="fs-9">x 100 =</span>
-            <label class="fs-9" id="result3" style="font-size: 12px;">{{ ejemplos_formulas.2.resultdo_ejemplo|default:'---' }}</label>
-        </div>
-        <div class="d-flex gap-1 p-1">
-            <p class="fs-9 mb-0">Clave muestra:</p>
-            <input type="text" class="form-control form-control-sm" style="width: 80px; height: 25px; font-size: 0.75rem;" value="{{ ejemplos_formulas.2.clave_muestra_ejemplo|default:'---' }}">
-        </div>
-    </div>
-</td>
-{% else %}
-<!-- Tercera fórmula predeterminada -->
-<td class="align-middle">
-    <div class="d-flex flex-column gap-1">
-        <p class="fs-9 mb-0">Ejemplo de cálculo diferencia entre duplicados</p>
-        <div class="formula-container">
-            <p class="formula-text flex-column mb-0">
-                <span class="formula-part">(placa1 - placa2) ÷ Promedio × 100 = ≤5%</span>
-            </p>
-        </div>
-        <div class="d-flex gap-1">
-            <input type="text" id="num6" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;" value="---">
-            <span class="fs-9">-</span>
-            <input type="text" id="num7" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;" value="---">
-            <span class="fs-9">÷</span>
-            <input type="text" id="num8" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;" value="---">
-            <span class="fs-9">x 100 =</span>
-            <label class="fs-9" id="result3" style="font-size: 12px;">---</label>
-        </div>
-        <div class="d-flex gap-1 p-1">
-            <p class="fs-9 mb-0">Clave muestra:</p>
-            <input type="text" class="form-control form-control-sm" style="width: 80px; height: 25px; font-size: 0.75rem;" value="---">
-        </div>
-    </div>
-</td>
-{% endif %}
-                                        <td>
-                                            <div class="d-flex flex-column align-items-center">
-                                                {% if bitacora.firma_user.signature_user %}
-                                                <span>{{ bitacora.firma_user.signature_user }}</span>
-                                                {% endif %}
-                                                <hr class="w-100 mt-3">
-                                                <span>Firma</span>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div class="d-flex flex-column align-items-center">
-                                                {% if registro and registro.estado == 'revisada' %}
-                                                    {% if registro.firma_revisor and registro.firma_revisor.signature_user %}
-                                                    <span>{{ registro.firma_revisor.signature_user }}</span>
-                                                    {% endif %}                                                   
-                                                {% else %}                                                    
-                                                    <span class="text-muted small">Pendiente de revisión</span>
-                                                {% endif %}
-                                                <hr class="w-100 mt-3">
-                                                <span>Firma</span>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <!-- Firma de quien autorizó la bitácora -->
-                                        <div class="d-flex flex-column align-items-center">
-                                            {% if registro and registro.estado == 'autorizada' %}
-                                                {% if registro.firma_autorizador and registro.firma_autorizador.signature_user %}
-                                                <span>{{ registro.firma_autorizador.signature_user }}</span>
-                                                {% endif %}                                                
-                                            {% else %}                                                
-                                                <span class="text-muted small">Pendiente de autorización</span>
+                            <div class="table-responsive">
+                                <table class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th class="col-3">Observaciones</th>
+                                            <th class="col">Ejemplo de cálculo de resultado</th>
+                                            <th class="col">Ejemplo de cálculo de resultado de superficies vivas e inertes</th>
+                                            <th class="col">Ejemplo de cálculo diferencia entre duplicados</th>
+                                            <th class="col-1">Elaboró</th>
+                                            <th class="col-1">Revisó</th>
+                                            <th class="col-1">Autorizó</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td class="align-middle">
+                                                <div class="d-flex flex-column w-100">
+                                                    <textarea name="observaciones_cbap" class="form-control" rows="3" style="resize: none;" placeholder="Escriba sus observaciones aquí...">{{ bitacora.observaciones_cbap|default:'---' }}</textarea>
+                                                </div>
+                                            </td>
+                                            {% if ejemplos_formulas.0 %}
+                                            <td class="align-middle">
+                                                <div class="d-flex flex-column gap-1">
+                                                    <p class="fs-9 mb-0">Promedio de lectura ÷ Dilución empleada = Resultado</p>
+                                                    <div class="d-flex gap-1">
+                                                        <input type="text" id="num1" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;" value="{{ ejemplos_formulas.0.dato1_ejemplo|default:'---' }}">
+                                                        <span class="fs-9">÷</span>
+                                                        <input type="text" id="num2" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;" value="{{ ejemplos_formulas.0.dato2_ejemplo|default:'---' }}">
+                                                        <span class="fs-9">=</span>
+                                                        <label class="fs-9" id="result" style="font-size: 12px;">{{ ejemplos_formulas.0.resultdo_ejemplo|default:'---' }}</label>
+                                                    </div>
+                                                    <div class="d-flex gap-1 p-1">
+                                                        <p class="fs-9 mb-0">Clave muestra:</p>
+                                                        <input type="text" class="form-control form-control-sm" style="width: 80px; height: 25px; font-size: 0.75rem;" value="{{ ejemplos_formulas.0.clave_muestra_ejemplo|default:'---' }}">
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            {% else %}
+                                            <td class="align-middle">
+                                                <div class="d-flex flex-column gap-1">
+                                                    <p class="fs-9 mb-0">Promedio de lectura ÷ Dilución empleada = Resultado</p>
+                                                    <div class="d-flex gap-1">
+                                                        <input type="text" id="num1" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;" value="---">
+                                                        <span class="fs-9">÷</span>
+                                                        <input type="text" id="num2" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;" value="---">
+                                                        <span class="fs-9">=</span>
+                                                        <label class="fs-9" id="result" style="font-size: 12px;">---</label>
+                                                    </div>
+                                                    <div class="d-flex gap-1 p-1">
+                                                        <p class="fs-9 mb-0">Clave muestra:</p>
+                                                        <input type="text" class="form-control form-control-sm" style="width: 80px; height: 25px; font-size: 0.75rem;" value="---">
+                                                    </div>
+                                                </div>
+                                            </td>
                                             {% endif %}
-                                            <hr class="w-100 mt-3">
-                                                <span>Firma</span>  
-                                        </div>
-                                                                            </td>
-                                        
-                                    </tr>
-                                </tbody>
-                            </table>
+                                            {% if ejemplos_formulas.1 %}
+                                            <td class="align-middle">
+                                                <div class="d-flex flex-column gap-1">
+                                                    <p class="fs-9 mb-0">Ejemplo de cálculo de resultado de superficies vivas e inertes:</p>
+                                                    <p class="fs-9 mb-0">(promedio de la lectura ÷ Dilución empleadas) x Volumen de medio de transporte = resultado</p>
+                                                    <div class="d-flex gap-1">
+                                                        (<input type="text" id="num3" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;" value="{{ ejemplos_formulas.1.dato1_ejemplo|default:'---' }}">
+                                                        <span class="fs-9">÷</span>
+                                                        <input type="text" id="num4" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;" value="{{ ejemplos_formulas.1.dato2_ejemplo|default:'---' }}">)
+                                                        <span class="fs-9">×</span>
+                                                        <input type="text" id="num5" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;" value="{{ ejemplos_formulas.1.dato3_ejemplo|default:'---' }}">
+                                                        <span class="fs-9">=</span>
+                                                        <label class="fs-9" id="result2" style="font-size: 12px;">{{ ejemplos_formulas.1.resultdo_ejemplo|default:'---' }}</label>
+                                                    </div>
+                                                    <div class="d-flex gap-1 p-1">
+                                                        <p class="fs-9 mb-0">Clave muestra:</p>
+                                                        <input type="text" class="form-control form-control-sm" style="width: 80px; height: 25px; font-size: 0.75rem;" value="{{ ejemplos_formulas.1.clave_muestra_ejemplo|default:'---' }}">
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            {% else %}
+                                            <td class="align-middle">
+                                                <div class="d-flex flex-column gap-1">
+                                                    <p class="fs-9 mb-0">Ejemplo de cálculo de resultado de superficies vivas e inertes:</p>
+                                                    <p class="fs-9 mb-0">(promedio de la lectura ÷ Dilución empleadas) x Volumen de medio de transporte = resultado</p>
+                                                    <div class="d-flex gap-1">
+                                                        (<input type="text" id="num3" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;" value="---">
+                                                        <span class="fs-9">÷</span>
+                                                        <input type="text" id="num4" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;" value="---">) x
+                                                        <input type="text" id="num5" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;" value="---">
+                                                        <span class="fs-9">=</span>
+                                                        <label class="fs-9" id="result2" style="font-size: 12px;">---</label>
+                                                    </div>
+                                                    <div class="d-flex gap-1 p-1">
+                                                        <p class="fs-9 mb-0">Clave muestra:</p>
+                                                        <input type="text" class="form-control form-control-sm" style="width: 80px; height: 25px; font-size: 0.75rem;" value="---">
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            {% endif %}
+                                            {% if ejemplos_formulas.2 %}
+                                            <td class="align-middle">
+                                                <div class="d-flex flex-column gap-1">
+                                                    <p class="fs-9 mb-0">Ejemplo de cálculo diferencia entre duplicados</p>
+                                                    <div class="formula-container">
+                                                        <p class="formula-text flex-column mb-0">
+                                                            <span class="formula-part">(placa1 - placa2) ÷ Promedio × 100 = ≤5%</span>
+                                                        </p>
+                                                    </div>
+                                                    <div class="d-flex gap-1">
+                                                        <input type="text" id="num6" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;" value="{{ ejemplos_formulas.2.dato1_ejemplo|default:'---' }}">
+                                                        <span class="fs-9">-</span>
+                                                        <input type="text" id="num7" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;" value="{{ ejemplos_formulas.2.dato2_ejemplo|default:'---' }}">
+                                                        <span class="fs-9">÷</span>
+                                                        <input type="text" id="num8" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;" value="{{ ejemplos_formulas.2.dato3_ejemplo|default:'---' }}">
+                                                        <span class="fs-9">x 100 =</span>
+                                                        <label class="fs-9" id="result3" style="font-size: 12px;">{{ ejemplos_formulas.2.resultdo_ejemplo|default:'---' }}</label>
+                                                    </div>
+                                                    <div class="d-flex gap-1 p-1">
+                                                        <p class="fs-9 mb-0">Clave muestra:</p>
+                                                        <input type="text" class="form-control form-control-sm" style="width: 80px; height: 25px; font-size: 0.75rem;" value="{{ ejemplos_formulas.2.clave_muestra_ejemplo|default:'---' }}">
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            {% else %}
+                                            <td class="align-middle">
+                                                <div class="d-flex flex-column gap-1">
+                                                    <p class="fs-9 mb-0">Ejemplo de cálculo diferencia entre duplicados</p>
+                                                    <div class="formula-container">
+                                                        <p class="formula-text flex-column mb-0">
+                                                            <span class="formula-part">(placa1 - placa2) ÷ Promedio × 100 = ≤5%</span>
+                                                        </p>
+                                                    </div>
+                                                    <div class="d-flex gap-1">
+                                                        <input type="text" id="num6" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;" value="---">
+                                                        <span class="fs-9">-</span>
+                                                        <input type="text" id="num7" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;" value="---">
+                                                        <span class="fs-9">÷</span>
+                                                        <input type="text" id="num8" class="form-control form-control-sm" style="width: 50px; height: 25px; font-size: 0.75rem;" value="---">
+                                                        <span class="fs-9">x 100 =</span>
+                                                        <label class="fs-9" id="result3" style="font-size: 12px;">---</label>
+                                                    </div>
+                                                    <div class="d-flex gap-1 p-1">
+                                                        <p class="fs-9 mb-0">Clave muestra:</p>
+                                                        <input type="text" class="form-control form-control-sm" style="width: 80px; height: 25px; font-size: 0.75rem;" value="---">
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            {% endif %}
+                                            <td class="align-middle">
+                                                <div class="d-flex flex-column align-items-center">
+                                                    {% if bitacora.firma_user.signature_user %}
+                                                    <span>{{ bitacora.firma_user.signature_user }}</span>
+                                                    {% endif %}
+                                                    <hr class="w-100 mt-3 mb-1">
+                                                    <small>Firma</small>
+                                                </div>
+                                            </td>
+                                            <td class="align-middle">
+                                                <div class="d-flex flex-column align-items-center">
+                                                    {% if registro and registro.estado == 'revisada' %}
+                                                        {% if registro.firma_revisor and registro.firma_revisor.signature_user %}
+                                                        <span>{{ registro.firma_revisor.signature_user }}</span>
+                                                        {% endif %}                                                   
+                                                    {% else %}                                                    
+                                                        <small class="text-muted">Pendiente de revisión</small>
+                                                    {% endif %}
+                                                    <hr class="w-100 mt-3 mb-1">
+                                                    <small>Firma</small>
+                                                </div>
+                                            </td>
+                                            <td class="align-middle">
+                                                <div class="d-flex flex-column align-items-center">
+                                                    {% if registro and registro.estado == 'autorizada' %}
+                                                        {% if registro.firma_autorizador and registro.firma_autorizador.signature_user %}
+                                                        <span>{{ registro.firma_autorizador.signature_user }}</span>
+                                                        {% endif %}                                                
+                                                    {% else %}                                                
+                                                        <small class="text-muted">Pendiente de autorización</small>
+                                                    {% endif %}
+                                                    <hr class="w-100 mt-3 mb-1">
+                                                    <small>Firma</small>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
-                    </div>   
-            </div>
+                    </div>
                     <!-- Modal confirmación-->
             <div class="modal fade" id="enviar" tabindex="-1" aria-labelledby="enviar" aria-hidden="true">
                 <div class="modal-dialog">
@@ -872,7 +861,7 @@
                     <button type="button" class="btn-close position-absolute end-0 me-3" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body text-muted text-center">
-                        Porfavor antes de enviar asegurese que todo este correcto.
+                        Por favor, antes de enviar asegúrese que todo esté correcto.
                     </div>
                     <div class="modal-footer justify-content-center">
                     <button type="button" class="btn btn-danger me-2" data-bs-dismiss="modal">Cancelar</button>
@@ -963,7 +952,7 @@
                 <div class="modal-header bg-danger text-white">
                     <h5 class="modal-title" id="mensajeExitoLabel">
                         <i class="bi bi-check-circle me-2"></i>
-                        Error al guardar bitacora
+                        Error al guardar bitácora
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
